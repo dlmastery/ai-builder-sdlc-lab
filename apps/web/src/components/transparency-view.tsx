@@ -426,7 +426,9 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
           </section>
         ) : null}
 
-        {sel ? <Alternatives field={sel} /> : null}
+        {/* only when the model actually weighed more than one reading — a single entry equal to
+            the value tells a clerk nothing (brief critic, round 14) */}
+        {sel && sel.alternatives.length > 1 ? <Alternatives field={sel} /> : null}
 
         <Ledger results={ex.verifier_results} byId={byId} approved={doc.approved} />
 
@@ -734,14 +736,15 @@ function describe(r: VerifierResultOut, byId: Map<string, FieldOut>): string {
   const d = r.detail ?? {};
   const name = r.field_id ? (byId.get(r.field_id)?.name ?? "") : "";
   switch (r.rule) {
+    // sentences, not equations: a clerk reads "adds up to", not Σ and = (brief critic, round 14)
     case "arithmetic.total":
-      return `${d.subtotal} + ${d.tax ?? "0"} = ${d.expected_total} · total reads ${d.total}`;
+      return `Subtotal ${d.subtotal} plus tax ${d.tax ?? "0"} makes ${d.expected_total} · the total reads ${d.total}`;
     case "arithmetic.line_items":
-      return `Σ line items ${d.sum_of_line_items} · subtotal reads ${d.subtotal}`;
+      return `The line items add up to ${d.sum_of_line_items} · the subtotal reads ${d.subtotal}`;
     case "format.date":
-      return `${fieldLabel(name)} parses as a date`;
+      return `${fieldLabel(name)} is a well-formed date`;
     case "format.money":
-      return `${fieldLabel(name)} parses as money`;
+      return `${fieldLabel(name)} is a well-formed amount`;
     case "grounding":
       return `${fieldLabel(name)}: read, but the page could not confirm it`;
     default:

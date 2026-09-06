@@ -3,7 +3,10 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"], display: "swap" });
-const mono = JetBrains_Mono({ variable: "--font-mono", subsets: ["latin"], display: "swap" });
+// named differently from the token that consumes it: `--font-mono: var(--font-mono), …` in
+// globals.css was a cycle, so the mono stack was invalid and every identifier rendered in the
+// proportional face — two system critics read it as "not monospace" before the cause was found
+const mono = JetBrains_Mono({ variable: "--font-jetbrains", subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
   title: { default: "Ledgerlens", template: "%s · Ledgerlens" },
