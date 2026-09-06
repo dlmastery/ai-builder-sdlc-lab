@@ -139,7 +139,7 @@ function ledgerLines(): Array<[string, boolean]> {
     const d = (r.detail ?? {}) as Record<string, string>;
     if (r.rule === "arithmetic.line_items") out.push([`Σ line items ${d.sum_of_line_items} · subtotal reads ${d.subtotal}`, r.passed]);
     else if (r.rule === "arithmetic.total") out.push([`${d.subtotal} + ${d.tax ?? "0"} = ${d.expected_total} · total reads ${d.total}`, r.passed]);
-    else if (r.rule === "grounding" && !r.passed) out.push([`${(r.field ?? "field").replaceAll("_", " ")} could not be found on the page`, false]);
+    else if (r.rule === "grounding" && !r.passed) out.push([`${(r.field ?? "field").replaceAll("_", " ")}: read, but the page could not confirm it`, false]);
   }
   out.push([`${rows.filter((r) => r.rule === "grounding" && r.passed).length} fields grounded on the page`, true]);
   return out;

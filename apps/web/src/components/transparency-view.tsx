@@ -138,12 +138,13 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
       {/* --- the page --- */}
       <section className="flex flex-col gap-4">
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
+          <div className="min-w-0 flex-1">
             <p className="micro">
               Document{doc.vendor_name ? ` · ${doc.vendor_name}` : ""}
-              {doc.difficulty != null ? ` · difficulty ${pct(doc.difficulty)}` : ""}
+              {doc.difficulty != null ? ` · predicted difficulty ${pct(doc.difficulty)}` : ""}
             </p>
-            <h1 className="mt-2 truncate text-step-3 font-medium leading-none tracking-tight">
+            {/* page-title size, not display: a long filename must stay legible (DESIGN.md — legibility wins) */}
+            <h1 className="mt-2 truncate text-step-2 font-medium leading-none tracking-tight">
               {doc.original_filename}
             </h1>
           </div>
@@ -199,7 +200,9 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
                   // an ungrounded field is outlined, not filled: the page's own red ink (a stamp)
                   // must stay distinguishable from the fault tint (design loop, P3 round 3)
                   const outlineOnly = !f.grounded;
-                  const label = pct(conf); // a number beside every coloured box, line items too
+                  // a number beside every coloured box, line items too; below the bar the two
+                  // decimals are the reason the box is not green (the bar is ~99.9999 %)
+                  const label = tone === "signal" ? pct(conf) : pct(conf, 2);
                   const fs = Math.max(9, page.width * (f.line_index === null ? 0.012 : 0.0095));
                   return (
                     <g key={`${f.id}-${i}`} className="arrive" data-layer="4">
@@ -235,12 +238,12 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
           </svg>
         </div>
         <p className="text-step--1 text-ink-3">
-          Boxes show where each value was found on the page. Green: read with confidence (the
-          number beside it). Amber box: a field the system is less sure of but that cannot block
-          approval on its own. Red dashed: a value the model read but the page could not confirm
-          (a stamp over it, for instance); red filled: a required field read too uncertainly. A
-          dotted amber underline is a hard spot — a word the reader struggled with (score under{" "}
-          {pct(HARD_SPOT_SCORE)}).
+          Boxes show where each value was found on the page, with its confidence beside it.
+          Green: at or above the {pct(threshold, 2)} bar. Amber: below the bar on a field that cannot
+          block approval on its own — the two decimals show why. Red: below the bar on a required
+          field. A value the model read but the page could not confirm (a stamp over it, for
+          instance) has no box — it is listed in red in the fields panel. A dotted amber underline
+          is a hard spot: a word the reader struggled with (score under {pct(HARD_SPOT_SCORE)}).
         </p>
       </section>
 
@@ -307,7 +310,7 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
                           <span className="block">{f?.value ?? "—"}</span>
                           {f ? (
                             <span className={`readout mt-1 block text-step--1 ${TONE_TEXT[tone]}`}>
-                              {f.grounded ? pct(f.calibrated_confidence) : "not confirmed"}
+                              {f.grounded ? (tone === "signal" ? pct(f.calibrated_confidence) : pct(f.calibrated_confidence, 2)) : "not confirmed"}
                             </span>
                           ) : null}
                         </td>
@@ -349,7 +352,7 @@ function LayerToggle({ on, onClick, label, disabled }: { on: boolean; onClick: (
 }
 
 function HardSpot({ w }: { w: OcrWordOut }) {
-  const [, x0, y0, x1, y1] = w.box;
+  const [, x0, , x1, y1] = w.box;
   // a hard spot is "where the reader struggled", not a field: a dotted caution underline beneath
   // the word, never a fill, so it cannot be mistaken for a field tint or the page's own ink
   // (P3 round 6). Thicker and darker the lower the score.
@@ -509,7 +512,7 @@ function Readout({
         )}
         <span className="flex items-baseline gap-3">
           <span className={`readout text-step--1 ${wasCorrected ? "text-ink-3" : TONE_TEXT[tone]}`}>
-            {wasCorrected ? "corrected" : pct(conf)}
+            {wasCorrected ? "corrected" : tone === "signal" ? pct(conf) : pct(conf, 2)}
             {!field.grounded && !wasCorrected ? " · not confirmed on the page" : ""}
           </span>
           {field.stability != null ? <StabilityRing value={field.stability} /> : null}
@@ -612,7 +615,7 @@ function describe(r: VerifierResultOut, byId: Map<string, FieldOut>): string {
     case "format.money":
       return `${fieldLabel(name)} parses as money`;
     case "grounding":
-      return `${fieldLabel(name)} could not be found on the page`;
+      return `${fieldLabel(name)}: read, but the page could not confirm it`;
     default:
       return r.rule;
   }

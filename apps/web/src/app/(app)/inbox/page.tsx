@@ -61,7 +61,7 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
             <p className="callout callout-caution mt-4 text-step-0">
               <strong className="font-medium">Needs you:</strong> {total} document{total === 1 ? "" : "s"} in the queue
               {inFlight > 0 ? `, ${inFlight} being read` : ""} ·{" "}
-              <Link href={`/documents/${next.id}`} data-testid="review-next" className="text-ink underline decoration-ink-3 underline-offset-4 hover:decoration-ink">
+              <Link href={`/documents/${next.id}`} data-testid="review-next" className="font-medium text-ink underline decoration-ink-2 underline-offset-4 hover:decoration-ink">
                 review next →
               </Link>
             </p>
