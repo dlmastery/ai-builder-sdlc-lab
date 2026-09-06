@@ -208,6 +208,22 @@ Then the product on the real model: adapter, calibrator, threshold and difficult
 
 ---
 
+## Beat 15 — The design loop, and a customer at the door
+
+**AI Builder:** *"The fine-tuning can happen tonight — not now. For now let's focus on completing the app fully, in an amazing, dazzling way."*
+
+**Fable:** Training paused (D-043). The sample's Design Loop, run to the letter: your sample torn down into seven mechanisms a critic can check by looking; each page rendered and judged by three critics who see only the picture — one against the goal, one against the design system, one against the sample — with a pass or a fail and the single biggest gap. No round count: the exit is winning, or you stopping it.
+
+**AI Builder:** *(watches the table fill in chapter 11 — fourteen rounds on the document view — and says nothing; the steer was the sample.)*
+
+**Fable:** Two of the critics' sentences were not about styling. "Large tan rectangles lump several fields into one box" was a grounding rule that kept every match for a value — a quantity of 1 had eleven boxes — fixed test-first and re-read through the product (D-044). "The queue argues by text label, not by the mark on the page" became a queue whose thumbnails are small transparency views (D-045). Three disagreements I recorded rather than obeyed: the plates stay at their sheet size, the accent stays off the chrome, the data lead keeps raw job errors.
+
+**Fable:** Then a first-time customer — a fresh agent with nothing but the URL and a login — walked the app on a desktop and a phone. Six broken things, worst first: a sign-in that could put a password in a URL if clicked before the page woke; the Approve button a thousand pixels off a phone screen; a header that overlapped; a queue that could not tell you it was showing the same page twice. Each fixed alone and re-run against the exact step that found it; the numbers are in the chapter. The customer's own verdict on the hero view: "genuinely clear and matches the shows-its-work pitch."
+
+> *notice:* the AI Builder's contribution to this beat is one sentence and one file. The agent supplied the critics, the customer, the fixes and the record — and disagreed three times in writing, which is what rule 5 allows and rule 13 requires.
+
+---
+
 ## What an AI Builder does, in one table
 
 | Turn | Judgement | Words used |
@@ -216,9 +232,9 @@ Then the product on the real model: adapter, calibrator, threshold and difficult
 | Answer the grilling | done-as-a-number, who challenges, what never happens, hardware, freshness, scope | six answers |
 | Four gates | accept / accept + one steer / accept / accept + one design pick | ~30 words |
 | Three slices | look at the running product; reject a question, not the work | one correction |
-| Steers | a design video; "are you still cataloguing?" | two lines |
+| Steers | a design video; "are you still cataloguing?"; "ML 101"; a sample PDF; "tonight, not now" | five lines and one file |
 | Close | "checkpoint" · "done — happy with loss" | two lines |
 
-Everything else — thirty-eight decisions, twelve chapters, ninety-some tests, seven training attempts, one product — was the agent's.
+Everything else — forty-six decisions, twelve chapters, a hundred-some tests, seven training attempts, fourteen design rounds, one customer test, one product — was the agent's.
 
 *Companions: [README.md](README.md) (what exists, with the measured numbers), [PLAYBOOK.md](PLAYBOOK.md) (how to run the lab with your own product; the full transcript), [`story/`](story/) (one chapter per turn), [`lab/decisions.md`](lab/decisions.md).*
