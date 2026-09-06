@@ -112,4 +112,10 @@ I checked the object store for a progress signal (the build job commits at the e
 
 Stopped it. Deleted the 190 partial pages and the 400-page ghost of an earlier killed build that had never got as far as a dataset row. Marked the job failed with the reason in the row. Dataset pages become JPEG at quality 90 (D-033) — which is what a scanner would have produced in the first place — behind a test that was written before the change and asserts a page decodes to its recorded size in under 800 KB. Measured on six rendered pages: PNG median 4.06 MB, JPEG-90 median 0.46 MB — nine times smaller, 2.3 GB for the whole overnight dataset. Relaunched at 12:42 UTC.
 
+### 13:10 — Forty-six minutes of rendering, then receipt 692
+
+The JPEG build ran at a page a second and wrote 4,000 synthetic pages. Then the CORD loader reached a receipt whose `sub_total` is a *list* of dicts instead of a dict — `'list' object has no attribute 'get'` — and the job failed; the build is one transaction, so the rows rolled back and the pages became orphans (deleted, 4,692 of them). The demo profile's 300 receipts never reach receipt 692, and I had let a 300-receipt rehearsal stand in for a 1,000-receipt run.
+
+Fix, test first: the mapper reproduces the record shape and merges list groups (D-034). Two things around it matter more than the fix. The CLI now builds real data *first* — a public dataset's surprises should cost minutes, not the render that precedes them. And before relaunching, all 1,000 receipts the overnight profile uses are mapped label-only as a preflight, which is what should have happened before the first launch: 54 seconds, 680 receipts with dict-shaped totals, 317 with no subtotal group at all, two with neither, and exactly one — the one — with a list. Relaunched at 13:15 UTC.
+
 *(continued below as the run progresses)*

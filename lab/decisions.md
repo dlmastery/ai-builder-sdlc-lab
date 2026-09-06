@@ -246,6 +246,14 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** a scanner produces JPEGs; PNG was fidelity nobody asked for at a price the laptop could not pay. The lesson for the class is the order of operations: measure bytes per page *before* the multiplication, not after the disk alarm.
 - **Date:** 2026-09-06
 
+## D-034 · Real data first in a build; label shapes are validated before the render
+
+- **Context:** the second overnight build rendered 4,000 synthetic pages in 46 minutes and then died on CORD receipt ~692, whose `sub_total`/`total` annotation is a list of dicts rather than a dict. The demo profile's 300 receipts never reach it. The build job is one transaction, so the rows rolled back and 4,692 pages became orphans in the object store (deleted).
+- **Decided:** `map_cord_labels` merges list-shaped groups (first value per key wins), with a test that reproduces the exact record shape. The CLI orders sources real-data-first, so a surprise in a public dataset fails in minutes. Before relaunching, all 1,000 receipts the overnight profile uses are mapped label-only as a preflight.
+- **Alternatives:** committing the build per source (keeps the pages but leaves half a dataset if it fails; the split logic needs all vendors); catching the exception and skipping the receipt (hides a data shape the evaluation would then never see).
+- **Why:** the cost of a failure in a chain is the work before it; put the cheap, uncertain stage first. The 300-receipt demo was not a rehearsal of the 1,000-receipt overnight, and I had treated it as one.
+- **Date:** 2026-09-06
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.

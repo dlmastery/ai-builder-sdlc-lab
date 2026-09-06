@@ -70,9 +70,10 @@ def cmd_dataset(a: argparse.Namespace) -> None:
 def _build_dataset(profile: str) -> str:
     n = {"smoke": 24, "demo": 400, "overnight": 4000}[profile]
     cord = {"smoke": 0, "demo": 300, "overnight": 1000}[profile]
-    sources: list[dict[str, Any]] = [{"kind": "synthetic", "n": n, "seed": 1}]
-    if cord:
-        sources.append({"kind": "cord", "limit": cord})
+    # real data first: a label-shape surprise in CORD then fails in minutes, not after the
+    # synthetic render (the first overnight build lost 46 minutes that way, D-034)
+    sources: list[dict[str, Any]] = [{"kind": "cord", "limit": cord}] if cord else []
+    sources.append({"kind": "synthetic", "n": n, "seed": 1})
     dataset_id = _run(
         "build_dataset", {"sources": sources, "name": f"{profile}-auto"}, queue="cpu"
     )["dataset_id"]

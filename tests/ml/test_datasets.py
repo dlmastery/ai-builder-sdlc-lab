@@ -37,6 +37,26 @@ def test_build_synthetic_dataset_writes_items_with_disjoint_splits(db_session) -
     assert all(i.external_ref for i in items), "every item points at its page in the object store"
 
 
+def test_cord_groups_may_be_lists_of_dicts() -> None:
+    """CORD v2 annotates `sub_total` and `total` as a dict on most receipts and as a list of
+    dicts on some (receipt ~692 in the train split); the overnight build died there after
+    rendering 4,000 pages (D-034). Lists merge, first value per key wins."""
+    from ledgerlens_ml.datasets.cord import map_cord_labels
+
+    gt = {
+        "gt_parse": {
+            "menu": [{"nm": "Es Teh", "cnt": "2", "unitprice": "5,000", "price": "10,000"}],
+            "sub_total": [{"subtotal_price": "10,000"}, {"tax_price": "1,000"}],
+            "total": [{"total_price": "11,000"}, {"total_price": "99"}],
+        }
+    }
+    labels = map_cord_labels(gt)
+    assert labels["subtotal"] == "10000.00"
+    assert labels["tax"] == "1000.00"
+    assert labels["total"] == "11000.00"
+    assert labels["line_items"][0]["description"] == "Es Teh"
+
+
 def test_dataset_pages_are_stored_as_jpeg_not_multi_megabyte_png(db_session) -> None:  # type: ignore[no-untyped-def]
     """A noised 1240x1754 scan is ~4.2 MB as PNG; 5,000 of them need ~21 GB and the overnight
     build was stopped at 9.8 GB free (D-033). JPEG at quality 90 is what a scanner would have

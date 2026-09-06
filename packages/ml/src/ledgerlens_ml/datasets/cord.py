@@ -32,6 +32,20 @@ def _money(v: Any) -> str | None:
     return f"{int(digits):d}.00" if digits else None
 
 
+def _group(v: Any) -> dict[str, Any]:
+    """`sub_total` / `total` are a dict on most receipts and a list of dicts on some (D-034);
+    a list merges with the first value per key winning."""
+    if isinstance(v, dict):
+        return v
+    merged: dict[str, Any] = {}
+    if isinstance(v, list):
+        for part in v:
+            if isinstance(part, dict):
+                for k, val in part.items():
+                    merged.setdefault(k, val)
+    return merged
+
+
 def map_cord_labels(gt: dict[str, Any]) -> dict[str, Any]:
     parse = gt.get("gt_parse", gt)
     items: list[dict[str, str | None]] = []
@@ -49,8 +63,8 @@ def map_cord_labels(gt: dict[str, Any]) -> dict[str, Any]:
                 "amount": _money(m.get("price")),
             }
         )
-    sub = parse.get("sub_total", {}) or {}
-    tot = parse.get("total", {}) or {}
+    sub = _group(parse.get("sub_total"))
+    tot = _group(parse.get("total"))
     labels: dict[str, Any] = {}
     if _money(sub.get("subtotal_price")):
         labels["subtotal"] = _money(sub.get("subtotal_price"))
