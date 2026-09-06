@@ -94,27 +94,36 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
           <span aria-hidden className="pointer-events-none absolute right-0 top-0 h-5 w-5 border-r-[3px] border-t-[3px] border-ink" />
           <span aria-hidden className="pointer-events-none absolute bottom-0 left-0 h-5 w-5 border-b-[3px] border-l-[3px] border-ink" />
           <span aria-hidden className="pointer-events-none absolute bottom-0 right-0 h-5 w-5 border-b-[3px] border-r-[3px] border-ink" />
+          {/* the title lettered inside the plate in display capitals, as every plate's is
+              (bar.md M1, round 17) */}
+          <h2 className="text-center text-step-2 font-semibold uppercase tracking-[0.16em] text-ink">Review next</h2>
+          <div aria-hidden className="mx-auto mb-6 mt-3 h-px w-40 bg-ink-3" />
           <div className="grid gap-6 md:grid-cols-[320px_minmax(0,1fr)] md:items-start">
             <Link href={`/documents/${next.id}`} aria-label="Open the next document to review" className="block">
               <Thumb src={next.thumbnail_url} alt="" width={next.page_width} height={next.page_height} marks={next.marks} threshold={next.threshold ?? 0.9} large />
             </Link>
             <div className="flex min-w-0 flex-col gap-4">
-              <p className="micro">Review next · the marks show where each value was found</p>
-              <p className="truncate text-step-1 font-medium tracking-tight text-ink">{next.original_filename}</p>
+              <p className="micro">The marks show where each value was found · green at the bar, amber below it, red where a person is needed</p>
+              <p className="truncate font-mono text-step-0 text-ink">{next.original_filename}</p>
               <p className="micro normal-case tracking-normal">
                 {next.vendor_name ?? "vendor not yet known"}
                 {next.difficulty != null ? ` · expected to be ${next.difficulty >= 0.5 ? "hard" : "easy"} to read · ${Math.round(next.difficulty * 100)}%` : ""}
                 {` · ${next.grounded_fields}/${next.field_count} values found on the page`}
               </p>
               {next.reasons.length > 0 ? (
-                <ul className="flex flex-col gap-2 text-step-0 text-ink-2">
-                  {oneReasonPerField(next.reasons).map((r) => (
-                    <li key={r.field}>
-                      <span aria-hidden className="mr-2 text-fault">✗</span>
-                      {reasonText(r.field, r.why)}
-                    </li>
-                  ))}
-                </ul>
+                <div className="callout text-step-0">
+                  <p>
+                    <strong className="font-medium"><span aria-hidden className="mr-2">◐</span>Why it stopped.</strong> The
+                    system would not approve this on its own because:
+                  </p>
+                  <ul className="mt-2 flex flex-col gap-1">
+                    {oneReasonPerField(next.reasons).map((r) => (
+                      <li key={r.field} className="text-fault">
+                        {reasonText(r.field, r.why)}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ) : null}
               <p className="mt-2">
                 <Link href={`/documents/${next.id}`} className="rounded-[var(--radius)] bg-ink px-4 py-2 text-step-0 font-medium text-ground hover:bg-ink-2">
