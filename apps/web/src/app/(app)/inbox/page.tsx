@@ -2,7 +2,7 @@ import Link from "next/link";
 import { EmptyState } from "@/components/empty-state";
 import { Uploader } from "@/components/uploader";
 import { api } from "@/lib/api";
-import { reasonChip, relTime, statusLabel } from "@/lib/format";
+import { reasonChip, reasonText, relTime, statusLabel } from "@/lib/format";
 import type { DocumentRowOut, Paginated, ProductionOut } from "@/lib/types";
 
 export const metadata = { title: "Inbox" };
@@ -84,6 +84,51 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
         </div>
         <Uploader />
       </div>
+
+      {/* the queue's plate (bar.md M1, rounds 14–15): the next document a person should look at,
+          at a size where its marks read as evidence, with the reasons beside it — the hero of
+          the screen is the work itself, not a stat strip */}
+      {next ? (
+        <section aria-label="Review next" className="relative border border-rule bg-surface p-4 md:p-6">
+          <span aria-hidden className="pointer-events-none absolute left-0 top-0 h-5 w-5 border-l-[3px] border-t-[3px] border-ink" />
+          <span aria-hidden className="pointer-events-none absolute right-0 top-0 h-5 w-5 border-r-[3px] border-t-[3px] border-ink" />
+          <span aria-hidden className="pointer-events-none absolute bottom-0 left-0 h-5 w-5 border-b-[3px] border-l-[3px] border-ink" />
+          <span aria-hidden className="pointer-events-none absolute bottom-0 right-0 h-5 w-5 border-b-[3px] border-r-[3px] border-ink" />
+          <div className="grid gap-6 md:grid-cols-[320px_minmax(0,1fr)] md:items-start">
+            <Link href={`/documents/${next.id}`} aria-label="Open the next document to review" className="block">
+              <Thumb src={next.thumbnail_url} alt="" width={next.page_width} height={next.page_height} marks={next.marks} threshold={next.threshold ?? 0.9} large />
+            </Link>
+            <div className="flex min-w-0 flex-col gap-4">
+              <p className="micro">Review next · the marks show where each value was found</p>
+              <p className="truncate text-step-1 font-medium tracking-tight text-ink">{next.original_filename}</p>
+              <p className="micro normal-case tracking-normal">
+                {next.vendor_name ?? "vendor not yet known"}
+                {next.difficulty != null ? ` · expected to be ${next.difficulty >= 0.5 ? "hard" : "easy"} to read · ${Math.round(next.difficulty * 100)}%` : ""}
+                {` · ${next.grounded_fields}/${next.field_count} values found on the page`}
+              </p>
+              {next.reasons.length > 0 ? (
+                <ul className="flex flex-col gap-2 text-step-0 text-ink-2">
+                  {oneReasonPerField(next.reasons).map((r) => (
+                    <li key={r.field}>
+                      <span aria-hidden className="mr-2 text-fault">✗</span>
+                      {reasonText(r.field, r.why)}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              <p className="mt-2">
+                <Link href={`/documents/${next.id}`} className="rounded-[var(--radius)] bg-ink px-4 py-2 text-step-0 font-medium text-ground hover:bg-ink-2">
+                  Open and decide →
+                </Link>
+              </p>
+              <p className="micro mt-2 flex justify-between normal-case tracking-normal">
+                <span>Ledgerlens · page 1 of {next.page_count}</span>
+                <span className="readout">{next.page_width} × {next.page_height}</span>
+              </p>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <nav aria-label="Filter by status" className="grid grid-cols-2 gap-px border-y border-rule bg-rule md:grid-cols-5">
         <Link
@@ -197,6 +242,7 @@ function Thumb({
   height,
   marks,
   threshold,
+  large = false,
 }: {
   src: string | null;
   alt: string;
@@ -204,10 +250,12 @@ function Thumb({
   height: number;
   marks: DocumentRowOut["marks"];
   threshold: number;
+  large?: boolean;
 }) {
-  if (!src) return <span className="block h-[116px] w-[88px] rounded-[2px] border border-rule bg-surface" aria-hidden />;
+  const size = large ? "aspect-[1240/1754] w-full" : "h-[116px] w-[88px]";
+  if (!src) return <span className={`block ${size} rounded-[2px] border border-rule bg-surface`} aria-hidden />;
   return (
-    <span className="relative block h-[116px] w-[88px] overflow-hidden rounded-[2px] border border-rule">
+    <span className={`relative block ${size} overflow-hidden rounded-[2px] border border-rule`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={src} alt={alt} className="block h-full w-full object-cover object-top" />
       {width > 0 && height > 0 ? (
