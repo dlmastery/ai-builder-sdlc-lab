@@ -54,7 +54,7 @@ def _stripe_checkout(plan: Plan, body: CheckoutRequest, tenant_id: str) -> str:
     s = get_settings()
     assert s.stripe_secret_key is not None
     stripe.api_key = s.stripe_secret_key.get_secret_value()
-    line: dict[str, Any] = (
+    line: Any = (
         {"price": plan.provider_price_id, "quantity": 1}
         if plan.provider_price_id
         else {

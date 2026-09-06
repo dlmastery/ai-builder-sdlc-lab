@@ -422,16 +422,17 @@ function Readout({
   return (
     <li className={selected ? "bg-surface" : ""}>
       <div className="grid grid-cols-[1fr_auto] items-baseline gap-3 py-2">
-        <button type="button" onClick={onSelect} data-testid={`readout-${field.name}`} aria-pressed={selected} className="text-left">
-          <span className="micro">{fieldLabel(field.name)}</span>
-          {editing ? (
-            <form
-              className="mt-1 flex items-center gap-2"
-              onSubmit={(e) => {
-                e.preventDefault();
-                onSave();
-              }}
-            >
+        {editing ? (
+          <form
+            data-testid={`readout-${field.name}`}
+            className="flex flex-col gap-1"
+            onSubmit={(e) => {
+              e.preventDefault();
+              onSave();
+            }}
+          >
+            <span className="micro">{fieldLabel(field.name)}</span>
+            <div className="flex items-center gap-2">
               <input
                 autoFocus
                 aria-label={`Correct ${fieldLabel(field.name)}`}
@@ -442,16 +443,19 @@ function Readout({
               />
               <button type="submit" disabled={busy} className="text-step--1 text-signal">save</button>
               <button type="button" onClick={onCancel} className="text-step--1 text-ink-3">esc</button>
-            </form>
-          ) : (
+            </div>
+          </form>
+        ) : (
+          <button type="button" onClick={onSelect} data-testid={`readout-${field.name}`} aria-pressed={selected} className="text-left">
+            <span className="micro">{fieldLabel(field.name)}</span>
             <span className="readout block text-step-0 text-ink">
               {field.value ?? "—"}
               {wasCorrected ? (
                 <span className="ml-2 text-step--1 text-ink-3 line-through">{field.corrections[0].old_value}</span>
               ) : null}
             </span>
-          )}
-        </button>
+          </button>
+        )}
         <span className="flex items-baseline gap-3">
           <span className={`readout text-step--1 ${wasCorrected ? "text-ink-3" : TONE_TEXT[tone]}`}>
             {wasCorrected ? "corrected" : pct(conf)}
