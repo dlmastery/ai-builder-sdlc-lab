@@ -329,6 +329,22 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** rule 19 — every mark on the page must be evidence, and eleven boxes for a `1` is noise dressed as evidence. The design loop's critics judge renders, and a render is where a grounding bug becomes visible.
 - **Date:** 2026-09-06
 
+## D-045 · The queue's thumbnail is a small transparency view
+
+- **Context:** the round-13 craft critic on the inbox: "the thumbnails are the real specimens but show no grounding evidence — the queue argues by text label, not by the mark on the page." The row had a thumbnail, chips and a grounded fraction; the evidence itself stayed on the document page.
+- **Decided:** list rows carry `marks` — every header value's box, its calibrated confidence and whether it was found on the page — plus the page size and the verdict's bar; the queue draws them on the thumbnail in the tones the document page uses. One batched query over the page of rows, never one per document (the rule the list already followed). A test asked for the field before it existed.
+- **Alternatives:** a bigger thumbnail (more pixels, no more evidence); pre-rendered overlay images in the store (a second artefact to keep in step with rows).
+- **Why:** rule 19 — every element grounded in evidence — applies to a queue as much as to the hero view, and a clerk scanning eight rows should see *where* the trouble is before opening one.
+- **Date:** 2026-09-06
+
+## D-046 · A duplicate page is named, not silently merged — hash the page, not the file
+
+- **Context:** the customer test found the same filename twice in the queue with nothing to tell them apart. The upload is idempotent on the file's bytes, so identical files never make two documents; what had happened was the same page in a different file (D-044's re-read of the specimen). A re-scan saved again, a PDF re-exported, will do the same in production.
+- **Decided:** each page stores the hash of its normalised image (`pages.content_sha256`, migration 0002, indexed with the tenant); the queue names the earliest document in the tenant with the same page ("same file as an earlier upload · read again on its own"). Both documents stay: each was read, each has its own verdict, and merging them would hide a reading. Existing pages were back-filled locally by a one-off script; a production deployment would run the same as a job.
+- **Alternatives:** dedupe on upload by page hash (loses the second reading and surprises the uploader); a filename heuristic (not evidence).
+- **Why:** rule 12's spirit — say what is true and let a person decide — and rule 10: the column is a versioned migration, never a runtime table change.
+- **Date:** 2026-09-06
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.
