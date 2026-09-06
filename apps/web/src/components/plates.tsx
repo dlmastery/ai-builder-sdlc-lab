@@ -136,7 +136,7 @@ export function PlatePipeline({ stages }: { stages: Array<{ kind: string; name: 
 /** 01 · What it read — a page under a lens; the lens is the accent. */
 export function PlateRead() {
   return (
-    <Plate title="What it read">
+    <Plate title="Every word, scored">
       <Sheet x={110} y={110} w={300} h={330} />
       <Lines x={140} y={152} rows={[0.9, 0.6, 0.75, 0.4, 0.85, 0.5, 0.7]} w={240} />
       <g fill="none" stroke={INK} strokeWidth="1">
@@ -181,7 +181,7 @@ export function PlateRead() {
 /** 02 · Where it looked — a value tied by a leader to the OCR words on one line; the leader is the accent. */
 export function PlateGround() {
   return (
-    <Plate title="Where it looked">
+    <Plate title="Found on the page">
       <Sheet x={80} y={100} w={360} h={340} />
       <Lines x={110} y={142} rows={[0.8, 0.55, 0.7]} w={300} />
       <g fill="none" stroke={INK} strokeWidth="1">
@@ -196,11 +196,11 @@ export function PlateGround() {
         <line x1={500} y1={210} x2={500} y2={320} stroke={INK3} strokeWidth="1" />
         <text x={520} y={242} fill={INK3} fontSize="12" letterSpacing="0.14em">SUBTOTAL</text>
         <text x={520} y={280} fill="var(--ink)" fontSize="28" style={{ fontFamily: "var(--font-sans)" }}>1090.00</text>
-        <text x={520} y={306} fill={INK3} fontSize="13">calibrated 100 %</text>
+        <text x={520} y={306} fill={INK3} fontSize="13">sure: 100 %</text>
       </g>
       <path d="M392 271 C 440 271, 450 265, 500 265" fill="none" stroke={ACCENT} strokeWidth="2" strokeDasharray="6 4" />
       <circle cx={392} cy={271} r={4} fill={ACCENT} />
-      <text x={600} y={370} textAnchor="middle" fill={INK3} fontSize="13" style={MONO}>grounded = found on one reading line</text>
+      <text x={600} y={370} textAnchor="middle" fill={INK3} fontSize="13" style={MONO}>the same words, on the page, in one place</text>
       <Dim x1={112} y1={310} x2={392} y2={310} label="span · 3 words" />
       <Dim x1={460} y1={210} x2={460} y2={320} label="1 field" />
     </Plate>
@@ -217,7 +217,7 @@ export function PlateLedger() {
     ["9 dates and amounts", "are well-formed", true],
   ];
   return (
-    <Plate title="What it checked">
+    <Plate title="The sums add up">
       <rect x={120} y={110} width={560} height={330} fill="#f4f1ea" fillOpacity="0.06" stroke={INK} strokeWidth="1.2" />
       <line x1={160} y1={110} x2={160} y2={440} stroke={INK} strokeOpacity="0.4" strokeWidth="1" />
       {rows.map(([lhs, rhs, ok], i) => (
@@ -247,7 +247,7 @@ export function PlateCalibrate() {
   const px = (v: number) => x0 + v * w;
   const py = (v: number) => y0 - v * h;
   return (
-    <Plate title="How sure it is">
+    <Plate title="98 % means 98 %">
       <g stroke={INK3} strokeWidth="1" fill="none">
         <line x1={x0} y1={y0} x2={x0 + w} y2={y0} />
         <line x1={x0} y1={y0} x2={x0} y2={y0 - h} />
@@ -260,10 +260,10 @@ export function PlateCalibrate() {
           <text x={px(c)} y={py(a) - 8} textAnchor="middle" fill={INK} fontSize="12" style={MONO}>n={n}</text>
         </g>
       ))}
-      <text x={x0 + w / 2} y={y0 + 44} textAnchor="middle" fill={INK3} fontSize="13" style={MONO}>calibrated confidence</text>
+      <text x={x0 + w / 2} y={y0 + 44} textAnchor="middle" fill={INK3} fontSize="13" style={MONO}>what it said it was sure of</text>
       <text x={x0 - 18} y={y0 - h / 2} textAnchor="middle" fill={INK3} fontSize="13" transform={`rotate(-90 ${x0 - 18} ${y0 - h / 2})`} style={MONO}>observed accuracy</text>
       <g style={MONO}>
-        <text x={640} y={150} fill={INK3} fontSize="12" letterSpacing="0.14em">ECE</text>
+        <text x={640} y={150} fill={INK3} fontSize="12" letterSpacing="0.14em">OFF BY</text>
         <text x={640} y={182} fill="var(--ink)" fontSize="28" style={{ fontFamily: "var(--font-sans)" }}>0.003</text>
         <text x={640} y={206} fill={INK3} fontSize="12">1,145 fields</text>
       </g>

@@ -21,7 +21,8 @@ async function signUp(page: Page, suffix: string) {
 
 test("home page tells the story and offers sign-up", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText(/shows its work/i);
+  // the promise, in the customer's words (positioning.md, D-047): the page must say what it is for
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(/invoices/i);
   await expect(page.getByRole("link", { name: /pricing/i }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: /start/i }).first()).toBeVisible();
 });

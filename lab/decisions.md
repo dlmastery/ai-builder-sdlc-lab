@@ -345,6 +345,14 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** rule 12's spirit — say what is true and let a person decide — and rule 10: the column is a versioned migration, never a runtime table change.
 - **Date:** 2026-09-06
 
+## D-047 · The site is written from the customer's side — positioning first, then pages
+
+- **Context:** with all three critics passing on the home page, the AI Builder looked at it and said *"I am really not able to make sense of anything useful out of it"*, and sent a founder framework (Steve Blank's Customer Development: vision and positioning, customer discovery, narrative). They were right: the headline never said what was being extracted; the numbers strip led with "0 %" and "F1"; five sections were titled for what the machine does ("What it read", "Where it looked") and written in the pipeline's nouns. The critics had passed it because the brief critic's goal was mine, in my words — a builder judging a builder's page.
+- **Decided:** `apps/web/design/positioning.md` is written first, from the framework, in the customer's words — who it is for, their pain, the job, the promise, five checkable differentiators, the words never used on a customer page, the proof in the customer's units — and every customer-facing page is written from it. Section titles are what the reader gets. Numbers are sentences ("95 of every 100 fields", "0 of 60 today, and here is why"). The brief critic's goal is the visitor's five seconds, never the mechanism. The procedure is the `positioning-the-product` skill.
+- **Alternatives:** another round of the design loop (it would have passed again — the loop optimises mechanisms, not comprehension); softer copy on the same structure (the structure was the problem).
+- **Why:** rule 5 — the AI Builder's judgement outranks the critics; rule 17 — a product, not a lab demo; and the founder framework's first question, *who is this for and what is their pain*, had never been asked of the site.
+- **Date:** 2026-09-06
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.

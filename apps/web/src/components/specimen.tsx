@@ -54,9 +54,11 @@ export function Specimen() {
       aria-label="A real document read by the pinned extractor, with its evidence layers"
       className="relative rounded-[var(--radius)] border border-rule bg-surface p-4"
     >
+      {/* a caption a visitor can read (positioning.md): what this is and what the colours mean;
+          the model that read it stays, as provenance, in the footer line */}
       <div className="micro mb-3 flex items-center justify-between gap-3">
-        <span className="truncate">Specimen · {specimen.document.filename}</span>
-        <span className="shrink-0">extractor · {specimen.model.extractor}</span>
+        <span className="truncate">A real invoice, as Ledgerlens read it</span>
+        <span className="shrink-0 normal-case tracking-normal">green: sure · amber: glance · red: a person decides</span>
       </div>
       <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_168px]">
         <div className="relative overflow-hidden rounded-[2px]">
