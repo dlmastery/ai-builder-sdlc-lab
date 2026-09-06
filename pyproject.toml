@@ -1,0 +1,53 @@
+[project]
+name = "ledgerlens"
+version = "0.1.0"
+description = "Ledgerlens: document extraction that shows its work and knows when it doesn't know."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "ledgerlens-core",
+  "ledgerlens-ml",
+  "ledgerlens-api",
+  "ledgerlens-worker",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3",
+  "pytest-cov>=6.0",
+  "httpx>=0.28",
+  "ruff>=0.9",
+  "mypy>=1.14",
+  "types-boto3>=1.0",
+]
+
+[tool.uv.workspace]
+members = ["packages/core", "packages/ml", "apps/api", "apps/worker"]
+
+[tool.uv.sources]
+ledgerlens-core = { workspace = true }
+ledgerlens-ml = { workspace = true }
+ledgerlens-api = { workspace = true }
+ledgerlens-worker = { workspace = true }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q -ra"
+markers = [
+  "db: touches the database",
+  "gpu: needs a GPU worker",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["packages/core/src", "packages/ml/src", "apps/api/src", "apps/worker/src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+mypy_path = "packages/core/src:packages/ml/src:apps/api/src:apps/worker/src"
+ignore_missing_imports = true

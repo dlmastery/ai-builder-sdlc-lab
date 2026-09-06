@@ -122,6 +122,19 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** PaddleOCR-VL, bitsandbytes and transformers-main are friendlier on Linux; the container is also exactly what a cluster runs. The fallback exists because GPU passthrough on a Windows laptop is the single most likely environment failure.
 - **Date:** 2026-09-05
 
+## D-017 · Hero direction B · Instrument, by abstention
+
+- **Decided:** the AI Builder accepted the plan without naming A/B/C; Fable's stated bet (B · Instrument) applies. Reversible at the Slice A taste review.
+- **Why:** plan §7 stated the bet in advance precisely so that an abstention is a decision, not a stall (policy 2: "decide, state the bet in one line, record it, move on").
+- **Date:** 2026-09-05
+
+## D-018 · Python: uv workspace on 3.12; sync SQLAlchemy 2.0 + psycopg 3; FastAPI endpoints run in the threadpool
+
+- **Decided:** as titled. Workspace members `packages/core`, `packages/ml`, `apps/api`, `apps/worker`; tests at the root.
+- **Alternatives:** single flat package; async SQLAlchemy + asyncpg; Python 3.13.
+- **Why:** 3.12 is the safest floor for torch/paddle wheels today; the sync DB layer keeps the worker and the API on one code path with no dual-driver complexity, and it scales horizontally by replicas, which is the shape the spec asks for. Async buys nothing here that replicas do not.
+- **Date:** 2026-09-05
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.

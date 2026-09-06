@@ -1,0 +1,21 @@
+[project]
+name = "ledgerlens-worker"
+version = "0.1.0"
+description = "Celery worker: ingest, OCR, extract, verify, calibrate, train, evaluate, observe."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "ledgerlens-core",
+  "ledgerlens-ml",
+  "celery[redis]>=5.4",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ledgerlens_worker"]
+
+[tool.uv.sources]
+ledgerlens-core = { workspace = true }
+ledgerlens-ml = { workspace = true }

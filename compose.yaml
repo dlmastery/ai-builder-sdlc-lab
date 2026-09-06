@@ -1,0 +1,109 @@
+name: ledgerlens
+
+x-python-env: &python-env
+  DATABASE_URL: postgresql+psycopg://ledgerlens:${POSTGRES_PASSWORD:-ledgerlens}@postgres:5432/ledgerlens
+  REDIS_URL: redis://redis:6379/0
+  OBJECT_STORE_ENDPOINT: http://minio:9000
+  OBJECT_STORE_ACCESS_KEY: ${MINIO_ROOT_USER:-ledgerlens}
+  OBJECT_STORE_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-ledgerlens-secret}
+  OBJECT_STORE_BUCKET: ledgerlens
+  SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY in .env}
+  STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+  STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  ENVIRONMENT: ${ENVIRONMENT:-local}
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ledgerlens
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ledgerlens}
+      POSTGRES_DB: ledgerlens
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ledgerlens -d ledgerlens"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-ledgerlens}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-ledgerlens-secret}
+    ports: ["9000:9000", "9001:9001"]
+    volumes: ["miniodata:/data"]
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment: *python-env
+    ports: ["8000:8000"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      minio: { condition: service_healthy }
+    command: ["uvicorn", "ledgerlens_api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+  worker-cpu:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    environment: *python-env
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      minio: { condition: service_healthy }
+    command: ["celery", "-A", "ledgerlens_worker.app", "worker", "-Q", "cpu", "-l", "INFO", "--concurrency=2"]
+
+  worker-gpu:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile.gpu
+    environment:
+      <<: *python-env
+      LOW_VRAM: ${LOW_VRAM:-0}
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      minio: { condition: service_healthy }
+    command: ["celery", "-A", "ledgerlens_worker.app", "worker", "-Q", "gpu", "-l", "INFO", "--concurrency=1", "--pool=solo"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    profiles: ["gpu"]
+
+  web:
+    build:
+      context: apps/web
+    environment:
+      API_URL: http://api:8000
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    ports: ["3000:3000"]
+    depends_on: [api]
+
+volumes:
+  pgdata:
+  miniodata:
