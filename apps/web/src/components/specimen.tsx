@@ -114,7 +114,7 @@ export function Specimen() {
         </ul>
       </div>
       {on && (
-        <div className="arrive mt-4 grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 border-t border-rule pt-3 text-step--1" data-layer="6">
+        <div className="arrive mt-4 grid grid-cols-[1fr_auto] gap-x-4 gap-y-2.5 border-t border-rule pt-4 text-step--1" data-layer="6">
           {ledgerLines().map(([text, passed], i) => (
             <LedgerLine key={i} text={text} passed={passed} />
           ))}

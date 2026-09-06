@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PlateGuarantee } from "@/components/plates";
+import { PlateGuarantee, PlatePlans } from "@/components/plates";
 import { api } from "@/lib/api";
 import { moneyFromCents } from "@/lib/format";
 import type { PlanOut } from "@/lib/types";
@@ -60,11 +60,47 @@ export default async function PricingPage() {
         </div>
       </section>
 
-      <section className="mt-16 border-t border-rule pt-16">
-        <h2 className="text-step-2 font-medium leading-tight tracking-tight text-ink">
-          <span className="text-ink-3">02 · </span>Three plans
-        </h2>
-        <div className="mt-10 grid gap-px bg-rule md:grid-cols-3">
+      <section className="mt-16 flex flex-col gap-10 border-t border-rule pt-16">
+        <div className="mx-auto w-full max-w-[880px]">
+          <PlatePlans
+            plans={plans.map((p) => ({
+              name: p.name,
+              included: p.included_documents,
+              perDoc: moneyFromCents(p.per_document_cents),
+            }))}
+          />
+        </div>
+        <div className="grid gap-8 md:grid-cols-[260px_1fr]">
+          <h2 className="text-step-2 font-medium leading-tight tracking-tight text-ink">
+            <span className="text-ink-3">02 · </span>Three plans
+          </h2>
+          <div className="flex max-w-[66ch] flex-col gap-4 text-step-0 leading-relaxed text-ink-2">
+            <p>
+              <strong className="font-medium text-ink">What it does, in plain words.</strong> The plans differ in
+              how many documents are included, who may sit at the review queue, and whether the
+              guarantee, the per-vendor fine-tunes and on-premise deployment are switched on. The
+              transparency view is in every plan; there is no tier where the model hides its work.
+            </p>
+            <p>
+              <strong className="font-medium text-ink">What you need:</strong> an estimate of documents per month.
+              Overage is per document, so a plan is a floor, not a ceiling.
+            </p>
+            <p className="callout">
+              <strong className="font-medium text-ink"><span aria-hidden className="mr-2">✓</span>How you know it worked:</strong>{" "}
+              <span className="readout text-step-1 text-ink">
+                {secondsPerPage != null && plans[0]
+                  ? `${Math.round((plans[0].included_documents * secondsPerPage) / 3600 * 10) / 10} GPU-hours`
+                  : "—"}
+              </span>{" "}
+              is what the Starter allowance costs at today&apos;s measured {secondsPerPage ?? "—"} s per page
+              {secondsPerPage != null && plans[2]
+                ? `; the Sovereign allowance is ${Math.round((plans[2].included_documents * secondsPerPage) / 3600)} GPU-hours a month`
+                : ""}
+              . The numbers on this page come from the same rows as the product.
+            </p>
+          </div>
+        </div>
+        <div className="grid gap-px bg-rule md:grid-cols-3">
           {plans.map((p) => (
             <article key={p.code} data-testid="plan-card" className="flex flex-col gap-6 bg-ground pr-8 pt-6 md:pl-8 md:first:pl-0">
               <div>
@@ -72,7 +108,7 @@ export default async function PricingPage() {
                   {p.name}
                   {p.code === "sovereign" ? " · recommended for regulated teams" : ""}
                 </div>
-                <p className="readout mt-3 text-step-3 leading-none text-ink">
+                <p className="readout mt-3 text-step-2 leading-none text-ink">
                   {moneyFromCents(p.monthly_price_cents)}
                 </p>
                 <p className="micro mt-2 normal-case tracking-normal">

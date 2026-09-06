@@ -143,7 +143,7 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
               Document{doc.vendor_name ? ` · ${doc.vendor_name}` : ""}
               {doc.difficulty != null ? ` · difficulty ${pct(doc.difficulty)}` : ""}
             </p>
-            <h1 className="mt-1 truncate text-step-2 font-medium leading-none tracking-tight">
+            <h1 className="mt-2 truncate text-step-3 font-medium leading-none tracking-tight">
               {doc.original_filename}
             </h1>
           </div>
@@ -199,8 +199,8 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
                   // an ungrounded field is outlined, not filled: the page's own red ink (a stamp)
                   // must stay distinguishable from the fault tint (design loop, P3 round 3)
                   const outlineOnly = !f.grounded;
-                  const label = f.line_index === null ? pct(conf) : null;
-                  const fs = Math.max(10, page.width * 0.012);
+                  const label = pct(conf); // a number beside every coloured box, line items too
+                  const fs = Math.max(9, page.width * (f.line_index === null ? 0.012 : 0.0095));
                   return (
                     <g key={`${f.id}-${i}`} className="arrive" data-layer="4">
                       <rect
@@ -225,7 +225,7 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
                           fontSize={fs}
                           fontFamily="var(--font-mono)"
                         >
-                          {outlineOnly ? "ungrounded" : label}
+                          {outlineOnly ? "not confirmed" : label}
                         </text>
                       ) : null}
                     </g>
@@ -237,9 +237,10 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
         <p className="text-step--1 text-ink-3">
           Boxes show where each value was found on the page. Green: read with confidence (the
           number beside it). Amber box: a field the system is less sure of but that cannot block
-          approval on its own. Red: a required field that could not be found on the page or was
-          read too uncertainly. Soft amber patches are hard spots — words the reader struggled
-          with (score under {pct(HARD_SPOT_SCORE)}), such as under a stamp.
+          approval on its own. Red dashed: a value the model read but the page could not confirm
+          (a stamp over it, for instance); red filled: a required field read too uncertainly. A
+          dotted amber underline is a hard spot — a word the reader struggled with (score under{" "}
+          {pct(HARD_SPOT_SCORE)}).
         </p>
       </section>
 
@@ -302,11 +303,11 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
                       const f = row[k];
                       const tone = f ? toneFor(f, threshold) : "signal";
                       return (
-                        <td key={k} className={`py-2 ${k === "description" ? "pr-3 text-ink" : "readout pr-3 text-right text-ink-2"}`}>
-                          {f?.value ?? "—"}
+                        <td key={k} className={`py-3 align-top ${k === "description" ? "pr-4 text-ink" : "readout pr-4 text-right text-ink-2"}`}>
+                          <span className="block">{f?.value ?? "—"}</span>
                           {f ? (
-                            <span className={`ml-2 readout text-step--1 ${TONE_TEXT[tone]}`}>
-                              {f.grounded ? pct(f.calibrated_confidence) : "ungrounded"}
+                            <span className={`readout mt-1 block text-step--1 ${TONE_TEXT[tone]}`}>
+                              {f.grounded ? pct(f.calibrated_confidence) : "not confirmed"}
                             </span>
                           ) : null}
                         </td>
@@ -349,22 +350,23 @@ function LayerToggle({ on, onClick, label, disabled }: { on: boolean; onClick: (
 
 function HardSpot({ w }: { w: OcrWordOut }) {
   const [, x0, y0, x1, y1] = w.box;
-  const pad = (y1 - y0) * 0.6;
+  // a hard spot is "where the reader struggled", not a field: a dotted caution underline beneath
+  // the word, never a fill, so it cannot be mistaken for a field tint or the page's own ink
+  // (P3 round 6). Thicker and darker the lower the score.
+  const weight = 1.5 + (HARD_SPOT_SCORE - w.score) * 6;
   return (
-    <rect
+    <line
       data-testid="hard-spot"
       className="arrive"
       data-layer="2"
-      x={x0 - pad}
-      y={y0 - pad}
-      width={x1 - x0 + pad * 2}
-      height={y1 - y0 + pad * 2}
-      rx={pad}
-      // hard spots are "where the page was hard", not "what is wrong": caution, never fault,
-      // so a stamp's own red ink and an ungrounded field stay distinguishable (P3 round 5)
-      fill="var(--caution)"
-      fillOpacity={0.12 + (HARD_SPOT_SCORE - w.score) * 0.5}
-      stroke="none"
+      x1={x0}
+      y1={y1 + weight}
+      x2={x1}
+      y2={y1 + weight}
+      stroke="var(--caution)"
+      strokeWidth={weight}
+      strokeDasharray={`${weight * 1.5} ${weight}`}
+      strokeOpacity={0.9}
     />
   );
 }
@@ -392,7 +394,7 @@ function Verdict({
   return (
     <section
       data-testid="verdict"
-      className={`arrive callout ${ok ? "" : "callout-caution"}`}
+      className={`arrive callout callout-bare ${ok ? "" : "callout-caution"}`}
       data-layer="5"
     >
       <div className="flex items-start justify-between gap-4">
@@ -508,7 +510,7 @@ function Readout({
         <span className="flex items-baseline gap-3">
           <span className={`readout text-step--1 ${wasCorrected ? "text-ink-3" : TONE_TEXT[tone]}`}>
             {wasCorrected ? "corrected" : pct(conf)}
-            {!field.grounded && !wasCorrected ? " · ungrounded" : ""}
+            {!field.grounded && !wasCorrected ? " · not confirmed on the page" : ""}
           </span>
           {field.stability != null ? <StabilityRing value={field.stability} /> : null}
           {!editing ? (
@@ -590,7 +592,7 @@ function Ledger({
 
 function Row({ text, passed }: { text: string; passed: boolean }) {
   return (
-    <li data-testid="ledger-row" className="grid grid-cols-[1fr_auto] gap-3 py-2">
+    <li data-testid="ledger-row" className="grid grid-cols-[1fr_auto] gap-4 py-3">
       <span className="text-ink-2">{text}</span>
       <span className={passed ? "text-signal" : "text-fault"}>{passed ? "✓" : "✗"}</span>
     </li>

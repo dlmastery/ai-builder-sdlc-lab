@@ -103,6 +103,7 @@ body {
 }
 .callout strong { color: var(--ink); }
 .callout-caution { border-left-color: var(--caution); background: color-mix(in oklab, var(--caution) 9%, transparent); }
+.callout-bare { background: transparent !important; padding-left: 16px; } /* a rule, never a box */
 .callout-fault { border-left-color: var(--fault); background: color-mix(in oklab, var(--fault) 9%, transparent); }
 
 /* State chips: tint carries the state, the word is always inside (design loop round 3). */

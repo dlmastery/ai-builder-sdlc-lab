@@ -227,6 +227,36 @@ export function PlateCalibrate() {
   );
 }
 
+/** Pricing · three plans as three dials, documents included as the dimension; the sovereign dial's needle is the accent. */
+export function PlatePlans({ plans }: { plans: Array<{ name: string; included: number; perDoc: string }> }) {
+  const cx = [180, 400, 620];
+  return (
+    <Plate title="Three plans, one dial">
+      {plans.slice(0, 3).map((p, i) => {
+        const last = i === plans.length - 1 || i === 2;
+        const angle = -140 + (i + 1) * 70; // needle sweeps with the tier
+        const rad = ((angle - 90) * Math.PI) / 180;
+        const x = cx[i], y = 250, r = 78;
+        return (
+          <g key={p.name}>
+            <path d={`M${x - r} ${y} A${r} ${r} 0 0 1 ${x + r} ${y}`} fill="none" stroke={INK} strokeWidth="1.5" />
+            {[0, 1, 2, 3, 4, 5, 6].map((t) => {
+              const a = ((-180 + t * 30 - 90 + 90) * Math.PI) / 180;
+              return <line key={t} x1={x + Math.cos(a) * (r - 8)} y1={y + Math.sin(a) * (r - 8)} x2={x + Math.cos(a) * r} y2={y + Math.sin(a) * r} stroke={INK3} strokeWidth="1" />;
+            })}
+            <line x1={x} y1={y} x2={x + Math.cos(rad) * (r - 14)} y2={y + Math.sin(rad) * (r - 14)} stroke={last ? ACCENT : INK} strokeWidth={last ? 3 : 2} strokeLinecap="round" />
+            <circle cx={x} cy={y} r={4} fill={last ? ACCENT : INK} />
+            <text x={x} y={y + 40} textAnchor="middle" fill="var(--ink)" fontSize="18" fontWeight="600" letterSpacing="0.12em" style={{ fontFamily: "var(--font-sans)" }}>{p.name.toUpperCase()}</text>
+            <text x={x} y={y + 64} textAnchor="middle" fill={INK3} fontSize="13" style={MONO}>{p.included.toLocaleString()} documents · then {p.perDoc}</text>
+            <Dim x1={x - r} y1={y + 92} x2={x + r} y2={y + 92} label={`${p.included.toLocaleString()} / month`} />
+          </g>
+        );
+      })}
+      <text x={400} y={420} textAnchor="middle" fill={INK3} fontSize="13" style={MONO}>every plan reads on your hardware and shows its work · the dial is how much of it you automate</text>
+    </Plate>
+  );
+}
+
 /** 05 · The number — coverage against field error; the curve is the accent. */
 export function PlateGuarantee() {
   const x0 = 150, y0 = 420, w = 440, h = 290;

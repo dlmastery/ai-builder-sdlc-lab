@@ -120,7 +120,7 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
               >
                 <Thumb src={d.thumbnail_url} alt="" />
                 <span className="flex min-w-0 flex-col gap-1.5">
-                  <span className="truncate text-step-1 font-medium leading-tight tracking-tight text-ink">{d.original_filename}</span>
+                  <span className="truncate text-step-0 font-medium leading-tight text-ink">{d.original_filename}</span>
                   <span className="micro truncate normal-case tracking-normal">
                     {d.vendor_name ?? "vendor not yet known"}
                     {d.difficulty != null ? ` · predicted difficulty ${Math.round(d.difficulty * 100)}%` : ""}

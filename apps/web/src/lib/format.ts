@@ -24,7 +24,7 @@ export function reasonText(field: string, why: string, confidence?: number): str
     case "missing":
       return `${cap}: the model did not read one`;
     case "ungrounded":
-      return `${cap}: could not be found on the page`;
+      return `${cap}: read, but the page could not confirm it`;
     case "below_threshold":
       return `${cap}: not sure enough${typeof confidence === "number" ? ` (${pct(confidence)})` : ""}`;
     case "arithmetic.total":
@@ -43,7 +43,7 @@ export function reasonChip(field: string, why: string): string {
     case "missing":
       return `${label} · not read`;
     case "ungrounded":
-      return `${label} · not on the page`;
+      return `${label} · not confirmed on the page`;
     case "below_threshold":
       return `${label} · not sure enough`;
     default:
