@@ -20,7 +20,7 @@ from typing import Any
 
 from PIL import Image
 
-from ledgerlens_ml.extract.prompt import target_json
+from ledgerlens_ml.extract.prompt import target_json, unknown_value_spans
 from ledgerlens_ml.extract.qwen import DEFAULT_BASE, build_messages, resize_long_side
 from ledgerlens_ml.loading import from_pretrained_kwargs
 
@@ -77,8 +77,22 @@ def _lora_targets() -> list[str]:
     return ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
 
 
-def _encode(processor: Any, image: Image.Image, target: str, max_long_side: int) -> dict[str, Any]:
-    """Tokenise prompt + target; labels = -100 on the prompt so loss covers the JSON only."""
+def mask_token_indices(offsets: list[tuple[int, int]], spans: list[tuple[int, int]]) -> list[int]:
+    """Indices of tokens whose character range overlaps any span (offsets are per token)."""
+    return [
+        i for i, (a, b) in enumerate(offsets) if any(a < e and b > s for s, e in spans) and b > a
+    ]
+
+
+def _encode(
+    processor: Any,
+    image: Image.Image,
+    target: str,
+    max_long_side: int,
+    unknown_spans: list[tuple[int, int]] | None = None,
+) -> dict[str, Any]:
+    """Tokenise prompt + target; labels = -100 on the prompt so loss covers the JSON only, and on
+    the `null` values of unannotated fields (D-030) so "no label" is not taught as "empty"."""
     img = resize_long_side(image, max_long_side)
     messages = build_messages(img)
     prompt = processor.apply_chat_template(
@@ -96,7 +110,18 @@ def _encode(processor: Any, image: Image.Image, target: str, max_long_side: int)
         return_tensors="pt",
     )
     labels = full["input_ids"].clone()
-    labels[:, : prompt["input_ids"].shape[-1]] = -100
+    n = prompt["input_ids"].shape[-1]
+    labels[:, :n] = -100
+    if unknown_spans:
+        enc = processor.tokenizer(target, add_special_tokens=False, return_offsets_mapping=True)
+        ids = list(enc["input_ids"])
+        if full["input_ids"][0, n : n + len(ids)].tolist() != ids:
+            raise RuntimeError(
+                "target tokens do not start at the prompt boundary; unknown-field masking "
+                "would land on the wrong tokens"
+            )
+        for i in mask_token_indices([tuple(o) for o in enc["offset_mapping"]], unknown_spans):
+            labels[0, n + i] = -100
     full["labels"] = labels
     return dict(full)
 
@@ -179,7 +204,14 @@ def train_lora(
                 max_steps = step
                 break
             image = Image.open(io.BytesIO(ex.image_bytes))
-            batch = _encode(processor, image, target_json(ex.labels), prof.max_long_side)
+            target = target_json(ex.labels)
+            batch = _encode(
+                processor,
+                image,
+                target,
+                prof.max_long_side,
+                unknown_value_spans(target, ex.labels),
+            )
             supervised_tokens += int((batch["labels"] != -100).sum().item())
             total_tokens += int(batch["labels"].numel())
             batch = {k: v.to(model.device) if hasattr(v, "to") else v for k, v in batch.items()}

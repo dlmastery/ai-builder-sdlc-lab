@@ -216,6 +216,14 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** it is the production shape anyway (a worker child that loads, serves one job and exits cannot leak or fragment), and it turns "the run crashed" into "one stage needs re-running". Nothing was retrained.
 - **Date:** 2026-09-06
 
+## D-030 · An unannotated field is unknown, not null
+
+- **Context:** the demo LoRA scored field-F1 0.9499 on 60 held-out test documents, with every synthetic field at 0.98–1.0 — except `vendor_name` at **0.0**: all 50 documents of the held-out synthetic vendor came back with no vendor name. First hypothesis (a supervision-mask boundary error at the start of the target) was measured and falsified: the prompt tokenisation is exactly the prefix of the prompt+assistant tokenisation, zero target tokens masked. Second hypothesis held: CORD receipts carry labels for subtotal, tax, total, currency and line items only, and `target_json` filled the other six header keys with `null` — so 300 training receipts, each with a visible store name at the top, taught "the big name at the top → null". CORD's visible dates, addresses and numbers are rarer and more varied, which is consistent with those fields surviving.
+- **Decided:** a key *absent* from a source's label dict is unknown; its `null` stays in the JSON text (canonical structure) but its value tokens are excluded from the loss (`unknown_value_spans` + `mask_token_indices`, verified with the real tokenizer: exactly the six `null` tokens masked). A key present with `None` is a known absence and stays supervised. `_encode` raises if the target does not start at the prompt boundary rather than masking the wrong tokens.
+- **Alternatives:** drop CORD from training (loses 300 real receipts); label CORD store names by hand (later, and out of scope for a lab); more synthetic vendor diversity (eight layouts carry one vendor name each — real, and filed as an intent for the next loop rather than patched now).
+- **Why:** the adapter is retrained by the overnight profile anyway; the demo numbers stay as measured, including the zero, because the transparency view and the conformal threshold must be shown on the model that exists, not the one we hope for.
+- **Date:** 2026-09-06
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.

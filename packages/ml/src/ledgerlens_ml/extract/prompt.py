@@ -30,6 +30,22 @@ def target_json(labels: dict[str, Any]) -> str:
     return json.dumps(obj, ensure_ascii=False)
 
 
+def unknown_value_spans(target: str, labels: dict[str, Any]) -> list[tuple[int, int]]:
+    """Character spans of the `null` values of header keys *absent* from `labels` (D-030).
+
+    Absent means unannotated — the source never labelled the field — not "known to be empty":
+    a key present with None is a real absence and stays supervised. The JSON keeps `null` so the
+    target's structure is canonical; only these value tokens are excluded from the loss."""
+    spans: list[tuple[int, int]] = []
+    for key in HEADER_FIELDS:
+        if key in labels:
+            continue
+        m = re.search(rf'"{re.escape(key)}": (null)', target)
+        if m:
+            spans.append((m.start(1), m.end(1)))
+    return spans
+
+
 _FENCE = re.compile(r"```(?:json)?\s*(.*?)```", re.S)
 
 
