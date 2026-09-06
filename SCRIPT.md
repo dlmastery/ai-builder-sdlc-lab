@@ -186,6 +186,28 @@ Then the product on the real model: adapter, calibrator, threshold and difficult
 
 ---
 
+## Beat 14 — The AI Builder reopens, and grills
+
+**AI Builder:** *"How did you miss the fact that you did not checkpoint periodically for the run and lost all training of 109 steps? Can you fix this and update your md files across the board — this is fundamental 101 best practice of ML."*
+
+**Fable:** Correct, and no defence. Built test-first: adapter, optimizer, scheduler and state every 25 steps to the object store, newest two kept, and `--resume-checkpoint` continues the same model version. Proved by killing a smoke run at checkpoint 4 and resuming it to completion in two minutes (D-039).
+
+**AI Builder:** *"Restart the training run now with proper checkpoints — document everything as usual."*
+
+**Fable:** Blocked by the machine first — 0.3 GB of commit headroom, the page file had eaten the disk, your browser held 14.7 GB. You restarted it; attempt six is running with checkpoints (D-040).
+
+**AI Builder:** *"The webpage is so so basic — did you not use the tips from the UX video?"* — and then a sample page whose every section opens with an illustrated blueprint plate, with a Design Loop skill inside it.
+
+**Fable:** The critique of my own pages, in the sample's terms: proportion without richness; a stub schematic on the home page with a real model pinned; prose where evidence visuals should be. I had rejected imagery on my own judgement; yours outranks it. The Design Loop is now a skill and the pages go through it against your sample as the bar (D-041).
+
+**AI Builder:** *"Write modular skills following the standard — for the AI Builder flow, the meta flow, and on the fly for a given product."*
+
+**Fable:** Thirteen skills in `.claude/skills/`, to the specification, in three families; the product-specific ones are written the day a product is picked (D-042).
+
+> *notice:* four steers in a quarter of an hour, all judgement: a standard the agent had skipped, a restart, a taste rejection with a reference attached, and a demand that the procedure itself be an artifact. None of them told the agent *how*. The word "student" appears in none of this; the persona is the AI Builder.
+
+---
+
 ## What an AI Builder does, in one table
 
 | Turn | Judgement | Words used |

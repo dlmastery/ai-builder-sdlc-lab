@@ -54,7 +54,7 @@ Measured, not aspirational; every number has a row in `model_versions`, `eval_re
 
 The last two rows are the product's numbers. The field-level guarantee is real and the auto-approve rate is zero; chapter 11 (11:50) explains why both are true and which one a finance lead should be shown.
 
-The overnight profile was run five times on the laptop and stopped at step 109 of 450 by the AI Builder's decision to close training (D-037); the demo adapter above is the delivered model. The 5,000-item `overnight-auto` dataset, the unknown-field mask (D-030) and the leaner trainer (D-036) are in place for the next loop, whose first item is `lab/intent/eval-vendor-name-unseen-vendor.md`.
+The overnight profile was run five times on the laptop and stopped at step 109 of 450 for a power cut — without a checkpoint, which the AI Builder rightly called ML 101 (D-039). Training was closed (D-037), then reopened with periodic checkpoints (D-040); attempt six runs on the 5,000-item `overnight-auto` dataset with the unknown-field mask (D-030) and the leaner trainer (D-036). Its numbers land in chapter 11 when it finishes; until then the demo adapter above is the delivered model. Next loop's first item: `lab/intent/eval-vendor-name-unseen-vendor.md`.
 
 ## Replaying the lab as An AI Builder
 
@@ -95,7 +95,12 @@ the pipeline inside the request; once a real OCR or extractor is pinned, run the
 Training on the laptop: `make smoke-train` (minutes), `make train PROFILE=demo` (~35 min train,
 ~1.5 h with evaluation), `make train PROFILE=overnight` (~9 h for the whole chain). Each stage is
 a job row; the post-training stages run in a fresh process (D-029/D-032); `train --resume-from
-<model_version>` re-runs them against a saved adapter. Pin the result from the *Models & runs*
+<model_version>` re-runs them against a saved adapter. **Checkpoints:** every 25 optimiser steps
+(2 on the smoke profile) the adapter, optimizer, scheduler and trainer state are written to the
+object store under `artifacts/<model_version>/checkpoints/`, newest two kept; after an outage,
+`train --profile <p> --resume-checkpoint <model_version>` continues the same model version from
+its latest checkpoint (D-039 — added after a power cut cost 109 steps; proven by killing a smoke
+run at checkpoint 4 and resuming it to completion). Pin the result from the *Models & runs*
 page as the data lead, or `make pin MV=<id>`.
 
 Behind a corporate TLS proxy on Windows: `UV_NATIVE_TLS=1` for `uv`, and `LEDGERLENS_NATIVE_TLS=1`

@@ -284,6 +284,35 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** the browser flows are the proof the plan named for the UI and are cheap to run without weights; a CI smoke train would prove little beyond "the download works" at a cost paid on every push. The deviation is recorded here rather than left as a silent gap in §3.
 - **Date:** 2026-09-06
 
+## D-039 · Periodic checkpoints with resume — the 101 practice that was missing
+
+- **Context:** the AI Builder: *"how did you miss the fact that you did not checkpoint periodically for the run and lost all training of 109 steps … this is fundamental 101 best practice of ML."* Correct. The trainer wrote the adapter only at the final step; six attempts and one power cut later, 109 steps of an overnight run were gone. I had written it up as "the next improvement, filed" — a gap recorded is not a gap closed.
+- **Decided:** every `checkpoint_every` optimiser steps (smoke 2, demo/overnight 25 ≈ 15 min) the trainer writes `checkpoint-<step>/` — PEFT adapter, `optimizer.pt`, `scheduler.pt`, `state.json` (step, micro-batch count, loss history) — keeps the newest two on disk and in the object store under `artifacts/<model_version>/checkpoints/`, and `train --resume-checkpoint <model_version>` continues the *same* model version from its latest stored checkpoint with the same data order. `ObjectStore.list_keys` added for the download. Tests first: `should_checkpoint`, `prune_checkpoints`, `latest_checkpoint`, `TrainerState` round-trip, store listing, CLI plumbing.
+- **Proof:** smoke profile, 6 steps: checkpoint-4 stored at 09:46:07 local; process killed; resumed at 09:46:14 from step 4; finished at step 6 (`resumed_from_step: 4`), post-training stages spawned in a fresh process; two minutes end to end.
+- **Why:** the honest answer to "how did you miss it" is that the demo train was a 30-minute job when the trainer was written and I never revisited the trainer when the budget became eight hours. The rule going into `operating-laptop-training`: any job longer than the time you are willing to lose must checkpoint at that interval.
+- **Date:** 2026-09-06
+
+## D-040 · Training reopened by the AI Builder, with checkpoints — supersedes D-037
+
+- **Context:** *"restart the training run now with proper checkpoints — make sure you document as part of project everything that is going on as usual."* D-037 (training closed) is superseded by the same authority that made it.
+- **Decided:** overnight attempt 6 launched with D-039 in place (checkpoint every 25 steps, newest two kept), on the existing `overnight-auto` dataset, after the machine was cleared: the AI Builder restarted Chrome (14.7 GB of commit; the page file had eaten the disk to 1.1 GB free) and headroom returned to 17.8 GB with 22.4 GB of disk.
+- **Why:** rule 1; and the proof made the relaunch cheap to lose — an outage now costs at most 25 steps.
+- **Date:** 2026-09-06
+
+## D-041 · The design loop, from the AI Builder's own sample — overrides D-019's rejections
+
+- **Context:** the AI Builder looked at the running product: *"the webpage is so so basic — I thought I gave you a YouTube video of how to do splendid amazing UX — did you not use the tips there,"* then supplied a sample (`gpt6astra.pdf`): an editorial page with an illustrated, blueprint-style plate opening every numbered section, plain-words explainers, callouts, a "how you know it worked" check — and, inside it, a complete **Design Loop** skill: interview (three questions, the reference "bar" must be specific), preflight, teardown into 5–7 *checkable mechanisms*, then builder + three fresh-context critics (brief, system, craft) with binary verdicts and no fixed round count. In D-019 I had adopted the token system from the video and rejected generated imagery and component grabbing on my own judgement. The AI Builder's taste call outranks that (rule 5).
+- **Decided:** `.claude/skills/design-loop` adopts the sample's method verbatim in structure; the home page, inbox and transparency view go through it against the sample as the bar, with illustrated plates authored as SVG in the Instrument register (no image generator is connected — the preflight says so rather than pretending), evidence visuals per story section, a real specimen from the pinned model instead of the stub schematic that still says "extractor · stub" on the home page (a defect against plan C.6 that the critique caught). Critics run as fresh-context subagents that see only the rendered image and their brief.
+- **Why:** the shipped pages had proportion and no richness; "nothing decorative" had become "nothing visual". The bar the AI Builder supplied is concrete enough to check by looking, which is what D-019 lacked.
+- **Date:** 2026-09-06
+
+## D-042 · Skills are first-class artifacts of the lab
+
+- **Context:** *"you will write modular skills following the standard … for all the original AI Builder flow as well as meta flow and on the fly … based on a given product."* The Agent Skills specification and its authoring guidance were fetched and followed: `name` lowercase-hyphenated and equal to the directory, `description` in the third person stating what the skill does and the literal phrases that should trigger it, bodies under 500 lines, references one level deep, no time-sensitive facts in bodies.
+- **Decided:** thirteen skills in `.claude/skills/` in three families — AI Builder flow (`proposing-products`, `grilling-the-builder`, `running-gates`, `delivering-slices`, `closing-the-loop`), meta flow (`writing-story-chapters`, `logging-decisions`, `measuring-before-fixing`, `operating-laptop-training`, `design-loop`, `authoring-skills`) and product-specific (`ledgerlens-transparency-view`, `ledgerlens-evaluating-extractors`), with a README index. Product-specific skills are written the day a product is picked (`authoring-skills` §"on the fly") and replaced with the product; the other families are not.
+- **Why:** the story tells what happened; the skills make it repeatable by an agent that has read nothing else — which is the plan's own test of an artifact (rule 15).
+- **Date:** 2026-09-06
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.
