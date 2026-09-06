@@ -107,6 +107,8 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
   );
   const byId = useMemo(() => new Map(ex.fields.map((f) => [f.id, f])), [ex.fields]);
   const sel = selected ? byId.get(selected) : undefined;
+  const editingField = editing ? byId.get(editing) : undefined;
+  const lineEditing = editingField && editingField.line_index !== null ? editingField : undefined;
   const verdict = ex.verdict;
   const threshold = verdict?.threshold ?? 0.9;
   const words = page.ocr_words ?? [];
@@ -409,11 +411,28 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
                       const f = row[k];
                       const tone = f ? toneFor(f, threshold) : "signal";
                       return (
-                        <td key={k} className={`py-3 align-top ${k === "description" ? "pr-4 text-ink" : "readout pr-4 text-right text-ink-2"}`}>
-                          <span className="block">{f?.value ?? "—"}</span>
+                        <td key={k} className={`group py-3 align-top ${k === "description" ? "pr-4 text-ink" : "readout pr-4 text-right text-ink-2"}`}>
+                          <span className="block">
+                            {f?.value ?? "—"}
+                            {f && f.corrections.length > 0 ? <span className="ml-2 text-ink-3 line-through">{f.corrections[0].old_value}</span> : null}
+                          </span>
                           {f ? (
                             <span className={`readout mt-1 block text-step--1 ${TONE_TEXT[tone]}`}>
                               {f.grounded ? (tone === "signal" ? pct(f.calibrated_confidence) : pct(f.calibrated_confidence, 2)) : "not confirmed"}
+                              {/* a correction path for every line-item cell (brief critic r16): visible
+                                  below the bar, on hover otherwise */}
+                              <button
+                                type="button"
+                                data-testid={`correct-line-${i}-${k}`}
+                                onClick={() => {
+                                  setEditing(f.id);
+                                  setDraft(f.value ?? "");
+                                }}
+                                className={`ml-2 text-ink-3 transition-opacity hover:text-ink group-hover:opacity-100 ${tone !== "signal" ? "opacity-100" : "opacity-0"}`}
+                                aria-label={`Correct ${fieldLabel(k)} of line ${i + 1}`}
+                              >
+                                edit
+                              </button>
                             </span>
                           ) : null}
                         </td>
@@ -423,6 +442,32 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
                 ))}
               </tbody>
             </table>
+            {lineEditing ? (
+              <form
+                data-testid="line-item-correction"
+                className="callout flex flex-col gap-2"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void correct(lineEditing, draft);
+                }}
+              >
+                <span className="micro">
+                  Correct {fieldLabel(lineEditing.name)} · line {(lineEditing.line_index ?? 0) + 1}
+                </span>
+                <div className="flex items-center gap-2">
+                  <input
+                    autoFocus
+                    aria-label={`Correct ${fieldLabel(lineEditing.name)}`}
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onKeyDown={(e) => e.key === "Escape" && setEditing(null)}
+                    className="readout w-full rounded-[var(--radius)] border border-signal bg-ground px-2 py-1 text-step-0 text-ink"
+                  />
+                  <button type="submit" disabled={busy} className="text-step--1 text-signal">save</button>
+                  <button type="button" onClick={() => setEditing(null)} className="text-step--1 text-ink-3">esc</button>
+                </div>
+              </form>
+            ) : null}
           </section>
         ) : null}
 
@@ -638,7 +683,9 @@ function Readout({
               type="button"
               onClick={onEdit}
               data-testid={`correct-${field.name}`}
-              className={`text-step--1 text-ink-3 transition-opacity hover:text-ink group-hover:opacity-100 group-focus-within:opacity-100 ${selected ? "opacity-100" : "opacity-0"}`}
+              // always visible on a value below the bar (there is something to act on); on the
+              // hovered, focused or selected row otherwise (brief critic r16 vs craft critic r8)
+              className={`text-step--1 text-ink-3 transition-opacity hover:text-ink group-hover:opacity-100 group-focus-within:opacity-100 ${selected || tone !== "signal" ? "opacity-100" : "opacity-0"}`}
               aria-label={`Correct ${fieldLabel(field.name)}`}
             >
               edit
