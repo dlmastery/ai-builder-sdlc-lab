@@ -1,15 +1,17 @@
 """The per-document pipeline (spec §3): prepare → OCR → extract → verify → calibrate → verdict.
 
-Runs inside a job. Reads the pinned model versions, writes Extraction / Field / Alternative /
-VerifierResult / Verdict rows and updates the document status. The stub components and the
-real ones are interchangeable here; nothing downstream knows which ran (D-013).
+Runs inside a job. Reads the pinned model versions through the registry, writes Extraction /
+Field / Alternative / VerifierResult / Verdict rows and updates the document status. Stub and
+real components are interchangeable here; nothing downstream knows which ran (D-013).
 """
 
 from __future__ import annotations
 
+import io
 import uuid
-from typing import Any, Protocol
+from typing import Any
 
+from PIL import Image
 from sqlalchemy import select
 from sqlalchemy.orm import Session as DbSession
 
@@ -24,22 +26,12 @@ from ledgerlens_core.models import (
     Verdict,
     VerifierResult,
 )
+from ledgerlens_core.storage import get_object_store
 from ledgerlens_ml.decide import calibrate, decide
-from ledgerlens_ml.stub import StubExtractor, StubOcr
-from ledgerlens_ml.types import ExtractionResult, OcrResult
+from ledgerlens_ml.quality import DifficultyModel, quality_features
+from ledgerlens_ml.registry import load_extractor, run_ocr
+from ledgerlens_ml.schema import normalize
 from ledgerlens_ml.verify import verify
-
-
-class Extractor(Protocol):
-    name: str
-
-    def extract(self, page_sizes: dict[int, tuple[int, int]]) -> ExtractionResult: ...
-
-
-class Ocr(Protocol):
-    name: str
-
-    def run(self, page_sizes: dict[int, tuple[int, int]]) -> OcrResult: ...
 
 
 def pinned(db: DbSession, kind: str) -> ModelVersion:
@@ -51,16 +43,18 @@ def pinned(db: DbSession, kind: str) -> ModelVersion:
     return mv
 
 
-def load_extractor(mv: ModelVersion) -> Extractor:
-    if mv.name == "stub":
-        return StubExtractor()
-    raise NotImplementedError(f"extractor {mv.name!r} arrives in Slice B")
-
-
-def load_ocr(mv: ModelVersion) -> Ocr:
-    if mv.name == "stub":
-        return StubOcr()
-    raise NotImplementedError(f"ocr {mv.name!r} arrives in Slice B")
+def _difficulty(db: DbSession, image: Image.Image) -> tuple[float | None, dict[str, float]]:
+    feats = quality_features(image)
+    mv = db.scalar(
+        select(ModelVersion).where(ModelVersion.kind == "difficulty", ModelVersion.pinned.is_(True))
+    )
+    model = DifficultyModel()
+    if mv is not None and mv.artifact_object_key:
+        try:
+            model = DifficultyModel.loads(get_object_store().get(mv.artifact_object_key))
+        except Exception:
+            model = DifficultyModel()
+    return model.predict(feats), feats
 
 
 def process_document(db: DbSession, job: Job) -> dict[str, Any]:
@@ -71,21 +65,29 @@ def process_document(db: DbSession, job: Job) -> dict[str, Any]:
     document.status = "processing"
     db.flush()
 
-    pages = db.scalars(select(Page).where(Page.document_id == document.id).order_by(Page.number))
-    page_sizes = {p.number: (p.width, p.height) for p in pages}
+    pages = list(
+        db.scalars(select(Page).where(Page.document_id == document.id).order_by(Page.number))
+    )
+    store = get_object_store()
+    images = [Image.open(io.BytesIO(store.get(p.object_key))).convert("RGB") for p in pages]
 
     ocr_mv = pinned(db, "ocr")
     extractor_mv = pinned(db, "extractor")
     calibrator_mv = pinned(db, "calibrator")
     threshold_mv = pinned(db, "threshold")
 
-    ocr = load_ocr(ocr_mv).run(page_sizes)
-    result = load_extractor(extractor_mv).extract(page_sizes)
+    difficulty, feats = _difficulty(db, images[0])
+    document.difficulty = difficulty
+    pages[0].quality = feats
+
+    ocr = run_ocr(ocr_mv, images)
+    result = load_extractor(extractor_mv).extract(images, ocr)
     outcomes = verify(result.fields, ocr)
 
     temperatures: dict[str, float] = calibrator_mv.config.get("temperature", {})
+    global_t = calibrator_mv.config.get("global_temperature")
     calibrated = {
-        i: calibrate(f.raw_confidence, temperatures.get(f.name))
+        i: calibrate(f.raw_confidence, temperatures.get(f.name, global_t))
         for i, f in enumerate(result.fields)
     }
     threshold = float(threshold_mv.config.get("threshold", 0.9))
@@ -111,7 +113,7 @@ def process_document(db: DbSession, job: Job) -> dict[str, Any]:
             name=f.name,
             line_index=f.line_index,
             value=f.value,
-            normalized_value=_normalized(f.name, f.value),
+            normalized_value=normalize(f.name, f.value),
             raw_confidence=f.raw_confidence,
             calibrated_confidence=calibrated[i],
             grounded=grounded.get((f.name, f.line_index), False),
@@ -148,12 +150,24 @@ def process_document(db: DbSession, job: Job) -> dict[str, Any]:
             threshold=decision.threshold,
         )
     )
+    # OCR words are kept per page so the transparency view can draw them (Slice C)
+    for page in pages:
+        page.ocr_object_key = _store_ocr(store, page, ocr)
     document.status = decision.decision
     db.flush()
     return {"extraction_id": str(extraction.id), "decision": decision.decision}
 
 
-def _normalized(name: str, value: str | None) -> str | None:
-    from ledgerlens_ml.schema import normalize
+def _store_ocr(store: Any, page: Page, ocr: Any) -> str:
+    import json
 
-    return normalize(name, value)
+    from ledgerlens_core.storage import keys
+
+    key = keys.ocr(page.tenant_id, page.document_id, page.number)
+    words = [
+        {"text": w.text, "box": w.box.as_list(), "score": w.score}
+        for w in ocr.words
+        if w.box.page == page.number
+    ]
+    store.put(key, json.dumps({"words": words}).encode("utf-8"), content_type="application/json")
+    return key

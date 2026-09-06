@@ -99,6 +99,71 @@ export type PlanOut = {
   features: string[];
 };
 
+export type DatasetOut = {
+  id: string;
+  name: string;
+  kind: string;
+  sources: Array<Record<string, unknown>>;
+  split_policy: Record<string, unknown>;
+  counts: Record<string, number>;
+  created_at: string;
+};
+
+export type EvalScoreOut = {
+  field_name: string | null;
+  vendor_id: string | null;
+  split: string;
+  metric: string;
+  value: number;
+  support: number | null;
+};
+
+export type FieldStats = {
+  tp: number;
+  fp: number;
+  fn: number;
+  precision: number;
+  recall: number;
+  f1: number;
+  support: number;
+};
+
+export type EvalSummary = {
+  split: string;
+  documents: number;
+  field_f1: number;
+  per_field: Record<string, FieldStats>;
+  per_vendor: Record<string, Record<string, FieldStats>>;
+  latency_ms_p50: number | null;
+  errors_sample: Array<{ item_id: string; field: string; truth: unknown; pred: unknown }>;
+  evaluated_at: string;
+};
+
+export type ModelVersionDetailOut = ModelVersionOut & {
+  parent_id: string | null;
+  dataset_id: string | null;
+  job_id: string | null;
+  artifact_object_key: string | null;
+  card: string | null;
+  eval_summary: EvalSummary | null;
+  scores: EvalScoreOut[];
+  pinned_at: string | null;
+};
+
+export type VendorOut = {
+  id: string;
+  name: string;
+  documents: number;
+  corrections: number;
+  curve: Array<{
+    model_version: string;
+    fields: number;
+    corrections: number;
+    accuracy: number | null;
+    created_at: string | null;
+  }>;
+};
+
 export type ProductionOut = {
   pinned: Record<string, ModelVersionOut>;
   documents: Record<string, number>;

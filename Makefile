@@ -41,8 +41,11 @@ test-ml:
 test-ui:
 	cd apps/web && pnpm exec playwright test
 
+dataset:
+	uv run python -m ledgerlens_worker.cli dataset --name $(or $(NAME),dataset) --synthetic $(or $(SYNTHETIC),200) --cord $(or $(CORD),0)
+
 smoke-train:
-	uv run python -m ledgerlens_worker.cli train --profile smoke
+	uv run python -m ledgerlens_worker.cli train --profile smoke --baseline
 
 train:
 	uv run python -m ledgerlens_worker.cli train --profile $(or $(PROFILE),demo) $(if $(MODEL),--model $(MODEL),)

@@ -149,6 +149,49 @@ class PlanOut(BaseModel):
     features: list[Any]
 
 
+class JobCreate(BaseModel):
+    kind: str
+    payload: dict[str, Any] = PField(default_factory=dict)
+
+
+class DatasetOut(BaseModel):
+    id: UUID
+    name: str
+    kind: str
+    sources: list[Any]
+    split_policy: dict[str, Any]
+    counts: dict[str, int]
+    created_at: datetime
+
+
+class EvalScoreOut(BaseModel):
+    field_name: str | None
+    vendor_id: UUID | None
+    split: str
+    metric: str
+    value: float
+    support: int | None
+
+
+class ModelVersionDetailOut(ModelVersionOut):
+    parent_id: UUID | None
+    dataset_id: UUID | None
+    job_id: UUID | None
+    artifact_object_key: str | None
+    card: str | None
+    eval_summary: dict[str, Any] | None
+    scores: list[EvalScoreOut]
+    pinned_at: datetime | None
+
+
+class VendorOut(BaseModel):
+    id: UUID
+    name: str
+    documents: int
+    corrections: int
+    curve: list[dict[str, Any]]
+
+
 class ProductionOut(BaseModel):
     pinned: dict[str, ModelVersionOut]
     documents: dict[str, int]

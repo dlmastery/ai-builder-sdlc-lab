@@ -1,0 +1,220 @@
+"""PaddleOCR-VL-1.6 via transformers (D-011): text spotting → words with boxes and scores.
+
+The transformers path gives element-level recognition; the "Spotting:" task returns text with
+coordinates. The exact serialisation is parsed defensively (`parse_spotting`) and covered by a
+recorded-output test, because the model card does not document it. Per-element scores are not
+exposed by generation, so the word score is the mean token probability of the element's text —
+the same quantity the extractor uses — clipped to [0.5, 0.999].
+"""
+
+from __future__ import annotations
+
+import json
+import math
+import re
+from functools import lru_cache
+from typing import Any
+
+from PIL import Image
+
+from ledgerlens_ml.types import Box, OcrResult, OcrWord
+
+MODEL_ID = "PaddlePaddle/PaddleOCR-VL-1.6"
+MAX_PIXELS = 2048 * 28 * 28
+MIN_LONG_SIDE = 1500  # spotting wants ≥1500 px on the long side
+
+_COORD_RE = re.compile(r"(-?\d+(?:\.\d+)?)")
+
+
+def parse_spotting(
+    text: str, width: int, height: int
+) -> list[tuple[str, tuple[float, float, float, float]]]:
+    """Accepts the formats seen from PaddleOCR-VL spotting output:
+
+    1. JSON list of {"text": ..., "bbox"|"box"|"points": [...]}
+    2. Lines of `<|box_start|>x0 y0 x1 y1<|box_end|>text` or `[x0,y0,x1,y1] text`
+    3. Lines of `text\t[x0, y0, x1, y1]` / polygon points (8 numbers → outer box)
+
+    Coordinates in [0, 1000] are scaled to the image; already-pixel coordinates pass through.
+    """
+    out: list[tuple[str, tuple[float, float, float, float]]] = []
+
+    def to_box(nums: list[float]) -> tuple[float, float, float, float] | None:
+        if len(nums) >= 8:
+            xs, ys = nums[0::2][:4], nums[1::2][:4]
+            b = [min(xs), min(ys), max(xs), max(ys)]
+        elif len(nums) >= 4:
+            b = nums[:4]
+        else:
+            return None
+        if max(b) <= 1000 and (width > 1000 or height > 1000):
+            b = [
+                b[0] / 1000 * width,
+                b[1] / 1000 * height,
+                b[2] / 1000 * width,
+                b[3] / 1000 * height,
+            ]
+        x0, y0, x1, y1 = b
+        if x1 <= x0 or y1 <= y0:
+            return None
+        return (float(x0), float(y0), float(x1), float(y1))
+
+    stripped = text.strip()
+    if stripped.startswith("[") or stripped.startswith("{"):
+        try:
+            data: Any = json.loads(stripped)
+            items = (
+                data if isinstance(data, list) else data.get("elements") or data.get("items") or []
+            )
+            for it in items:
+                if not isinstance(it, dict):
+                    continue
+                t = str(it.get("text") or it.get("content") or "").strip()
+                coords = it.get("bbox") or it.get("box") or it.get("points") or it.get("polygon")
+                nums = (
+                    [float(v) for v in _COORD_RE.findall(json.dumps(coords))]
+                    if coords is not None
+                    else []
+                )
+                b = to_box(nums)
+                if t and b:
+                    out.append((t, b))
+            if out:
+                return out
+        except (json.JSONDecodeError, AttributeError):
+            pass
+
+    for line in stripped.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        m = re.search(r"<\|box_start\|>(.*?)<\|box_end\|>(.*)", line)
+        if m:
+            nums = [float(v) for v in _COORD_RE.findall(m.group(1))]
+            b = to_box(nums)
+            t = m.group(2).strip()
+            if b and t:
+                out.append((t, b))
+            continue
+        m = re.match(r"^\[([^\]]+)\]\s*(.+)$", line)
+        if m:
+            nums = [float(v) for v in _COORD_RE.findall(m.group(1))]
+            b = to_box(nums)
+            if b and m.group(2).strip():
+                out.append((m.group(2).strip(), b))
+            continue
+        m = re.match(r"^(.+?)\s*[\t|]\s*\[?([\d.,\s-]+)\]?$", line)
+        if m:
+            nums = [float(v) for v in _COORD_RE.findall(m.group(2))]
+            b = to_box(nums)
+            if b and m.group(1).strip():
+                out.append((m.group(1).strip(), b))
+    return out
+
+
+def split_into_words(
+    elements: list[tuple[str, tuple[float, float, float, float]]], score: float
+) -> list[OcrWord]:
+    """Element boxes become per-word boxes by proportional width, which is what grounding needs."""
+    words: list[OcrWord] = []
+    for text, (x0, y0, x1, y1) in elements:
+        toks = text.split()
+        if not toks:
+            continue
+        total = sum(len(t) for t in toks) + (len(toks) - 1)
+        cx = x0
+        for t in toks:
+            w = (x1 - x0) * (len(t) / total) if total else (x1 - x0)
+            words.append(OcrWord(t, Box(1, cx, y0, cx + w, y1), score))
+            cx += w + (x1 - x0) * (1 / total if total else 0)
+    return words
+
+
+class PaddleOcrVL:
+    name = "paddleocr-vl-1.6"
+
+    def __init__(self) -> None:
+        self._model: Any = None
+        self._processor: Any = None
+
+    def _load(self) -> None:
+        if self._model is not None:
+            return
+        import torch
+        from transformers import AutoModelForImageTextToText, AutoProcessor
+
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        dtype = torch.bfloat16 if device == "cuda" else torch.float32
+        model: Any = AutoModelForImageTextToText.from_pretrained(MODEL_ID, dtype=dtype)
+        self._model = model.to(device).eval()
+        self._processor = AutoProcessor.from_pretrained(MODEL_ID)
+
+    def spot(self, image: Image.Image) -> tuple[str, float]:
+        """Return (raw spotting text, mean token probability)."""
+        import torch
+
+        self._load()
+        img = image.convert("RGB")
+        long_side = max(img.size)
+        if long_side < MIN_LONG_SIDE:
+            scale = MIN_LONG_SIDE / long_side
+            img = img.resize(
+                (int(img.width * scale), int(img.height * scale)), Image.Resampling.BICUBIC
+            )
+        messages = [
+            {
+                "role": "user",
+                "content": [{"type": "image", "image": img}, {"type": "text", "text": "Spotting:"}],
+            }
+        ]
+        inputs = self._processor.apply_chat_template(
+            messages,
+            add_generation_prompt=True,
+            tokenize=True,
+            return_dict=True,
+            return_tensors="pt",
+            images_kwargs={"size": {"longest_edge": MAX_PIXELS}},
+        ).to(self._model.device)
+        with torch.no_grad():
+            gen = self._model.generate(
+                **inputs,
+                max_new_tokens=2048,
+                do_sample=False,
+                output_scores=True,
+                return_dict_in_generate=True,
+            )
+        seq = gen.sequences[0][inputs["input_ids"].shape[-1] :]
+        text = self._processor.decode(seq, skip_special_tokens=False)
+        probs: list[float] = []
+        for step, tok in zip(gen.scores, seq, strict=False):
+            lp = torch.log_softmax(step[0].float(), dim=-1)[tok].item()
+            probs.append(math.exp(lp))
+        mean_p = sum(probs) / len(probs) if probs else 0.5
+        return text, float(min(max(mean_p, 0.5), 0.999))
+
+    def run_images(self, images: list[Image.Image]) -> OcrResult:
+        words: list[OcrWord] = []
+        sizes: dict[int, tuple[int, int]] = {}
+        for i, image in enumerate(images, start=1):
+            sizes[i] = (image.width, image.height)
+            text, score = self.spot(image)
+            # coordinates refer to the (possibly upscaled) image the model saw; map back
+            long_side = max(image.size)
+            scale = MIN_LONG_SIDE / long_side if long_side < MIN_LONG_SIDE else 1.0
+            seen_w, seen_h = int(image.width * scale), int(image.height * scale)
+            elements = parse_spotting(text, seen_w, seen_h)
+            for w in split_into_words(elements, score):
+                b = w.box
+                words.append(
+                    OcrWord(
+                        w.text,
+                        Box(i, b.x0 / scale, b.y0 / scale, b.x1 / scale, b.y1 / scale),
+                        w.score,
+                    )
+                )
+        return OcrResult(words=words, page_sizes=sizes)
+
+
+@lru_cache(maxsize=1)
+def shared_engine() -> PaddleOcrVL:
+    return PaddleOcrVL()

@@ -157,6 +157,34 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** same-origin keeps cookies and CSRF simple and is what a reverse proxy does in production. The retry exists because a Playwright run hit "fetch failed: other side closed" once on a healthy API; the failure is a transport race, idempotent by definition, and a single retry is the honest fix rather than a re-run.
 - **Date:** 2026-09-05
 
+## D-022 · All human gates are closed; Fable narrates both voices and runs Slices B, C, verification and the maintain hook without stopping
+
+- **Decided:** the AI Builder approved Slice A and reminded Fable of the brief: after the pick, Fable plays the pairing on both sides — inventing the developer's time pressure, never the AI Builder's taste. The four artifact gates and the direction pick are closed. Slices B and C, verification, the long train and the maintain hook proceed autonomously; each lands as a tagged commit and a story chapter. Fable stops only for an irreversible judgement the brief reserves for the human (none remain in the plan).
+- **Alternatives:** pause at each slice for review (what Fable did after Slice A).
+- **Why:** the AI Builder's words: "you have to play both user and AI story jointly — why are you asking me — remember the original plan." Human time is the scarce resource; the loop is the product.
+- **Date:** 2026-09-05
+
+## D-023 · GPU work runs in a native Windows venv for iteration; the CUDA Docker image is the production path
+
+- **Decided:** `uv sync --extra gpu` installs torch (cu126), transformers 5, peft, bitsandbytes into the project venv; the GPU worker runs natively (`make worker-gpu-native`) during the lab. `apps/worker/Dockerfile.gpu` remains the deployable and was verified to see the RTX 4090 through Docker Desktop's WSL2 backend.
+- **Alternatives:** build and iterate inside the Docker GPU image (slow rebuilds on every dependency change); WSL2 venv.
+- **Why:** the model-card usage for both PaddleOCR-VL-1.6 and Qwen3.5 is plain transformers ≥ 5 on torch, which runs on Windows; iteration speed matters more than container purity while the pipeline is being discovered. The container is what a cluster runs, and CI builds it.
+- **Date:** 2026-09-06
+
+## D-024 · Synthetic invoices are rendered with PIL; Augraphy is not a dependency
+
+- **Decided:** eight vendor layouts drawn with PIL, exact word boxes recorded at draw time, scan-like degradation (blur, noise, skew, resample) implemented in ~30 lines of numpy; the degradation strength is the document's recorded difficulty.
+- **Alternatives:** HTML templates rendered by headless Chromium; the Augraphy library for degradation.
+- **Why:** PIL gives pixel-exact boxes for free (needed to measure grounding, D-014) and no browser or OpenCV dependency in the worker image. The degradation set is smaller than Augraphy's but covers what the difficulty predictor needs; Augraphy can be added later as an opt-in source without changing any row.
+- **Date:** 2026-09-06
+
+## D-025 · Disk pressure: only package caches were reclaimed
+
+- **Context:** the torch wheel extraction failed with 0.7 GB free on a 953 GB disk. Reclaimable candidates: pip cache 25 GB, uv cache 24 GB, Hugging Face cache 56 GB, Docker images 16 GB, Playwright browsers 5 GB.
+- **Decided:** purge the pip cache (26.8 GB freed) and prune the uv cache. Nothing else: the Hugging Face and Docker caches may hold the AI Builder's other work and are not Fable's to delete; the browsers are needed.
+- **Why:** package caches are disposable by definition and re-fill on demand; everything else is a judgement the machine's owner makes. This is recorded so students see the line an autonomous agent should not cross without being asked.
+- **Date:** 2026-09-06
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.

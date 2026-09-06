@@ -40,6 +40,11 @@ class ExtractionResult:
     raw_output: dict[str, object]
     latency_ms: int
 
+    def as_labels(self) -> dict[str, object]:
+        from ledgerlens_ml.baseline import labels_from_fields
+
+        return labels_from_fields(self.fields)
+
 
 @dataclass
 class OcrWord:

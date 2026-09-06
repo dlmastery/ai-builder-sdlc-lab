@@ -8,9 +8,17 @@ from celery import Task
 
 from ledgerlens_core import jobs
 from ledgerlens_core.celery_app import celery_app
+from ledgerlens_ml import jobs as ml_jobs
 from ledgerlens_ml import pipeline
 
 jobs.handler("process_document")(pipeline.process_document)
+jobs.handler("build_dataset")(ml_jobs.build_dataset)
+jobs.handler("train_extractor")(ml_jobs.train_extractor)
+jobs.handler("evaluate_model")(ml_jobs.evaluate_model)
+jobs.handler("calibrate_model")(ml_jobs.calibrate_model)
+jobs.handler("train_difficulty")(ml_jobs.train_difficulty)
+
+GPU_KINDS = {"train_extractor", "evaluate_model", "calibrate_model", "train_difficulty"}
 
 
 @celery_app.task(name="jobs.run", bind=True, max_retries=3, default_retry_delay=15)  # type: ignore[untyped-decorator]
