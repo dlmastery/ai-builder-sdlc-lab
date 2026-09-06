@@ -12,7 +12,11 @@
 10. Migrations are versioned artifacts; the app never creates tables at runtime.
 11. The UI never reads a weights file directly; inference goes through the pinned `model_versions` row.
 12. Anomaly is not guilt. UI copy says "review", never "suspect"; false-alarm rate is a first-class metric.
-13. Archive every turn: a `story/NN-*.md` chapter (Setting / AI Builder / Fable / Gate) and a commit; accepted gates get a tag. Push after every commit.
+13. Radical transparency, written at elite tech-writer quality: every turn gets a `story/NN-*.md` chapter (Setting / AI Builder / Fable / Gate) and a commit; every non-obvious decision gets an entry in `lab/decisions.md` (what, alternatives, why, evidence, date); accepted gates get a tag. Push after every commit.
 14. Over-specification is a bug. Under-constraint is a bug. If a section reads like a design novel, cut it in front of the class and say why.
 15. `plan.md` must be implementable by a fresh agent context that has read nothing else — files, order, risks, proof. Each stage may run in a new session or subagent; the artifact is the handoff, not the conversation.
-16. Production-generated intents land in `lab/intent/` with a signal prefix (e.g. `false-alarm-tanker.md`); the maintain hook writes them, a human triages them into the next loop.
+16. Production-generated intents land in `lab/intent/` with a signal prefix (e.g. `vendor-template-drift.md`); the maintain hook writes them, a human triages them into the next loop.
+17. Product bar: this is a product, not a lab demo — marketing home page, real auth, pricing (Stripe test-mode-ready, faked billing), and the transparency view as the hero. Stunning, cinematic, earned by the domain. No generic AI slop; a green test suite of slop fails.
+18. Engineering bar: elite in every discipline. Designed to scale horizontally — stateless API, queue-backed idempotent workers, object store, versioned migrations, health and metrics endpoints, structured logs — even though it runs on one laptop. Best practice without ceremony: typed contracts end to end; tests at DB, API and UI.
+19. Explainability bar: every prediction shows what the model read, where it looked, the calibrated confidence per part, what it verified, and where it struggled. Every element is grounded in evidence; nothing decorative, nothing free-form that could hallucinate.
+20. Freshness: model choices (OCR specialist, extractor) are re-verified against current public leaderboards at spec time and at plan time, recorded with date and source. Never call something "state of the art" from memory.
