@@ -36,4 +36,8 @@ The first successful GitHub Actions run in the repository's history (commit `611
 
 The demo run died during `build_dataset`: "stopped because the system is running low on memory". The builder held every decoded page — 700 images at 1240×1754 — in a Python list before writing any of them, on a machine already carrying the OCR model in the worker, WSL, and a dozen browser processes (7 GB free of 32). Rewritten to stream: each page goes to the object store as it is produced, only its key, labels and vendor stay in memory, splits are assigned once the vendors are known. The orphaned jobs were marked failed with that sentence as the reason. Attempt three is running.
 
+### 09:50 — Killed again; the second hog
+
+Same stage, same message. The streaming builder was correct and insufficient: the *synthetic loader* called `generate(n=400)`, which renders every page into a list before yielding the first — ~2.6 GB of decoded images on a machine with 5.5 GB free. Now one page at a time. And every model load staged bf16 weights in host RAM before moving them to the GPU; `device_map="cuda"` sends them straight there. The idle Celery worker (1.9 GB, holding the OCR model) is stopped during training — the CLI run loads its own. Attempt four. The lesson: "streams to storage" and "streams from the source" are two different promises, and a 32 GB laptop with a browser open is a 6 GB machine.
+
 *(continued below as the run progresses)*
