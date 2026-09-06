@@ -11,13 +11,14 @@ export const metadata = { title: "Inbox" };
 // reasons the transparency view will show, and how many fields were grounded. The header is the
 // queue's health — one number per state, each a filter — not a heading over empty space.
 
-const TONE: Record<string, string> = {
-  needs_review: "text-caution",
-  auto_approved: "text-signal",
-  approved: "text-signal",
-  failed: "text-fault",
-  processing: "text-ink-2",
-  uploaded: "text-ink-2",
+// state shown by light (DESIGN.md): a dot in the state's tone beside the word, never the word alone
+const DOT: Record<string, string> = {
+  needs_review: "bg-caution",
+  auto_approved: "bg-signal",
+  approved: "bg-signal",
+  failed: "bg-fault",
+  processing: "bg-ink-3",
+  uploaded: "bg-ink-3",
 };
 
 const STATES: Array<[string, string, string]> = [
@@ -73,7 +74,7 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
             className={`flex flex-col gap-1 bg-ground px-4 py-5 hover:bg-surface ${filter === value ? "bg-surface" : ""}`}
           >
             <span className="micro">{label}</span>
-            <span className={`readout text-step-2 leading-none ${(counts[value] ?? 0) > 0 ? TONE[value] : "text-ink-3"}`}>
+            <span className={`readout text-step-2 leading-none ${value === "failed" && (counts[value] ?? 0) > 0 ? "text-fault" : (counts[value] ?? 0) > 0 ? "text-ink" : "text-ink-3"}`}>
               {counts[value] ?? 0}
             </span>
             <span className="text-step--1 text-ink-3">{sub}</span>
@@ -106,7 +107,9 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
                     {d.vendor_name ?? "vendor not yet known"}
                     {d.difficulty != null ? ` · difficulty ${Math.round(d.difficulty * 100)}%` : ""}
                   </span>
-                  {d.reasons.length > 0 ? (
+                  {d.status === "approved" ? (
+                    <span className="text-step--1 text-ink-3">approved by a person{d.reasons.length ? ` · ${d.reasons.length} review reason${d.reasons.length === 1 ? "" : "s"} overridden` : ""}</span>
+                  ) : d.reasons.length > 0 ? (
                     <span className="flex flex-wrap gap-x-3 gap-y-1 text-step--1">
                       {d.reasons.slice(0, 3).map((r, i) => (
                         <span key={i} className="text-fault">
@@ -118,7 +121,10 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
                   ) : null}
                 </span>
                 <Grounded n={d.grounded_fields} of={d.field_count} />
-                <span className={`micro ${TONE[d.status] ?? "text-ink-2"}`}>{statusLabel(d.status)}</span>
+                <span className="micro flex items-center gap-2 text-ink-2">
+                  <span aria-hidden className={`inline-block h-[8px] w-[8px] rounded-full ${DOT[d.status] ?? "bg-ink-3"}`} />
+                  {statusLabel(d.status)}
+                </span>
                 <span className="text-step--1 text-ink-3 md:text-right">{relTime(d.created_at)}</span>
               </Link>
             </li>

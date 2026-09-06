@@ -13,7 +13,7 @@ export default async function MarketingLayout({ children }: LayoutProps<"/">) {
             Pricing
           </Link>
           {session ? (
-            <Link href="/inbox" className="text-ink hover:text-signal">
+            <Link href="/inbox" className="text-ink hover:text-ink-2">
               Open workspace →
             </Link>
           ) : (
@@ -23,7 +23,7 @@ export default async function MarketingLayout({ children }: LayoutProps<"/">) {
               </Link>
               <Link
                 href="/sign-up"
-                className="rounded-[var(--radius)] border border-signal px-4 py-2 text-signal hover:bg-signal hover:text-ground"
+                className="rounded-[var(--radius)] border border-ink-2 px-4 py-2 text-ink hover:bg-ink hover:text-ground"
               >
                 Start
               </Link>

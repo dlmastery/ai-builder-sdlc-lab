@@ -5,6 +5,8 @@ import type { NextConfig } from "next";
 const apiUrl = process.env.API_URL ?? "http://localhost:8000";
 
 const nextConfig: NextConfig = {
+  // the dev overlay badge is not part of the product and leaks into design-loop renders
+  devIndicators: false,
   async rewrites() {
     return [{ source: "/api/:path*", destination: `${apiUrl}/:path*` }];
   },

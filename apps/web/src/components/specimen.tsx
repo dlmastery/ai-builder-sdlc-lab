@@ -20,7 +20,8 @@ function tone(f: Field, threshold: number): "signal" | "caution" | "fault" {
   return REQUIRED.has(f.name) ? "fault" : "caution";
 }
 const VAR = { signal: "var(--signal)", caution: "var(--caution)", fault: "var(--fault)" };
-const TEXT = { signal: "text-signal", caution: "text-caution", fault: "text-fault" };
+// readout percentages: ink when fine, colour only when something is wrong (accent budget, round 2)
+const TEXT = { signal: "text-ink-2", caution: "text-caution", fault: "text-fault" };
 
 export function Specimen() {
   const ref = useRef<HTMLDivElement>(null);
@@ -53,7 +54,7 @@ export function Specimen() {
     >
       <div className="micro mb-3 flex items-center justify-between gap-3">
         <span className="truncate">Specimen · {specimen.document.filename}</span>
-        <span className="shrink-0 text-signal">extractor · {specimen.model.extractor}</span>
+        <span className="shrink-0">extractor · {specimen.model.extractor}</span>
       </div>
       <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_168px]">
         <div className="relative overflow-hidden rounded-[2px]">
@@ -121,7 +122,7 @@ export function Specimen() {
             verdict · {specimen.verdict.decision?.replaceAll("_", " ")}
             {reasons.length ? ` · ${reasons.map((r) => `${r.field ?? ""} ${String(r.why ?? "").replaceAll("_", " ")}`).join(", ")}` : ""}
           </span>
-          <span className={specimen.verdict.decision === "auto_approved" ? "text-signal" : "text-fault"}>
+          <span className={specimen.verdict.decision === "auto_approved" ? "text-ink-2" : "text-fault"}>
             {specimen.verdict.decision === "auto_approved" ? "✓" : "review"}
           </span>
         </div>
@@ -148,7 +149,7 @@ function LedgerLine({ text, passed }: { text: string; passed: boolean }) {
   return (
     <>
       <span className="truncate text-ink-2">{text}</span>
-      <span className={passed ? "text-signal" : "text-fault"}>{passed ? "✓" : "✗"}</span>
+      <span className={passed ? "text-ink-2" : "text-fault"}>{passed ? "✓" : "✗"}</span>
     </>
   );
 }

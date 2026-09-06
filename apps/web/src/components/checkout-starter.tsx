@@ -36,7 +36,7 @@ export function CheckoutStarter({ plan }: { plan: string }) {
             setBusy(false);
           }
         }}
-        className="rounded-[var(--radius)] bg-signal px-4 py-3 text-step-0 font-medium text-ground disabled:opacity-60"
+        className="rounded-[var(--radius)] bg-ink px-4 py-3 text-step-0 font-medium text-ground hover:bg-ink-2 disabled:opacity-60"
       >
         {busy ? "…" : "Continue to checkout"}
       </button>

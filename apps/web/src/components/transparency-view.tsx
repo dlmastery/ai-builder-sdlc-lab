@@ -83,6 +83,12 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
     }
     return [...byIndex.entries()].sort((a, b) => a[0] - b[0]).map(([, r]) => r);
   }, [ex.fields]);
+  // a required field the extractor did not emit is a review case, and it gets a row (D-031)
+  const missingRequired = useMemo(
+    () =>
+      [...REQUIRED].filter((n) => !ex.fields.some((f) => f.name === n && f.line_index === null)),
+    [ex.fields],
+  );
   const byId = useMemo(() => new Map(ex.fields.map((f) => [f.id, f])), [ex.fields]);
   const sel = selected ? byId.get(selected) : undefined;
   const verdict = ex.verdict;
@@ -236,6 +242,15 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
         <section className="flex flex-col gap-2">
           <p className="micro">Fields · {ex.model_version.kind} {ex.model_version.name}</p>
           <ul className="rule-y border-t border-rule">
+            {missingRequired.map((n) => (
+              <li key={`missing-${n}`} data-testid={`readout-${n}`} className="grid grid-cols-[1fr_auto] items-baseline gap-3 py-2">
+                <span>
+                  <span className="micro">{fieldLabel(n)}</span>
+                  <span className="readout block text-step-0 text-ink-3">—</span>
+                </span>
+                <span className="readout text-step--1 text-fault">missing · the model did not read one</span>
+              </li>
+            ))}
             {header.map((f) => (
               <Readout
                 key={f.id}

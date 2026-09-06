@@ -45,7 +45,7 @@ export function Uploader() {
         type="button"
         disabled={state === "busy"}
         onClick={() => input.current?.click()}
-        className="rounded-[var(--radius)] border border-signal px-4 py-2 text-step-0 text-signal hover:bg-signal hover:text-ground disabled:opacity-60"
+        className="rounded-[var(--radius)] border border-ink-2 px-4 py-2 text-step-0 text-ink hover:bg-ink hover:text-ground disabled:opacity-60"
       >
         {state === "busy" ? "Reading…" : "Upload document"}
       </button>

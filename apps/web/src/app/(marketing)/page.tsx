@@ -5,9 +5,10 @@ import { Specimen } from "@/components/specimen";
 import specimen from "@/specimen/northwind.json";
 
 // The home page follows the bar (apps/web/design/bar.md): every numbered section opens with a
-// full-width illustrated plate; under it the plain-words scaffold — what it does, what it reads
-// from, and how you know it worked — where the "how you know" line is a measured number from the
-// exported specimen and its evaluation, never a typed one.
+// plate; under it the plain-words scaffold — what it does, what it reads from, and how you know
+// it worked — where the "how you know" line is a measured number from the exported specimen and
+// its evaluation, never typed. Round 2 (critics): air above the fold, the one number as one
+// sentence first, "01 ·" on the title line, the accent kept for evidence.
 
 const m = specimen.metrics;
 const per = m.per_field as Record<string, number>;
@@ -15,9 +16,8 @@ const f1 = (name: string) => (per[name] != null ? `${(per[name] * 100).toFixed(1
 const hardSpots = specimen.ocr_words.filter((w) => w.score < 0.85).length;
 const groundedFields = specimen.fields.filter((f) => f.grounded).length;
 const ledgerPassed = specimen.ledger.filter((r) => r.passed).length;
-const reasons = (specimen.verdict.reasons as Array<{ field?: string; why?: string }>).map(
-  (r) => `${(r.field ?? "").replaceAll("_", " ")} · ${(r.why ?? "").replaceAll("_", " ")}`,
-);
+const fieldF1 = m.field_f1 != null ? `${(m.field_f1 * 100).toFixed(1)} %` : "—";
+const docs = m.documents ?? "—";
 
 const STORY = [
   {
@@ -26,7 +26,7 @@ const STORY = [
     plate: <PlateRead />,
     does: "Before any field exists, a specialist model reads the page word by word and scores each word. Low-score words and image defects become a hard-spots layer, so you know where the page was difficult before you know what it says.",
     reads: `The page image and nothing else. On the specimen: ${specimen.ocr_words.length} words, ${hardSpots} hard spots — the RECEIVED stamp over the total is most of them.`,
-    proof: `The stamp region scored under 0.85 and was flagged before extraction; the total under it could not be grounded (${reasons.find((r) => r.includes("ungrounded")) ?? "see the ledger"}).`,
+    proof: "The stamp region scored under 0.85 and was flagged before extraction; the total under it could not be grounded, and the verdict says so in words.",
   },
   {
     n: "02",
@@ -34,7 +34,7 @@ const STORY = [
     plate: <PlateGround />,
     does: "Each extracted value must be found among the OCR words on one reading line near its box. If it cannot be grounded, it cannot be auto-approved — however confident the model sounds. That one rule removes hallucinated totals from the approval path.",
     reads: "The extractor's value, the OCR words, their boxes. No free text.",
-    proof: `${groundedFields} of ${specimen.fields.length} fields on the specimen are grounded on the page; the ungrounded one is the stamped total, and it is red for that reason.`,
+    proof: `${groundedFields} of ${specimen.fields.length} fields on the specimen are grounded on the page; the ungrounded one is the stamped total, and it is marked for that reason.`,
   },
   {
     n: "03",
@@ -56,37 +56,29 @@ const STORY = [
     n: "05",
     title: "The number a finance lead buys",
     plate: <PlateGuarantee />,
-    does: "A conformal threshold turns calibrated confidence into a statistical guarantee on documents like yours: auto-approve N % at no more than 1 % field error. The guarantee, its coverage and its assumption are printed next to every auto-approval.",
+    does: "A conformal threshold turns calibrated confidence into a statistical guarantee on documents like yours: auto-approve N % of documents at no more than 1 % field error. The guarantee, its coverage and its assumption are printed next to every auto-approval.",
     reads: "The calibration split's required fields and whether each was right.",
-    proof: `Field-level F1 ${m.field_f1 != null ? (m.field_f1 * 100).toFixed(1) + " %" : "—"} on ${m.documents ?? "—"} held-out documents; the field-level guarantee holds at 1 %; and the honest document number today is 0 of 60 auto-approved, because a required field is missing on every one. Both numbers are on this page because both are true.`,
+    proof: `Today the number is 0 % of documents at ≤ 1 % field error: on ${docs} held-out documents every required field that was answered cleared the bar (100 %), and every document had one required field the model would not answer. The guarantee is real; the product number is zero; both are on this page because both are true.`,
   },
-];
-
-const NUMBERS: Array<[string, string, string]> = [
-  ["field-level F1", m.field_f1 != null ? `${(m.field_f1 * 100).toFixed(1)} %` : "—", `${m.documents ?? "—"} held-out documents`],
-  ["invoice number", f1("invoice_number"), "per-field F1"],
-  ["total", f1("total"), "per-field F1"],
-  ["vendor name", f1("vendor_name"), "on a vendor never seen in training"],
-  ["per page", specimen.latency_ms != null ? `${(specimen.latency_ms / 1000).toFixed(0)} s` : "—", "extraction with alternatives, on one GPU"],
 ];
 
 export default function HomePage() {
   return (
     <div className="mx-auto w-full max-w-[1200px] px-6">
-      <section className="grid items-center gap-10 py-10 md:min-h-[78vh] md:grid-cols-[1fr_1.1fr] md:py-6">
-        <div className="flex flex-col gap-6">
+      <section className="grid items-center gap-12 py-16 md:min-h-[86vh] md:grid-cols-[1fr_1.1fr] md:py-10">
+        <div className="flex flex-col gap-7">
           <p className="micro">Sovereign document AI · runs on your hardware</p>
           <h1 className="text-step-3 font-medium leading-[1.02] tracking-tight text-ink">
             Document extraction that shows its work — and knows when it doesn&apos;t know.
           </h1>
-          <p className="max-w-[52ch] text-step-1 leading-snug text-ink-2">
+          <p className="max-w-[48ch] text-step-1 leading-snug text-ink-2">
             For finance teams that cannot send an invoice to a cloud API. Calibrated confidence per
             field, evidence for every value, and one honest automation number.
           </p>
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-6">
             <Link
               href="/sign-up"
-              className="rounded-[var(--radius)] bg-signal px-5 py-3 text-step-0 font-medium text-ground hover:brightness-110"
+              className="rounded-[var(--radius)] border border-ink px-5 py-3 text-step-0 font-medium text-ink hover:bg-ink hover:text-ground"
             >
               Start with your first document
             </Link>
@@ -94,20 +86,27 @@ export default function HomePage() {
               See pricing →
             </Link>
           </div>
-          <p className="max-w-[52ch] text-step--1 text-ink-3">
-            The document on the right is real: read by {specimen.model.extractor} and{" "}
-            {specimen.model.ocr ?? "the OCR specialist"}, every box and percentage a row in the
-            database. It was sent to review, and the page says why.
-          </p>
         </div>
         <Specimen />
       </section>
 
-      <section aria-label="Measured numbers" className="grid gap-6 border-y border-rule py-8 md:grid-cols-5">
-        {NUMBERS.map(([label, value, sub]) => (
-          <div key={label} className="flex flex-col gap-1">
+      <section aria-label="Measured numbers" className="grid gap-8 border-y border-rule py-14 md:grid-cols-[1.6fr_1fr_1fr_1fr]">
+        <div className="flex flex-col gap-2">
+          <p className="micro">Auto-approve today · at ≤ 1 % field error</p>
+          <p className="readout text-step-3 leading-none text-ink">0 %</p>
+          <p className="max-w-[40ch] text-step--1 leading-relaxed text-ink-2">
+            of {docs} held-out documents. Every answered required field cleared the bar; every document
+            had one the model would not answer. Measured, not typed.
+          </p>
+        </div>
+        {[
+          ["field-level F1", fieldF1, `${docs} held-out documents`],
+          ["total · invoice number", `${f1("total")} · ${f1("invoice_number")}`, "per-field F1"],
+          ["vendor name", f1("vendor_name"), "on a vendor never seen in training"],
+        ].map(([label, value, sub]) => (
+          <div key={label} className="flex flex-col gap-2">
             <p className="micro">{label}</p>
-            <p className={`readout text-step-2 leading-none ${value.startsWith("0.0") ? "text-fault" : "text-ink"}`}>{value}</p>
+            <p className="readout text-step-2 leading-none text-ink">{value}</p>
             <p className="text-step--1 text-ink-3">{sub}</p>
           </div>
         ))}
@@ -115,12 +114,12 @@ export default function HomePage() {
 
       <ol className="flex flex-col">
         {STORY.map((s) => (
-          <li key={s.n} className="border-b border-rule py-14">
-            <Reveal className="flex flex-col gap-8">
-              <div className="plate">{s.plate}</div>
-              <div className="scaffold grid gap-8 md:grid-cols-[220px_1fr]">
+          <li key={s.n} className="border-b border-rule py-16">
+            <Reveal className="flex flex-col gap-10">
+              <div className="plate mx-auto w-full max-w-[880px]">{s.plate}</div>
+              <div className="scaffold grid gap-8 md:grid-cols-[260px_1fr]">
                 <h2 className="text-step-2 font-medium leading-tight tracking-tight text-ink">
-                  <span className="micro block text-signal">{s.n} ·</span>
+                  <span className="text-ink-3">{s.n} · </span>
                   {s.title}
                 </h2>
                 <div className="flex max-w-[66ch] flex-col gap-4 text-step-0 leading-relaxed text-ink-2">
@@ -130,8 +129,8 @@ export default function HomePage() {
                   <p>
                     <strong className="font-medium text-ink">What it reads from:</strong> {s.reads}
                   </p>
-                  <p className="rounded-[var(--radius)] border border-rule bg-surface px-4 py-3">
-                    <strong className="font-medium text-signal">How you know it worked:</strong> {s.proof}
+                  <p className="border-l-2 border-ink-3 pl-4">
+                    <strong className="font-medium text-ink">How you know it worked:</strong> {s.proof}
                   </p>
                 </div>
               </div>
@@ -140,7 +139,7 @@ export default function HomePage() {
         ))}
       </ol>
 
-      <section className="grid gap-6 py-14 md:grid-cols-3">
+      <section className="grid gap-6 py-16 md:grid-cols-3">
         {[
           ["Runs on one GPU", "A 2B-parameter extractor fine-tuned on your corrections. Nothing leaves your network."],
           ["Every correction teaches", "A fix in the review queue becomes a training example in the next run. Per-vendor learning curves make it visible."],
