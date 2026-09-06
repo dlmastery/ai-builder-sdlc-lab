@@ -1,0 +1,70 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  SECRET_KEY: ci-secret-key-0123456789abcdef0123456789abcdef
+  DATABASE_URL: postgresql+psycopg://ledgerlens:ledgerlens@localhost:5432/ledgerlens
+  TEST_DATABASE_URL: postgresql+psycopg://ledgerlens:ledgerlens@localhost:5432/ledgerlens_test
+  REDIS_URL: redis://localhost:6379/0
+  OBJECT_STORE_ENDPOINT: http://localhost:9000
+  OBJECT_STORE_ACCESS_KEY: ledgerlens
+  OBJECT_STORE_SECRET_KEY: ledgerlens-secret
+  ENVIRONMENT: ci
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ledgerlens
+          POSTGRES_PASSWORD: ledgerlens
+          POSTGRES_DB: ledgerlens
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ledgerlens" --health-interval 5s --health-timeout 3s --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+      minio:
+        image: bitnami/minio:latest
+        env:
+          MINIO_ROOT_USER: ledgerlens
+          MINIO_ROOT_PASSWORD: ledgerlens-secret
+        ports: ["9000:9000"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv python install 3.12
+      - run: uv sync --frozen
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy packages apps
+      - run: uv run pytest tests/core tests/db tests/api tests/ml -q
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: apps/web/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm build

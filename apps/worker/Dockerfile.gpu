@@ -1,0 +1,26 @@
+# GPU worker: CUDA runtime + Python 3.12 + the workspace with the `gpu` extra (Slice B adds torch,
+# transformers, peft, paddleocr). Runs the `gpu` queue only.
+FROM nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04 AS base
+ENV DEBIAN_FRONTEND=noninteractive PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 \
+    UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON=3.12
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates curl libgl1 libglib2.0-0 && rm -rf /var/lib/apt/lists/*
+COPY --from=ghcr.io/astral-sh/uv:0.9 /uv /uvx /bin/
+RUN uv python install 3.12
+WORKDIR /app
+
+COPY pyproject.toml uv.lock ./
+COPY packages/core/pyproject.toml packages/core/
+COPY packages/ml/pyproject.toml packages/ml/
+COPY apps/api/pyproject.toml apps/api/
+COPY apps/worker/pyproject.toml apps/worker/
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-install-workspace --no-dev --extra gpu
+
+COPY packages packages
+COPY apps/api apps/api
+COPY apps/worker apps/worker
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --extra gpu
+
+ENV PATH="/app/.venv/bin:$PATH"
+CMD ["celery", "-A", "ledgerlens_worker.app", "worker", "-Q", "gpu", "-l", "INFO", "--concurrency=1", "--pool=solo"]
