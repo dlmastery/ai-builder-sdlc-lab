@@ -95,6 +95,33 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Cost accepted:** somewhat lower ceiling on line-item-heavy documents; the 2B-vs-4B comparison becomes a teaching artifact rather than a loss.
 - **Date:** 2026-09-05
 
+## D-013 · Slice A ships a stub extractor through the real pipeline path
+
+- **Decided:** `ModelVersion(kind=extractor, name=stub, pinned=true)` returns a deterministic fixture extraction via the same tasks, rows and API the real model will use.
+- **Alternatives:** build the UI against mock JSON; wait for Slice B before any UI.
+- **Why:** students see a database and a web app before a weight file exists (brief §6); Slice C swaps the model, not the plumbing; the taste review happens on real plumbing.
+- **Date:** 2026-09-05
+
+## D-014 · Grounding by OCR alignment, not by asking the extractor for boxes
+
+- **Decided:** a field is grounded when its normalised value matches OCR words near a layout block; the matched words' boxes become the field's grounding. The extractor may also emit boxes when it can; they are used only if they agree with OCR.
+- **Alternatives:** train the extractor to emit boxes (synthetic data has them); rely on the model card's grounding claims.
+- **Why:** the Qwen3.5-2B card does not document bounding-box output (verified 2026-09-05). OCR alignment is deterministic, model-independent, and doubles as the hallucination check (an ungrounded value cannot auto-approve, D-009). Synthetic boxes measure grounding accuracy.
+- **Date:** 2026-09-05
+
+## D-015 · Jobs: Celery on Redis with `cpu` and `gpu` queues; our `jobs` table is the source of truth
+
+- **Decided:** Celery workers, Redis broker, no Celery result backend; status, attempts and logs live in `Job` rows; idempotency key unique per job; retries with backoff; GPU tasks only on the `gpu` queue.
+- **Alternatives:** arq (async, lighter); Dramatiq; a Postgres-backed queue; running training inline in the API.
+- **Why:** two queues that scale independently is the shape a cluster needs; Celery is what students will meet; keeping job truth in our table keeps the Production view honest and independent of the broker.
+- **Date:** 2026-09-05
+
+## D-016 · GPU worker runs Linux-in-Docker (WSL2 backend) with a native venv fallback
+
+- **Decided:** as titled; `make up` starts it; `make worker-gpu-native` is the fallback.
+- **Why:** PaddleOCR-VL, bitsandbytes and transformers-main are friendlier on Linux; the container is also exactly what a cluster runs. The fallback exists because GPU passthrough on a Windows laptop is the single most likely environment failure.
+- **Date:** 2026-09-05
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.
