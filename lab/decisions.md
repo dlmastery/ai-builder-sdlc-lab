@@ -53,6 +53,40 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** a student tutorial must be redistributable; every dataset's licence is stated in the spec.
 - **Date:** 2026-09-05
 
+## D-007 · Stack: FastAPI + Python worker, Postgres 16 + Alembic, Redis queue, MinIO, Next.js web, Stripe test mode, Compose, GitHub Actions
+
+- **Decided:** as titled. API and worker share one Python package and domain model; web is Next.js (App Router, TypeScript); contracts generated from one OpenAPI schema.
+- **Alternatives:** single Next.js full-stack app with Python sidecar; Django + HTMX; SvelteKit; Postgres-backed queue instead of Redis; Celery instead of a lighter Redis queue; SQLite for the lab.
+- **Why:** the ML must be Python and must share the domain model with the API to keep "training writes rows" honest. The home page and app need SSR-grade product quality, which Next.js gives cheaply. Postgres from day one because the intent demands a production migration path, and because per-tenant isolation and PostGIS-free relational integrity are the point. Redis queue because a GPU queue and a CPU queue must scale independently and students recognise the shape. MinIO because the S3 API is the production contract.
+- **Cost accepted:** two runtimes, two toolchains.
+- **Date:** 2026-09-05
+
+## D-008 · Auth: own email + password with Argon2 and server-side sessions, tenant isolation on every query
+
+- **Decided:** as titled; no OAuth/SSO in scope.
+- **Alternatives:** third-party auth service; JWT access tokens; a framework's built-in auth.
+- **Why:** "real enough to demo" plus the teaching value of seeing sessions, CSRF and tenant scoping in plain code. JWTs add revocation complexity the lab does not need. A hosted auth service hides exactly what students should see once.
+- **Date:** 2026-09-05
+
+## D-009 · Confidence is derived and calibrated by us; auto-approval requires threshold ∧ grounded ∧ ledger pass
+
+- **Decided:** per-field temperature scaling on a disjoint calibration split; conformal risk control for the threshold at a 1 % default field-error target; the three-way conjunction for auto-approval; guarantee text and assumption shown in the UI.
+- **Alternatives:** show raw probabilities; a single global threshold tuned on validation accuracy; LLM self-reported confidence.
+- **Why:** raw LLM probabilities are over-confident; self-reported confidence is theatre; a validation-tuned threshold has no guarantee. The conjunction makes hallucinated-but-confident values impossible to auto-approve.
+- **Date:** 2026-09-05
+
+## D-010 · Home-page persona: regulated finance lead (sovereignty) first, clerk's relief second; retraining triggered in the lab, scheduled in production
+
+- **Decided:** as titled (spec §4).
+- **Why:** sovereignty is the differentiated pitch and the laptop deployment literally demonstrates it; triggered retraining keeps the classroom loop visible while the scheduled path is one configuration change.
+- **Date:** 2026-09-05
+
+## D-011 · OCR specialist locked to the leaderboard leader: PaddleOCR-VL-1.6
+
+- **Decided:** PaddleOCR-VL-1.6 is the OCR specialist. MinerU2.5-Pro and GLM-OCR are fallbacks *only* if the leader cannot run on the laptop.
+- **Why:** AI Builder instruction: "pick the leader in leaderboard." It is #1 open model on the official OmniDocBench v1.6_full table (96.34) as of 2026-09-05. For the extractor there is no comparable public leaderboard for fine-tunable small VLMs on key-information extraction, so the pick is the leading fully open small-VLM family (Qwen3.5) with the exact checkpoint locked at plan time and our own eval as arbiter.
+- **Date:** 2026-09-05
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.
