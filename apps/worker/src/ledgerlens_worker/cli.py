@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import subprocess
 import sys
 import time
 import uuid
@@ -79,6 +80,11 @@ def _build_dataset(profile: str) -> str:
     return str(dataset_id)
 
 
+def _spawn(args: list[str]) -> None:
+    """Re-invoke this CLI in a new process (same interpreter, same environment)."""
+    subprocess.run([sys.executable, "-m", "ledgerlens_worker.cli", *args], check=True)
+
+
 def _dataset_of(model_version_id: str) -> str:
     with session_scope() as db:
         mv = db.get(ModelVersion, uuid.UUID(model_version_id))
@@ -102,8 +108,20 @@ def cmd_train(a: argparse.Namespace) -> None:
             "train_extractor", {"dataset_id": dataset_id, "profile": a.profile, "model": a.model}
         )
         print(json.dumps(res, indent=1))
-        mv = res["model_version_id"]
-    limit = {"smoke": 8, "demo": 60, "overnight": None}[a.profile]
+        # D-029: the process that trained does not load a second model; a fresh one does
+        _spawn(
+            [
+                "train",
+                "--profile",
+                a.profile,
+                "--resume-from",
+                res["model_version_id"],
+                *(["--baseline"] if a.baseline else []),
+            ]
+        )
+        return
+    # ~32 s per document at greedy decode: 100 documents is ~1 h each for evaluate and calibrate
+    limit = {"smoke": 8, "demo": 60, "overnight": 100}[a.profile]
     # the baseline needs the OCR specialist per page (~1 min each on a laptop): keep it bounded
     baseline_limit = {"smoke": 8, "demo": 12, "overnight": 40}[a.profile]
     print(

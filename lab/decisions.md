@@ -231,6 +231,13 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** the conformal guarantee is exactly as good as the population it is computed on, and "fields the model chose to answer" is not "fields the finance lead needs". The product's metric is documents auto-approved at ≤ 1 % error, and it must be reported even when it is zero — especially when it is zero.
 - **Date:** 2026-09-06
 
+## D-032 · The overnight budget covers the chain, and the CLI honours D-029 itself
+
+- **Context:** D-029 said one model-bearing job per process, then the CLI's `train` command kept evaluating in the process that had just trained — the exact crash path — because I had only added the manual `--resume-from` escape. And the overnight profile (700 steps) was sized for training alone: at the measured 47 s per step that is ~9 h before an unbounded evaluation over ~500 test documents (~4.5 h) and a calibration pass of the same size.
+- **Decided:** after `train_extractor` succeeds, `train` re-invokes itself in a new interpreter with `--resume-from <model>` (test: the training process runs exactly one job and spawns the rest). The overnight profile is 450 steps at accumulation 8 and 1024 px (~6 h), evaluate and calibrate capped at 100 documents each (~1 h each), baseline 40 documents with real OCR — ~9 h for the whole chain including a ~1 h dataset build of 4,000 synthetic pages and 1,000 CORD receipts.
+- **Why:** a budget that names only the flashy stage is how "overnight" becomes "by Tuesday". The rule for the process boundary belongs in the code path people actually run, not in a flag they have to remember.
+- **Date:** 2026-09-06
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.

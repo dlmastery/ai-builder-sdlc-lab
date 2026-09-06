@@ -43,15 +43,17 @@ class TrainProfile:
 
 
 # Measured on the RTX 4090 Laptop (2B, bf16, gradient checkpointing): ~6 s per micro-batch at
-# 1024 px, ~47 s per optimiser step at accumulation 8. Profiles are sized to the lab budgets
-# (demo <= ~35 min, overnight <= ~8 h), not to a step count that sounds impressive.
+# 1024 px, ~47 s per optimiser step at accumulation 8; the demo run came in at 18.3 s per step at
+# accumulation 4 and 896 px. Profiles are sized to the lab budgets for the *whole chain* — build,
+# train, evaluate, calibrate, baseline — not to a step count that sounds impressive: overnight is
+# ~1 h build + ~6 h train (450 steps) + ~1 h evaluate/calibrate at 100 documents each.
 PROFILES: dict[str, TrainProfile] = {
     "smoke": TrainProfile(
         "smoke", max_steps=6, grad_accum=2, max_long_side=640, max_train_items=12
     ),
     "demo": TrainProfile("demo", max_steps=100, grad_accum=4, max_long_side=896, epochs=1.0),
     "overnight": TrainProfile(
-        "overnight", max_steps=700, grad_accum=8, max_long_side=1024, epochs=3.0
+        "overnight", max_steps=450, grad_accum=8, max_long_side=1024, epochs=3.0
     ),
 }
 

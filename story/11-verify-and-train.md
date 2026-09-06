@@ -90,4 +90,20 @@ Two bugs fell out of writing that paragraph. First, `decide()` checked only the 
 
 **Difficulty model:** fitted on 120 documents, positive rate 0.84 — "needs review" is the majority class because of the vendor-name abstention, so the model is largely learning "is this a document from an unseen vendor". Honest, and useless until the overnight adapter changes the label distribution.
 
+### 12:10 — The baseline, the pin, and the product running the real model
+
+**Baseline, properly this time** (OCR specialist + rules, 12 held-out synthetic documents, real OCR per page): field-F1 **0.826**. Totals, dates, invoice number, currency and payment terms at 1.0; line items 0.73; vendor address 0.0; vendor name 0.167. The rules engine names the vendor on two of twelve pages, which is two more than the adapter — worth saying plainly, because it is the kind of comparison a demo is tempted to leave out. On the same vendor the adapter scores 0.959 overall; on everything except the name it is the better reader by a distance.
+
+**Pinned through the audited path.** The adapter, its temperature calibrator, the conformal threshold and the difficulty model were pinned by the data-lead account over the API (session cookie, CSRF header, `pinned_by` recorded) — not by a script poking the table. Rule 11 says the UI never reads a weights file; it now reads these four rows.
+
+**The product on the real model.** API restarted on the current code with jobs queued (`JOBS_INLINE=0`), Celery worker on the `cpu,gpu` queues, and the opt-in verification flow through the browser: sign in as the clerk, upload the Northwind specimen with the RECEIVED stamp over the total, wait for the asynchronous verdict. 130 seconds end to end in the worker — about a minute of OCR and a minute of extraction with alternatives. 40 OCR words, 20 hard spots (the stamp region and the faint labels), and a verdict of *needs review* for two reasons the view states in the reader's language: `vendor_name · missing` and `total · ungrounded`. Every other required field is at 100 % calibrated confidence and grounded; tax at 98 %; the ledger shows Σ line items = subtotal, subtotal + tax = total, and "total could not be found on the page" marked ✗ — the stamp did that. The screenshot is `story/assets/verify/13-real-ocr.png`. Nothing in that panel is decorative: every number is a row, every box is an OCR alignment, and the two red lines are the exact reasons the finance lead would have had to discover by hand.
+
+The abstention from 11:20 is visible in production now, as it should be: the vendor line is not a wrong name and not an invented one; it is a field the model declined to fill, flagged by the check that did not exist two hours ago.
+
+### 12:20 — The overnight run, as an explicit job
+
+Before launching it I re-read D-029 against the CLI and found the rule had been written down but not built: `train` still evaluated in the process that had just trained. Now, after `train_extractor` succeeds, the command re-invokes itself in a fresh interpreter with `--resume-from` — the test asserts the training process runs exactly one job and spawns the rest. And the profile was re-sized for the whole chain rather than the training stage alone (D-032): 450 steps at accumulation 8 and 1024 px, evaluation and calibration capped at 100 documents each, baseline at 40 with real OCR — about nine hours including the build of 4,000 synthetic pages across the eight layouts and 1,000 CORD receipts.
+
+Launched detached at 12:12 UTC with 9.4 GB of commit headroom, the Celery worker stopped, the API left running (uploads will queue until a worker returns). The watcher reports stage transitions and every fiftieth step. This adapter trains with the D-030 mask: CORD's missing vendor fields are unknown, not null. The number to watch tomorrow is `vendor_name` on held-out layouts — if the mask was the whole story it moves from 0.0 toward the other fields; if the eight-name vocabulary is the larger cause, it moves only partly and the filed intent becomes the next loop's first item.
+
 *(continued below as the run progresses)*

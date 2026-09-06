@@ -35,6 +35,34 @@ def test_resume_from_skips_build_and_train(
     assert calls[0][1] == {"model_version_id": "mv-1", "split": "test", "limit": 60}
 
 
+def test_train_hands_post_training_stages_to_a_fresh_process(
+    monkeypatch: pytest.MonkeyPatch, test_database_url: str
+) -> None:
+    """D-029: the process that trained must not load a second model. After train_extractor the
+    CLI re-invokes itself with --resume-from in a new process instead of continuing inline."""
+    from ledgerlens_worker import cli
+
+    calls: list[str] = []
+    monkeypatch.setattr(
+        cli,
+        "_run",
+        lambda kind, payload, *, queue="gpu": calls.append(kind) or {"model_version_id": "mv-9"},
+    )
+    monkeypatch.setattr(cli, "_latest_dataset", lambda name: "ds-1")
+    monkeypatch.setattr(cli, "commit_headroom_gb", lambda: None)
+    spawned: list[list[str]] = []
+    monkeypatch.setattr(cli, "_spawn", lambda args: spawned.append(args))
+
+    cli.cmd_train(
+        argparse.Namespace(
+            profile="demo", model="2b", dataset=None, baseline=True, resume_from=None
+        )
+    )
+
+    assert calls == ["train_extractor"]
+    assert spawned == [["train", "--profile", "demo", "--resume-from", "mv-9", "--baseline"]]
+
+
 def test_evaluate_passes_the_dataset_through(
     monkeypatch: pytest.MonkeyPatch, test_database_url: str
 ) -> None:
