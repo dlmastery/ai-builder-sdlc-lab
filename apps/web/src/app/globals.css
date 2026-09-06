@@ -25,7 +25,7 @@
   --rule: #1f242c;
   --ink: #e6e8eb;
   --ink-2: #9aa3ad;
-  --ink-3: #7a8591; /* 4.6:1 on --ground; the φ ladder's smallest text needs it */
+  --ink-3: #868c93; /* 5.2:1 on --ground; neutral, not blue — a critic read the old cool grey as a fourth hue */
   --signal: #7cf2c4;
   --fault: #ff6b6b;
   --caution: #f2c879;
@@ -93,6 +93,23 @@ body {
 .rule-y > * + * {
   border-top: 1px solid var(--rule);
 }
+
+/* State chips: tint carries the state, the word is always inside (design loop round 3). */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: max(var(--step--1), 0.72rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  line-height: 1.6;
+}
+.chip-ink { background: color-mix(in oklab, var(--ink-3) 18%, transparent); color: var(--ink-2); }
+.chip-signal { background: color-mix(in oklab, var(--signal) 16%, transparent); color: var(--signal); }
+.chip-caution { background: color-mix(in oklab, var(--caution) 16%, transparent); color: var(--caution); }
+.chip-fault { background: color-mix(in oklab, var(--fault) 14%, transparent); color: var(--fault); }
 
 /* One reveal per screen: layers arrive in the order the pipeline produced them. */
 @keyframes arrive {

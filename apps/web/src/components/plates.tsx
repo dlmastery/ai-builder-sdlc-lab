@@ -17,6 +17,12 @@ function Plate({ title, children }: { title: string; children: React.ReactNode }
           <path d="M0 4L8 0V8Z" fill={INK3} />
         </marker>
       </defs>
+      {/* a drafting-sheet frame: one hairline in the drawing's own ink, no fill, corner ticks —
+          a drawn plate (bar.md M1), not a UI card (DESIGN.md) */}
+      <rect x="12" y="12" width="776" height="476" fill="none" stroke={INK3} strokeWidth="1" />
+      <g stroke={INK3} strokeWidth="1">
+        <path d="M12 40V12h28M760 12h28v28M12 460v28h28M760 488h28v-28" fill="none" />
+      </g>
       <text
         x="400"
         y="52"

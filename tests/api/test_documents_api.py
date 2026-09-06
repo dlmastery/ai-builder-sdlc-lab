@@ -76,6 +76,25 @@ def test_list_rows_carry_what_the_inbox_shows(client: TestClient) -> None:
     assert 0 <= row["grounded_fields"] <= row["field_count"]
 
 
+def test_unfiltered_list_puts_actionable_documents_first(client: TestClient) -> None:
+    """A queue shows what needs a person before what is settled (design loop P2, round 3):
+    needs_review and failed rows come first, then in-flight, then approved — recency within."""
+    headers = register_and_login(client, "clerk@acme.io", "Acme")
+    older = _upload(client, headers)["document"]["id"]  # stays needs_review
+    newer = client.post(
+        "/documents",
+        headers=headers,
+        files={"file": ("invoice-2.png", _png_bytes(641, 900), "image/png")},
+    ).json()["document"]["id"]
+    detail = client.get(f"/documents/{newer}", headers=headers).json()
+    r = client.post(f"/extractions/{detail['extraction']['id']}/approve", headers=headers)
+    assert r.status_code in {200, 201}, r.text
+    items = client.get("/documents", headers=headers).json()["items"]
+    # recency alone would put `newer` first; the queue puts the one that needs a person first
+    assert [d["id"] for d in items] == [older, newer]
+    assert items[0]["status"] == "needs_review" and items[1]["status"] == "approved"
+
+
 def test_same_file_uploaded_twice_is_one_job(client: TestClient) -> None:
     headers = register_and_login(client, "clerk@acme.io", "Acme")
     first = _upload(client, headers)

@@ -40,7 +40,7 @@ where they conflict.
 ## Colour
 
 - Ground: `#0B0D10` (matte, not pure black); raised surface: `#12151A`; rule: `#1F242C`.
-- Ink: `#E6E8EB` primary, `#9AA3AD` secondary, `#5C6673` tertiary.
+- Ink: `#E6E8EB` primary, `#9AA3AD` secondary, `#868C93` tertiary (neutral grey — the earlier cool `#7A8591` read as a fourth hue to a fresh-context critic, design loop round 2).
 - **Signal** (confidence, the one accent): `#7CF2C4` — phosphor mint. Used only for meaning.
 - **Fault** (failed check, ungrounded, below threshold): `#FF6B6B`.
 - Caution (near threshold): `#F2C879`, used sparingly.

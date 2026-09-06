@@ -11,14 +11,14 @@ export const metadata = { title: "Inbox" };
 // reasons the transparency view will show, and how many fields were grounded. The header is the
 // queue's health — one number per state, each a filter — not a heading over empty space.
 
-// state shown by light (DESIGN.md): a dot in the state's tone beside the word, never the word alone
-const DOT: Record<string, string> = {
-  needs_review: "bg-caution",
-  auto_approved: "bg-signal",
-  approved: "bg-signal",
-  failed: "bg-fault",
-  processing: "bg-ink-3",
-  uploaded: "bg-ink-3",
+// state carried by tint (bar.md M5): a tinted chip with the word inside, never colour alone
+const CHIP: Record<string, string> = {
+  needs_review: "chip-caution",
+  auto_approved: "chip-signal",
+  approved: "chip-signal",
+  failed: "chip-fault",
+  processing: "chip-ink",
+  uploaded: "chip-ink",
 };
 
 const STATES: Array<[string, string, string]> = [
@@ -40,18 +40,33 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
   const counts = production.documents;
   const total = counts.total ?? 0;
   const inFlight = (counts.processing ?? 0) + (counts.uploaded ?? 0);
+  const needsReview = counts.needs_review ?? 0;
+  const next = docs.items.find((d) => d.status === "needs_review");
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex items-end justify-between gap-6">
+      <div className="flex flex-wrap items-end justify-between gap-6">
         <div>
           <p className="micro">Inbox</p>
-          <h1 className="mt-2 text-step-2 font-medium tracking-tight">
-            {total === 0 ? "No documents yet" : `${total} document${total === 1 ? "" : "s"}`}
-            {inFlight > 0 ? (
-              <span className="ml-3 text-step-0 font-normal text-ink-3">· {inFlight} being read</span>
-            ) : null}
+          <h1 className="mt-2 text-step-3 font-medium leading-none tracking-tight">
+            {needsReview === 0
+              ? total === 0
+                ? "Nothing yet"
+                : "Nothing needs you"
+              : `${needsReview} need${needsReview === 1 ? "s" : ""} you`}
           </h1>
+          <p className="mt-3 text-step-0 text-ink-2">
+            {total} document{total === 1 ? "" : "s"} in the queue
+            {inFlight > 0 ? ` · ${inFlight} being read` : ""}
+            {next ? (
+              <>
+                {" · "}
+                <Link href={`/documents/${next.id}`} data-testid="review-next" className="text-ink underline decoration-ink-3 underline-offset-4 hover:decoration-ink">
+                  review next →
+                </Link>
+              </>
+            ) : null}
+          </p>
         </div>
         <Uploader />
       </div>
@@ -60,7 +75,7 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
         <Link
           href="/inbox"
           aria-current={filter === null ? "page" : undefined}
-          className={`flex flex-col gap-1 bg-ground px-4 py-5 hover:bg-surface ${filter === null ? "bg-surface" : ""}`}
+          className={`flex flex-col gap-1 border-t-2 bg-ground px-4 py-5 hover:bg-surface ${filter === null ? "border-ink bg-surface" : "border-transparent"}`}
         >
           <span className="micro">all</span>
           <span className="readout text-step-2 leading-none text-ink">{total}</span>
@@ -71,7 +86,7 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
             key={value}
             href={`/inbox?status=${value}`}
             aria-current={filter === value ? "page" : undefined}
-            className={`flex flex-col gap-1 bg-ground px-4 py-5 hover:bg-surface ${filter === value ? "bg-surface" : ""}`}
+            className={`flex flex-col gap-1 border-t-2 bg-ground px-4 py-5 hover:bg-surface ${filter === value ? "border-ink bg-surface" : "border-transparent"}`}
           >
             <span className="micro">{label}</span>
             <span className={`readout text-step-2 leading-none ${value === "failed" && (counts[value] ?? 0) > 0 ? "text-fault" : (counts[value] ?? 0) > 0 ? "text-ink" : "text-ink-3"}`}>
@@ -110,9 +125,9 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
                   {d.status === "approved" ? (
                     <span className="text-step--1 text-ink-3">approved by a person{d.reasons.length ? ` · ${d.reasons.length} review reason${d.reasons.length === 1 ? "" : "s"} overridden` : ""}</span>
                   ) : d.reasons.length > 0 ? (
-                    <span className="flex flex-wrap gap-x-3 gap-y-1 text-step--1">
+                    <span className="flex flex-wrap gap-2 text-step--1">
                       {d.reasons.slice(0, 3).map((r, i) => (
-                        <span key={i} className="text-fault">
+                        <span key={i} className="chip chip-fault">
                           {fieldLabel(String(r.field ?? ""))} · {String(r.why ?? "").replaceAll("_", " ")}
                         </span>
                       ))}
@@ -121,10 +136,7 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
                   ) : null}
                 </span>
                 <Grounded n={d.grounded_fields} of={d.field_count} />
-                <span className="micro flex items-center gap-2 text-ink-2">
-                  <span aria-hidden className={`inline-block h-[8px] w-[8px] rounded-full ${DOT[d.status] ?? "bg-ink-3"}`} />
-                  {statusLabel(d.status)}
-                </span>
+                <span className={`chip ${CHIP[d.status] ?? "chip-ink"}`}>{statusLabel(d.status)}</span>
                 <span className="text-step--1 text-ink-3 md:text-right">{relTime(d.created_at)}</span>
               </Link>
             </li>
@@ -151,7 +163,7 @@ function Grounded({ n, of }: { n: number; of: number }) {
       </span>
       <span className="block h-[3px] w-full rounded-full bg-rule">
         <span
-          className={`block h-[3px] rounded-full ${frac === 1 ? "bg-signal" : "bg-caution"}`}
+          className="block h-[3px] rounded-full bg-ink-2"
           style={{ width: `${Math.round(frac * 100)}%` }}
         />
       </span>

@@ -12,7 +12,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, UploadFile, status
 from PIL import Image
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session as DbSession
 from sqlalchemy.orm import selectinload
 
@@ -180,8 +180,17 @@ def list_documents(
     if status_filter:
         q = q.where(Document.status == status_filter)
     total = db.scalar(select(func.count()).select_from(q.subquery())) or 0
+    # a queue shows what needs a person first, then what is in flight, then what is settled;
+    # recency orders within a state (design loop P2, round 3)
+    priority = case(
+        (Document.status == "needs_review", 0),
+        (Document.status == "failed", 1),
+        (Document.status.in_(["uploaded", "processing"]), 2),
+        (Document.status == "auto_approved", 3),
+        else_=4,
+    )
     rows = db.scalars(
-        q.order_by(Document.created_at.desc()).limit(min(limit, 200)).offset(offset)
+        q.order_by(priority, Document.created_at.desc()).limit(min(limit, 200)).offset(offset)
     ).all()
     return Paginated(items=_document_rows(db, rows), total=total)
 
