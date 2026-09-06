@@ -54,6 +54,10 @@ def test_stub_extractor_writes_rows_through_the_real_pipeline(client: TestClient
     assert total["boxes"], "every stub field is grounded with a box"
     assert extraction["verdict"]["decision"] in {"needs_review", "auto_approved"}
     assert any(v["rule"] == "arithmetic.total" for v in extraction["verifier_results"])
+    # the OCR words the pipeline stored come back with the page, for the evidence layers
+    assert len(body["pages"][0]["ocr_words"]) >= 10
+    assert body["pages"][0]["quality"] is not None and "blur" in body["pages"][0]["quality"]
+    assert body["vendor_name"] == "Northwind Traders"
 
 
 def test_same_file_uploaded_twice_is_one_job(client: TestClient) -> None:

@@ -1,6 +1,16 @@
 import { expect, test } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { PNG } from "pngjs";
+
+// Uploads are deduplicated by content hash, so a byte-identical specimen returns the tenant's
+// existing document. Nudge one pixel so each capture run exercises the current pipeline.
+function freshSpecimen(path: string): Buffer {
+  const png = PNG.sync.read(readFileSync(path));
+  const idx = (Math.floor(Math.random() * 200) * png.width + Math.floor(Math.random() * 200)) * 4;
+  png.data[idx] = (png.data[idx] + 1) % 256;
+  return PNG.sync.write(png);
+}
 
 // Captures the running product for the critic loop and the story chapters. Opt-in:
 //   SCREENS=1 SCREENS_DIR=slice-c pnpm exec playwright test e2e/screens.spec.ts
@@ -14,7 +24,8 @@ test.skip(!enabled, "screenshot capture is opt-in");
 
 test.use({ viewport: { width: 1440, height: 900 } });
 
-test("capture the product end to end", async ({ page, request }) => {
+test("capture the product end to end", async ({ page }) => {
+  const request = page.request; // shares the browser context's session cookie
   await page.goto("/");
   await page.waitForTimeout(1500);
   await page.screenshot({ path: `${outDir}/01-home.png`, fullPage: true });
@@ -30,15 +41,17 @@ test("capture the product end to end", async ({ page, request }) => {
   await expect(page).toHaveURL(/\/inbox/);
   await page.screenshot({ path: `${outDir}/04-inbox.png` });
 
+  const name = `northwind-${Date.now().toString(36)}.png`;
   await page.setInputFiles('input[type="file"]', {
-    name: `northwind-${Date.now().toString(36)}.png`,
+    name,
     mimeType: "image/png",
-    buffer: readFileSync(specimen),
+    buffer: freshSpecimen(specimen),
   });
-  await expect(page.getByTestId("document-row").first()).toBeVisible();
+  const row = page.getByTestId("document-row").filter({ hasText: name });
+  await expect(row).toBeVisible({ timeout: 60_000 });
   await page.screenshot({ path: `${outDir}/05-inbox.png` });
 
-  await page.getByTestId("document-row").first().click();
+  await row.click();
   await expect(page.getByTestId("verdict")).toBeVisible();
   await page.waitForTimeout(1200);
   await page.screenshot({ path: `${outDir}/06-transparency.png`, fullPage: true });
