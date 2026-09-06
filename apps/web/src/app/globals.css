@@ -115,9 +115,37 @@ body {
 .arrive[data-layer="5"] { animation-delay: 720ms; }
 .arrive[data-layer="6"] { animation-delay: 900ms; }
 
+/* Section entrance on scroll (bar.md mechanism 7): the plate first, then the scaffold; one
+   direction; under 400 ms; nothing loops. */
+.reveal-off .plate,
+.reveal-off .scaffold {
+  opacity: 0;
+  transform: translateY(10px);
+}
+.reveal-on .plate,
+.reveal-on .scaffold {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 320ms ease-out,
+    transform 320ms ease-out;
+}
+.reveal-on .scaffold {
+  transition-delay: 160ms;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .arrive {
     animation: none;
+  }
+  .reveal-off .plate,
+  .reveal-off .scaffold {
+    opacity: 1;
+    transform: none;
+  }
+  .reveal-on .plate,
+  .reveal-on .scaffold {
+    transition: none;
   }
 }
 

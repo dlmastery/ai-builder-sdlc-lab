@@ -1,24 +1,26 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import specimen from "@/specimen/northwind.json";
 
-// The home-page specimen: a schematic page whose evidence layers arrive in pipeline order
-// (page → hard spots → OCR words → field boxes → readouts → ledger). Purely illustrative
-// geometry; the numbers shown are the stub fixture's so they agree with the demo.
-const WORDS = [
-  [8, 6, 34, 3], [8, 10, 37, 3], [62, 6, 28, 3], [62, 10, 28, 3], [62, 14, 28, 3], [62, 18, 8, 3],
-  [8, 30, 47, 3], [58, 30, 6, 3], [68, 30, 10, 3], [82, 30, 10, 3],
-  [8, 34, 47, 3], [58, 34, 6, 3], [68, 34, 10, 3], [82, 34, 10, 3],
-  [70, 52, 22, 3], [70, 56, 22, 3], [70, 60, 22, 3], [8, 70, 22, 3],
-];
-const FIELDS: Array<{ box: number[]; conf: number; label: string; value: string }> = [
-  { box: [8, 6, 34, 3], conf: 0.97, label: "vendor", value: "Northwind Traders" },
-  { box: [62, 6, 28, 3], conf: 0.95, label: "invoice", value: "INV-2026-00417" },
-  { box: [62, 10, 28, 3], conf: 0.93, label: "issued", value: "2026-08-28" },
-  { box: [70, 52, 22, 3], conf: 0.94, label: "subtotal", value: "1,090.00" },
-  { box: [70, 56, 22, 3], conf: 0.86, label: "tax", value: "87.20" },
-  { box: [70, 60, 22, 3], conf: 0.62, label: "total", value: "1,177.20" },
-];
+// The home-page specimen is the real thing: a document read by the pinned extractor, exported
+// from rows by scripts/export_specimen.py (fields, boxes, calibrated confidence, OCR words,
+// verdict, ledger). Layers arrive in pipeline order: page → hard spots → OCR words → field boxes
+// → readouts → verdict. Nothing here is typed; the model name is the one that produced it.
+
+const REQUIRED = new Set(["vendor_name", "invoice_number", "issue_date", "total"]);
+const HARD = 0.85;
+const ORDER = ["vendor_name", "invoice_number", "issue_date", "subtotal", "tax", "total"];
+
+type Field = (typeof specimen.fields)[number];
+
+function tone(f: Field, threshold: number): "signal" | "caution" | "fault" {
+  if (!f.grounded) return "fault";
+  if ((f.calibrated_confidence ?? 0) >= threshold) return "signal";
+  return REQUIRED.has(f.name) ? "fault" : "caution";
+}
+const VAR = { signal: "var(--signal)", caution: "var(--caution)", fault: "var(--fault)" };
+const TEXT = { signal: "text-signal", caution: "text-caution", fault: "text-fault" };
 
 export function Specimen() {
   const ref = useRef<HTMLDivElement>(null);
@@ -26,102 +28,127 @@ export function Specimen() {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const io = new IntersectionObserver(
-      (entries) => entries.forEach((e) => e.isIntersecting && setOn(true)),
-      { threshold: 0.4 },
-    );
+    const io = new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && setOn(true)), {
+      threshold: 0.3,
+    });
     io.observe(el);
     return () => io.disconnect();
   }, []);
 
+  const { width, height } = specimen.document;
+  const threshold = specimen.verdict.threshold ?? 0.9;
+  const header = ORDER.map((n) => specimen.fields.find((f) => f.name === n && f.line_index === null)).filter(
+    (f): f is Field => Boolean(f),
+  );
+  const missing = ORDER.filter((n) => !specimen.fields.some((f) => f.name === n && f.line_index === null));
+  const hard = specimen.ocr_words.filter((w) => w.score < HARD);
+  const reasons = specimen.verdict.reasons as Array<{ field?: string; why?: string }>;
+
   return (
     <div
       ref={ref}
-      aria-label="Specimen document with evidence layers"
-      className="relative rounded-[var(--radius)] border border-rule bg-surface p-5"
+      data-testid="specimen"
+      aria-label="A real document read by the pinned extractor, with its evidence layers"
+      className="relative rounded-[var(--radius)] border border-rule bg-surface p-4"
     >
-      <div className="micro mb-4 flex items-center justify-between">
-        <span>Specimen · northwind-00417.png</span>
-        <span className="text-signal">extractor · stub</span>
+      <div className="micro mb-3 flex items-center justify-between gap-3">
+        <span className="truncate">Specimen · {specimen.document.filename}</span>
+        <span className="shrink-0 text-signal">extractor · {specimen.model.extractor}</span>
       </div>
-      <div className="grid gap-5 md:grid-cols-[1fr_150px]">
-        <svg viewBox="0 0 100 80" className="w-full rounded-[2px] bg-[#f4f1ea]" role="img">
-          {/* page ink */}
-          {WORDS.map(([x, y, w, h], i) => (
-            <rect key={i} x={x} y={y} width={w} height={h} rx="0.4" fill="#2a2a2a" opacity="0.28" />
-          ))}
-          {/* hard spot: a stamp over the total */}
-          {on && (
-            <g className="arrive" data-layer="2">
-              <circle cx="80" cy="61" r="7" fill="none" stroke="var(--fault)" strokeOpacity="0.55" strokeWidth="0.6" />
-              <text x="80" y="72" fontSize="2.2" textAnchor="middle" fill="var(--fault)">hard spot · stamp</text>
-            </g>
-          )}
-          {/* OCR words */}
-          {on &&
-            WORDS.map(([x, y, w, h], i) => (
-              <rect
-                key={`w${i}`}
-                className="arrive"
-                data-layer="3"
-                x={x - 0.4}
-                y={y - 0.4}
-                width={w + 0.8}
-                height={h + 0.8}
-                fill="none"
-                stroke="#5c6673"
-                strokeWidth="0.25"
-              />
-            ))}
-          {/* field boxes tinted by confidence */}
-          {on &&
-            FIELDS.map((f, i) => (
-              <rect
-                key={`f${i}`}
-                className="arrive"
-                data-layer="4"
-                x={f.box[0] - 0.8}
-                y={f.box[1] - 0.8}
-                width={f.box[2] + 1.6}
-                height={f.box[3] + 1.6}
-                fill={f.conf < 0.7 ? "var(--fault)" : "var(--signal)"}
-                fillOpacity={f.conf < 0.7 ? 0.25 : f.conf * 0.3}
-                stroke={f.conf < 0.7 ? "var(--fault)" : "var(--signal)"}
-                strokeWidth="0.35"
-              />
-            ))}
-        </svg>
-        <ul className="flex flex-col gap-3">
-          {FIELDS.map((f, i) => (
-            <li
-              key={f.label}
-              className={on ? "arrive" : "opacity-0"}
-              data-layer={on ? "5" : undefined}
-              style={{ animationDelay: on ? `${720 + i * 60}ms` : undefined }}
-            >
-              <div className="micro">{f.label}</div>
+      <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_168px]">
+        <div className="relative overflow-hidden rounded-[2px]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/specimen/northwind.jpg" alt="" width={width} height={height} className="block w-full" />
+          <svg
+            className="pointer-events-none absolute inset-0 h-full w-full"
+            viewBox={`0 0 ${width} ${height}`}
+            preserveAspectRatio="none"
+          >
+            {on &&
+              hard.map((w, i) => {
+                const [, x0, y0, x1, y1] = w.box;
+                const pad = (y1 - y0) * 0.6;
+                return (
+                  <rect key={`h${i}`} className="arrive" data-layer="2" x={x0 - pad} y={y0 - pad} width={x1 - x0 + pad * 2} height={y1 - y0 + pad * 2} rx={pad} fill="var(--fault)" fillOpacity={0.12 + (HARD - w.score) * 0.6} />
+                );
+              })}
+            {on &&
+              specimen.ocr_words.map((w, i) => {
+                const [, x0, y0, x1, y1] = w.box;
+                return <rect key={`w${i}`} className="arrive" data-layer="3" x={x0} y={y0} width={x1 - x0} height={y1 - y0} fill="none" stroke="var(--ink-3)" strokeWidth={1.5} strokeOpacity={0.55} />;
+              })}
+            {on &&
+              specimen.fields.flatMap((f) =>
+                f.boxes.map((b, i) => {
+                  const [, x0, y0, x1, y1] = b as number[];
+                  const t = tone(f, threshold);
+                  const conf = f.calibrated_confidence ?? 0;
+                  return <rect key={`${f.name}-${f.line_index}-${i}`} className="arrive" data-layer="4" x={x0} y={y0} width={x1 - x0} height={y1 - y0} fill={VAR[t]} fillOpacity={t === "signal" ? Math.max(0.1, conf * 0.32) : 0.26} stroke={VAR[t]} strokeWidth={2} strokeOpacity={0.8} />;
+                }),
+              )}
+          </svg>
+        </div>
+        <ul className="flex flex-col gap-2">
+          {header.map((f, i) => {
+            const t = tone(f, threshold);
+            return (
+              <li key={f.name} className={on ? "arrive" : "opacity-0"} data-layer={on ? "5" : undefined} style={{ animationDelay: on ? `${720 + i * 50}ms` : undefined }}>
+                <div className="micro">{f.name.replaceAll("_", " ")}</div>
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="readout truncate text-step-0 text-ink">{f.value}</span>
+                  <span className={`readout text-step--1 ${TEXT[t]}`}>{Math.round((f.calibrated_confidence ?? 0) * 100)}%</span>
+                </div>
+              </li>
+            );
+          })}
+          {missing.map((n) => (
+            <li key={n} className={on ? "arrive" : "opacity-0"} data-layer={on ? "5" : undefined}>
+              <div className="micro">{n.replaceAll("_", " ")}</div>
               <div className="flex items-baseline justify-between gap-2">
-                <span className="readout text-step-0 text-ink">{f.value}</span>
-                <span
-                  className={`readout text-step--1 ${f.conf < 0.7 ? "text-fault" : "text-signal"}`}
-                >
-                  {(f.conf * 100).toFixed(0)}%
-                </span>
+                <span className="readout text-step-0 text-ink-3">—</span>
+                <span className="readout text-step--1 text-fault">missing</span>
               </div>
             </li>
           ))}
         </ul>
       </div>
       {on && (
-        <div className="arrive mt-5 grid grid-cols-[1fr_auto] gap-2 border-t border-rule pt-4 text-step--1" data-layer="6">
-          <span className="text-ink-2">1,090.00 + 87.20 = 1,177.20 · total</span>
-          <span className="text-signal">✓</span>
-          <span className="text-ink-2">850.00 + 240.00 = 1,090.00 · subtotal</span>
-          <span className="text-signal">✓</span>
-          <span className="text-ink-2">total 62% · below threshold 90%</span>
-          <span className="text-fault">review</span>
+        <div className="arrive mt-4 grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 border-t border-rule pt-3 text-step--1" data-layer="6">
+          {ledgerLines().map(([text, passed], i) => (
+            <LedgerLine key={i} text={text} passed={passed} />
+          ))}
+          <span className="text-ink-2">
+            verdict · {specimen.verdict.decision?.replaceAll("_", " ")}
+            {reasons.length ? ` · ${reasons.map((r) => `${r.field ?? ""} ${String(r.why ?? "").replaceAll("_", " ")}`).join(", ")}` : ""}
+          </span>
+          <span className={specimen.verdict.decision === "auto_approved" ? "text-signal" : "text-fault"}>
+            {specimen.verdict.decision === "auto_approved" ? "✓" : "review"}
+          </span>
         </div>
       )}
     </div>
+  );
+}
+
+// The same sentences the transparency view's ledger uses (transparency-view.tsx `describe`).
+function ledgerLines(): Array<[string, boolean]> {
+  const rows = specimen.ledger as Array<{ rule: string; passed: boolean; field: string | null; detail: Record<string, unknown> | null }>;
+  const out: Array<[string, boolean]> = [];
+  for (const r of rows) {
+    const d = (r.detail ?? {}) as Record<string, string>;
+    if (r.rule === "arithmetic.line_items") out.push([`Σ line items ${d.sum_of_line_items} · subtotal reads ${d.subtotal}`, r.passed]);
+    else if (r.rule === "arithmetic.total") out.push([`${d.subtotal} + ${d.tax ?? "0"} = ${d.expected_total} · total reads ${d.total}`, r.passed]);
+    else if (r.rule === "grounding" && !r.passed) out.push([`${(r.field ?? "field").replaceAll("_", " ")} could not be found on the page`, false]);
+  }
+  out.push([`${rows.filter((r) => r.rule === "grounding" && r.passed).length} fields grounded on the page`, true]);
+  return out;
+}
+
+function LedgerLine({ text, passed }: { text: string; passed: boolean }) {
+  return (
+    <>
+      <span className="truncate text-ink-2">{text}</span>
+      <span className={passed ? "text-signal" : "text-fault"}>{passed ? "✓" : "✗"}</span>
+    </>
   );
 }
