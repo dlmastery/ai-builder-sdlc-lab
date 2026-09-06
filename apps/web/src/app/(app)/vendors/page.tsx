@@ -38,10 +38,11 @@ export default async function VendorsPage() {
                 </span>
                 <span className="flex flex-col gap-1">
                   <Sparkline values={v.curve.map((c) => c.accuracy ?? 0)} width={320} height={56} scale="unit" />
-                  <span className="text-step--1 text-ink-3">
-                    {v.curve.length === 1
-                      ? "one extractor version reviewed · the curve needs a second run"
-                      : `${v.curve.length} extractor versions`}
+                  <span className="readout text-step--1 text-ink-3">
+                    {v.curve
+                      .map((c) => `${String(c.model_version ?? "")} · ${c.fields} fields reviewed · ${c.corrections} corrected`)
+                      .join(" → ")}
+                    {v.curve.length === 1 ? " · the curve needs a second extractor version" : ""}
                   </span>
                 </span>
                 <span className="text-right">

@@ -4,6 +4,7 @@ import { api } from "@/lib/api";
 import { moneyFromCents } from "@/lib/format";
 import type { PlanOut } from "@/lib/types";
 import specimen from "@/specimen/northwind.json";
+import { ledgerLines } from "@/lib/specimen-ledger";
 
 export const metadata = { title: "Pricing" };
 
@@ -46,6 +47,21 @@ export default async function PricingPage() {
               the specialist reader and the 2B extractor; a scanner or an inbox; someone who will
               correct the first hundred documents.
             </p>
+            {/* the boxed artefact of the scaffold (bar.md M4): where the sample shows a prompt, ours
+                shows what every document comes with — the specimen's own ledger, from rows */}
+            <div className="border border-rule p-4 font-mono text-step--1 leading-relaxed text-ink-2">
+              <p className="micro mb-2">What every document comes with · the specimen&apos;s ledger</p>
+              {ledgerLines().map(([text, passed]) => (
+                <p key={text} className="flex justify-between gap-4">
+                  <span className="truncate">{text}</span>
+                  <span className={passed ? "text-ink-2" : "text-fault"}>{passed ? "✓" : "✗"}</span>
+                </p>
+              ))}
+              <p className="flex justify-between gap-4">
+                <span className="truncate">verdict · {String(specimen.verdict.decision).replaceAll("_", " ")}</span>
+                <span className="text-fault">review</span>
+              </p>
+            </div>
             <p className="callout">
               <strong className="font-medium text-ink"><span aria-hidden className="mr-2">✓</span>How you know it worked:</strong>{" "}
               <span className="readout text-step-1 text-ink">
@@ -85,6 +101,22 @@ export default async function PricingPage() {
               <strong className="font-medium text-ink">What you need:</strong> an estimate of documents per month.
               Overage is per document, so a plan is a floor, not a ceiling.
             </p>
+            {/* the boxed artefact: the allowance arithmetic, each line from a measured number */}
+            <div className="border border-rule p-4 font-mono text-step--1 leading-relaxed text-ink-2">
+              <p className="micro mb-2">The allowance, in GPU-hours · {secondsPerPage ?? "—"} s per page measured</p>
+              {plans.map((p) => (
+                <p key={p.code} className="flex justify-between gap-4">
+                  <span className="truncate">
+                    {p.name} · {p.included_documents.toLocaleString()} documents × {secondsPerPage ?? "—"} s
+                  </span>
+                  <span className="text-ink">
+                    {secondsPerPage != null
+                      ? `${Math.round(((p.included_documents * secondsPerPage) / 3600) * 10) / 10} h`
+                      : "—"}
+                  </span>
+                </p>
+              ))}
+            </div>
             <p className="callout">
               <strong className="font-medium text-ink"><span aria-hidden className="mr-2">✓</span>How you know it worked:</strong>{" "}
               <span className="readout text-step-1 text-ink">

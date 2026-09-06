@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import specimen from "@/specimen/northwind.json";
 import { reasonChip } from "@/lib/format";
+import { ledgerLines } from "@/lib/specimen-ledger";
 
 // The home-page specimen is the real thing: a document read by the pinned extractor, exported
 // from rows by scripts/export_specimen.py (fields, boxes, calibrated confidence, OCR words,
@@ -133,19 +134,6 @@ export function Specimen() {
 }
 
 // The same sentences the transparency view's ledger uses (transparency-view.tsx `describe`).
-function ledgerLines(): Array<[string, boolean]> {
-  const rows = specimen.ledger as Array<{ rule: string; passed: boolean; field: string | null; detail: Record<string, unknown> | null }>;
-  const out: Array<[string, boolean]> = [];
-  for (const r of rows) {
-    const d = (r.detail ?? {}) as Record<string, string>;
-    if (r.rule === "arithmetic.line_items") out.push([`Σ line items ${d.sum_of_line_items} · subtotal reads ${d.subtotal}`, r.passed]);
-    else if (r.rule === "arithmetic.total") out.push([`${d.subtotal} + ${d.tax ?? "0"} = ${d.expected_total} · total reads ${d.total}`, r.passed]);
-    else if (r.rule === "grounding" && !r.passed) out.push([`${(r.field ?? "field").replaceAll("_", " ")}: read, but the page could not confirm it`, false]);
-  }
-  out.push([`${rows.filter((r) => r.rule === "grounding" && r.passed).length} fields grounded on the page`, true]);
-  return out;
-}
-
 function LedgerLine({ text, passed }: { text: string; passed: boolean }) {
   return (
     <>

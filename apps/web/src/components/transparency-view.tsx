@@ -167,14 +167,16 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
     <div className="grid gap-5 lg:grid-cols-[minmax(0,2.3fr)_minmax(300px,1fr)]">
       {/* --- the page --- */}
       <section className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="min-w-0 flex-1">
+        <div className="flex flex-col gap-3">
+          <div className="min-w-0">
             <p className="micro">
               Document{doc.vendor_name ? ` · ${doc.vendor_name}` : ""}
               {doc.difficulty != null ? ` · predicted difficulty ${pct(doc.difficulty)}` : ""}
             </p>
-            {/* page-title size, not display: a long filename must stay legible (DESIGN.md — legibility wins) */}
-            <h1 className="mt-2 truncate text-step-2 font-medium leading-none tracking-tight">
+            {/* display step (≥ 4× body, bar.md M2) on its own full-width line, truncated — the round-6
+                regression was the title sharing a line with the layer toggles and spilling into the
+                verdict column; the toggles now sit beneath it */}
+            <h1 className="mt-2 truncate text-step-3 font-medium leading-none tracking-tight" title={doc.original_filename}>
               {doc.original_filename}
             </h1>
           </div>
@@ -254,7 +256,7 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
                         />
                       ))}
                       {label && spans[0] ? (
-                        <text x={spans[0][2] + fs * 0.5} y={spans[0][1] + fs} fill={TONE_VAR[tone]} fontSize={fs} fontFamily="var(--font-mono)">
+                        <text x={spans[0][2] + Math.max(10, fs * 0.9)} y={spans[0][1] + fs} fill={TONE_VAR[tone]} fontSize={fs} fontFamily="var(--font-mono)">
                           {label}
                         </text>
                       ) : null}
@@ -268,7 +270,7 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
           Green: at or above the {pct(threshold, 2)} bar. Amber: below the bar on a field that cannot
           block approval on its own — the two decimals show why. Red: below the bar on a required
           field. A value the model read but the page could not confirm (a stamp over it, for
-          instance) has no box — it is listed in red in the fields panel. A dotted amber underline
+          instance) has no box — it is listed in red in the fields panel. A dotted grey underline
           is a hard spot: a word the reader struggled with (score under {pct(HARD_SPOT_SCORE)}).
         </p>
       </section>
@@ -289,7 +291,7 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
         <section className="flex flex-col gap-2">
           <p className="micro">Fields · {ex.model_version.kind} {ex.model_version.name}</p>
           {HEADER_GROUPS.map((g) => (
-          <div key={g.label} className="mt-4 flex flex-col gap-1 first:mt-0">
+          <div key={g.label} className="mt-6 flex flex-col gap-1 first:mt-0">
           <p className="micro text-ink-3/80">{g.label}</p>
           <ul className="rule-y border-t border-rule">
             {missingRequired.filter((n) => g.names.includes(n)).map((n) => (
@@ -425,9 +427,10 @@ function LayerToggle({ on, onClick, label, disabled }: { on: boolean; onClick: (
 
 function HardSpot({ w }: { w: OcrWordOut }) {
   const [, x0, , x1, y1] = w.box;
-  // a hard spot is "where the reader struggled", not a field: a dotted caution underline beneath
-  // the word, never a fill, so it cannot be mistaken for a field tint or the page's own ink
-  // (P3 round 6). Thicker and darker the lower the score.
+  // a hard spot is "where the reader struggled", not a field: a dotted underline beneath the
+  // word, never a fill, so it cannot be mistaken for a field tint or the page's own ink (P3 round
+  // 6); in neutral ink, not amber, so it never shares a hue with a caution box on the same word
+  // (round 9). Thicker the lower the score.
   const weight = 1.5 + (HARD_SPOT_SCORE - w.score) * 6;
   return (
     <line
@@ -438,10 +441,10 @@ function HardSpot({ w }: { w: OcrWordOut }) {
       y1={y1 + weight}
       x2={x1}
       y2={y1 + weight}
-      stroke="var(--caution)"
+      stroke="var(--ink-3)"
       strokeWidth={weight}
       strokeDasharray={`${weight * 1.5} ${weight}`}
-      strokeOpacity={0.9}
+      strokeOpacity={0.95}
     />
   );
 }
@@ -469,13 +472,16 @@ function Verdict({
   return (
     <section
       data-testid="verdict"
-      className={`arrive callout callout-bare ${ok ? "" : "callout-caution"}`}
+      // a tinted panel with one glyph and a bold lead-in (bar.md M5) — neutral tint, because "needs
+      // review" is a state, not a fault, and amber is reserved for a field that cannot block
+      // approval (DESIGN.md); the reasons beneath it carry the red (round 9)
+      className="arrive callout"
       data-layer="5"
     >
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="micro">Verdict</p>
-          <p className={`mt-2 text-step-1 font-medium ${ok ? "text-ink" : "text-caution"}`}>
+          <p className="mt-2 text-step-1 font-medium text-ink">
             <span aria-hidden className="mr-2">{ok ? "✓" : "◐"}</span>
             {decision.replaceAll("_", " ")}
           </p>
@@ -547,7 +553,7 @@ function Readout({
   const wasCorrected = field.corrections.length > 0;
   return (
     <li className={`group ${selected ? "bg-surface" : ""}`}>
-      <div className="grid grid-cols-[1fr_auto] items-baseline gap-3 py-3">
+      <div className="grid grid-cols-[1fr_auto] items-baseline gap-3 py-4">
         {editing ? (
           <form
             data-testid={`readout-${field.name}`}

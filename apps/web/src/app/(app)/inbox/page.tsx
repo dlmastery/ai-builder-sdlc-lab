@@ -15,7 +15,9 @@ export const metadata = { title: "Inbox" };
 // the signal colour is for confidence and evidence, never for a workflow state (DESIGN.md);
 // approval is a settled state and reads in ink, review in caution, failure in fault
 const CHIP: Record<string, string> = {
-  needs_review: "chip-ink", // the red reason chips already carry why; caution stays sparing (round 5)
+  // state by tint, the word inside (bar.md M5): a review case is amber, a settled one ink. The
+  // "Needs you" callout went neutral to keep amber for the rows themselves (round 9).
+  needs_review: "chip-caution",
   auto_approved: "chip-ink",
   approved: "chip-ink",
   failed: "chip-fault",
@@ -58,7 +60,7 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
               : `${needsReview} need${needsReview === 1 ? "s" : ""} you`}
           </h1>
           {next ? (
-            <p className="callout callout-caution mt-4 text-step-0">
+            <p className="callout mt-4 text-step-0">
               <strong className="font-medium">Needs you:</strong> {total} document{total === 1 ? "" : "s"} in the queue
               {inFlight > 0 ? `, ${inFlight} being read` : ""} ·{" "}
               <Link href={`/documents/${next.id}`} data-testid="review-next" className="font-medium text-ink underline decoration-ink-2 underline-offset-4 hover:decoration-ink">
@@ -116,7 +118,7 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
               <Link
                 data-testid="document-row"
                 href={`/documents/${d.id}`}
-                className="grid items-center gap-5 py-5 hover:bg-surface md:grid-cols-[64px_minmax(0,1fr)_180px_150px_90px]"
+                className="grid items-center gap-5 py-5 hover:bg-surface md:grid-cols-[88px_minmax(0,1fr)_180px_150px_90px]"
               >
                 <Thumb src={d.thumbnail_url} alt="" />
                 <span className="flex min-w-0 flex-col gap-1.5">
@@ -151,9 +153,9 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
 }
 
 function Thumb({ src, alt }: { src: string | null; alt: string }) {
-  if (!src) return <span className="block h-[84px] w-[64px] rounded-[2px] border border-rule bg-surface" aria-hidden />;
+  if (!src) return <span className="block h-[116px] w-[88px] rounded-[2px] border border-rule bg-surface" aria-hidden />;
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt={alt} className="block h-[84px] w-[64px] rounded-[2px] border border-rule object-cover object-top" />;
+  return <img src={src} alt={alt} className="block h-[116px] w-[88px] rounded-[2px] border border-rule object-cover object-top" />;
 }
 
 function Grounded({ n, of }: { n: number; of: number }) {

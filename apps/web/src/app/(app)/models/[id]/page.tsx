@@ -147,12 +147,16 @@ export default async function ModelDetailPage(props: PageProps<"/models/[id]">) 
       {ev && ev.errors_sample.length > 0 ? (
         <section className="flex flex-col gap-2">
           <p className="micro">Errors · sample</p>
+          {/* identical errors collapse into one row with a count: eleven copies of "vendor name ·
+              read nothing" read as a fake specimen, one row with "×11" reads as a finding
+              (design loop, model round 1) */}
           <ul className="rule-y border-t border-rule text-step--1">
-            {ev.errors_sample.slice(0, 12).map((e, i) => (
-              <li key={i} className="grid grid-cols-[140px_1fr_1fr] gap-4 py-2">
+            {groupErrors(ev.errors_sample).slice(0, 12).map((e, i) => (
+              <li key={i} className="grid grid-cols-[140px_1fr_1fr_auto] gap-4 py-2">
                 <span className="text-ink-2">{e.field.replaceAll("_", " ")}</span>
                 <span className="text-ink">truth: {String(e.truth ?? "—")}</span>
                 <span className="text-fault">read: {String(e.pred ?? "—")}</span>
+                <span className="readout text-ink-3">{e.count > 1 ? `×${e.count}` : ""}</span>
               </li>
             ))}
           </ul>
@@ -162,7 +166,17 @@ export default async function ModelDetailPage(props: PageProps<"/models/[id]">) 
       {m.card ? (
         <section className="flex flex-col gap-2">
           <p className="micro">Model card</p>
-          <pre className="whitespace-pre-wrap border-t border-rule pt-3 font-sans text-step--1 leading-relaxed text-ink-2">{m.card}</pre>
+          <div className="flex flex-col gap-2 border-t border-rule pt-3 text-step--1 leading-relaxed text-ink-2">
+            {cardBlocks(m.card).map((b, i) =>
+              b.kind === "h" ? (
+                <p key={i} className="micro mt-3 first:mt-0">{b.text}</p>
+              ) : b.kind === "li" ? (
+                <p key={i} className="pl-4 before:mr-2 before:content-['·']">{b.text}</p>
+              ) : (
+                <p key={i}>{b.text}</p>
+              ),
+            )}
+          </div>
         </section>
       ) : null}
 
@@ -171,6 +185,31 @@ export default async function ModelDetailPage(props: PageProps<"/models/[id]">) 
       ) : null}
     </div>
   );
+}
+
+function groupErrors(errors: Array<{ field: string; truth: unknown; pred: unknown }>) {
+  const out = new Map<string, { field: string; truth: unknown; pred: unknown; count: number }>();
+  for (const e of errors) {
+    const key = `${e.field}|${String(e.truth)}|${String(e.pred)}`;
+    const row = out.get(key);
+    if (row) row.count += 1;
+    else out.set(key, { ...e, count: 1 });
+  }
+  return [...out.values()].sort((a, b) => b.count - a.count);
+}
+
+/** The card is markdown written by the trainer; render its headings and bullets instead of the
+ *  raw `#` and `-` (design loop, model round 1). Nothing else is interpreted. */
+function cardBlocks(card: string): Array<{ kind: "h" | "li" | "p"; text: string }> {
+  const out: Array<{ kind: "h" | "li" | "p"; text: string }> = [];
+  for (const raw of card.split("\n")) {
+    const line = raw.trim();
+    if (!line) continue;
+    if (line.startsWith("#")) out.push({ kind: "h", text: line.replace(/^#+\s*/, "") });
+    else if (line.startsWith("- ")) out.push({ kind: "li", text: line.slice(2).replaceAll("`", "") });
+    else out.push({ kind: "p", text: line.replaceAll("`", "") });
+  }
+  return out;
 }
 
 function Stat({ label, value, tone }: { label: string; value: string; tone?: "signal" }) {
