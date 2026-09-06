@@ -29,7 +29,7 @@ def test_supervised_targets_shift_by_one_and_keep_only_labelled_positions() -> N
     """Applying the LM head only where the *next* token is supervised cut peak GPU memory from
     9.15 to 8.07 GB on real micro-batches with identical losses (D-036). Position t predicts
     token t+1, so the hidden state at t pairs with labels[t+1]."""
-    import torch
+    torch = pytest.importorskip("torch")  # CI installs no GPU stack
 
     from ledgerlens_ml.train import supervised_targets
 
