@@ -254,6 +254,13 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** the cost of a failure in a chain is the work before it; put the cheap, uncertain stage first. The 300-receipt demo was not a rehearsal of the 1,000-receipt overnight, and I had treated it as one.
 - **Date:** 2026-09-06
 
+## D-035 · The overnight profile trains at the resolution the demo survived
+
+- **Context:** the third overnight build succeeded (1,000 CORD receipts + 4,000 synthetic pages in 54 minutes; splits train 3,188 / val 640 / calibration 560 / test 612, vendor-first, stratified by source). Training at 1024 px then died in its seventh minute: `CUDA out of memory. Tried to allocate 1.53 GiB … 7.82 GiB is free`, with only 174 MB reserved-but-unallocated inside PyTorch. The demo run at 896 px had logged four of the same allocation failures and recovered each time; at 1024 px the vision sequence is ~30 % longer and the retry did not.
+- **Decided:** the overnight profile trains at 896 px like the demo; the CLI sets `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` before CUDA initialises. The dataset is reused by name; nothing is rebuilt. The orphaned model row was deleted; the job row keeps the error.
+- **Why:** a resolution the demo had already shown to be at the edge was not the place to add 30 %. On this Windows laptop a GPU allocation also needs host commit behind it (D-028), so "free" on the device is not the whole budget; the honest fix is the smaller footprint, and the allocator setting is a second line, not the first.
+- **Date:** 2026-09-06
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.

@@ -118,4 +118,12 @@ The JPEG build ran at a page a second and wrote 4,000 synthetic pages. Then the 
 
 Fix, test first: the mapper reproduces the record shape and merges list groups (D-034). Two things around it matter more than the fix. The CLI now builds real data *first* — a public dataset's surprises should cost minutes, not the render that precedes them. And before relaunching, all 1,000 receipts the overnight profile uses are mapped label-only as a preflight, which is what should have happened before the first launch: 54 seconds, 680 receipts with dict-shaped totals, 317 with no subtotal group at all, two with neither, and exactly one — the one — with a list. Relaunched at 13:15 UTC.
 
+### 14:05 — The build succeeded. Training lasted seven minutes.
+
+The third build went through: 1,000 receipts first, then 4,000 synthetic pages, 54 minutes, 5,000 items split vendor-first and stratified by source — 3,188 train, 640 validation, 560 calibration, 612 test. That dataset now exists by name and will not be built again.
+
+Then the trainer, at 1024 px, asked the GPU for 1.53 GiB with 7.8 GiB free and was refused. PyTorch's own books showed almost nothing reserved-but-unallocated, so this was not the usual fragmentation story; it is the same allocation failure the demo run logged four times at 896 px and survived, one size up. On this laptop a GPU allocation also needs host commit behind it (12:35's lesson wearing a different coat), and "free on the device" is not the budget.
+
+Two changes (D-035): the overnight profile trains at 896 px, the resolution the demo actually survived at; and the CLI sets PyTorch's expandable-segments allocator before CUDA starts, as a second line rather than the fix. The orphaned model row is deleted; the job keeps its error. Relaunching against the built dataset.
+
 *(continued below as the run progresses)*

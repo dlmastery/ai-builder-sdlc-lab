@@ -185,6 +185,9 @@ def cmd_pin(a: argparse.Namespace) -> None:
 
 def main(argv: list[str] | None = None) -> None:
     os.environ.setdefault("JOBS_INLINE", "1")
+    # must precede CUDA initialisation: the caching allocator fragments on variable-length
+    # vision sequences and reported OOM with 7.8 GiB free (D-035)
+    os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
     from ledgerlens_core.tls import maybe_inject_native_tls
 
     maybe_inject_native_tls()

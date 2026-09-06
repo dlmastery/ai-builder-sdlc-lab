@@ -52,8 +52,9 @@ PROFILES: dict[str, TrainProfile] = {
         "smoke", max_steps=6, grad_accum=2, max_long_side=640, max_train_items=12
     ),
     "demo": TrainProfile("demo", max_steps=100, grad_accum=4, max_long_side=896, epochs=1.0),
+    # 896 px, not 1024: at 1024 the run OOMed with 7.8 GiB "free" (fragmentation, D-035)
     "overnight": TrainProfile(
-        "overnight", max_steps=450, grad_accum=8, max_long_side=1024, epochs=3.0
+        "overnight", max_steps=450, grad_accum=8, max_long_side=896, epochs=3.0
     ),
 }
 
