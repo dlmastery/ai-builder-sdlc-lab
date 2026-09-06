@@ -139,6 +139,17 @@ class DocumentOut(BaseModel):
     updated_at: datetime
 
 
+class DocumentRowOut(DocumentOut):
+    """A list row carries what the inbox shows (D-041 P2): thumbnail, vendor, verdict, counts."""
+
+    thumbnail_url: str | None = None
+    vendor_name: str | None = None
+    decision: str | None = None
+    reasons: list[dict[str, Any]] = PField(default_factory=list)
+    field_count: int = 0
+    grounded_fields: int = 0
+
+
 class DocumentDetailOut(DocumentOut):
     pages: list[PageOut]
     extraction: ExtractionOut | None

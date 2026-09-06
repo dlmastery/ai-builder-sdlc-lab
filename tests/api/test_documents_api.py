@@ -60,6 +60,22 @@ def test_stub_extractor_writes_rows_through_the_real_pipeline(client: TestClient
     assert body["vendor_name"] == "Northwind Traders"
 
 
+def test_list_rows_carry_what_the_inbox_shows(client: TestClient) -> None:
+    """The inbox is rendered from rows (D-041 P2): a page thumbnail, the vendor, the verdict and
+    its reasons, and how many fields were grounded — not a filename and a status word."""
+    headers = register_and_login(client, "clerk@acme.io", "Acme")
+    _upload(client, headers)
+    items = client.get("/documents", headers=headers).json()["items"]
+    assert len(items) == 1
+    row = items[0]
+    assert row["thumbnail_url"].startswith("http")
+    assert row["vendor_name"] == "Northwind Traders"
+    assert row["decision"] in {"needs_review", "auto_approved"}
+    assert isinstance(row["reasons"], list)
+    assert row["field_count"] >= 4
+    assert 0 <= row["grounded_fields"] <= row["field_count"]
+
+
 def test_same_file_uploaded_twice_is_one_job(client: TestClient) -> None:
     headers = register_and_login(client, "clerk@acme.io", "Acme")
     first = _upload(client, headers)

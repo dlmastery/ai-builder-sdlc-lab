@@ -313,6 +313,13 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** the story tells what happened; the skills make it repeatable by an agent that has read nothing else — which is the plan's own test of an artifact (rule 15).
 - **Date:** 2026-09-06
 
+## D-043 · Fine-tuning moves to the night; the day is for the app
+
+- **Context:** *"the finetuning further can happen this night — not now. for now lets focus on completing the app fully and amazing dazzling way."* Attempt six had in fact already exited silently at step 9 (09:57 local, eight minutes after launch, 15 GB of commit headroom at launch, no traceback, no Application-log crash record) — cause not yet measured.
+- **Decided:** training paused; the job row says so with the resume command; the model row (`234bbf31…`) is kept because tonight's run resumes it with `--resume-checkpoint` once a checkpoint exists (none was written before step 25). Tonight's launch starts with the `measuring-before-fixing` skill on the step-9 exit before anything else. The GPU and the commit budget go to the design loop today.
+- **Why:** rule 1 — the AI Builder sets the order of work; and a design pass with a dev server, a headless browser and three critic subagents competes with the trainer for the same commit budget that has killed six runs.
+- **Date:** 2026-09-06
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.

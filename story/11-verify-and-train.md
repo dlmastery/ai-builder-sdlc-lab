@@ -186,4 +186,14 @@ Blocked first by the machine: 0.3 GB of commit headroom, the page file having ea
 
 Thirteen skills in `.claude/skills/`, to the Agent Skills specification (D-042): what each does and the words that trigger it in the description, the procedure and the lessons with their decision numbers in the body, references one level deep. The showcase script for the next AI Builder is `SCRIPT.md`; the playbook carries every message of this run verbatim. Nowhere in any of it does the word "student" appear — the persona is the AI Builder.
 
+### 17:10 — "Fine-tuning tonight. Today, the app — fully, dazzling."
+
+Training paused (D-043): attempt six turned out to have exited on its own at step 9 with no traceback — tonight's first job is to measure why before relaunching. The policy file now carries every steer of the day without growing past twenty rules: checkpoints as ML 101 (rule 10), measure before fixing (18), the design loop against a specific bar (17), skills as artifacts and "AI Builder, never student" (13, 1), the product's number even when it is zero (19).
+
+**Design loop, piece P1 — the home page, round 1.** Interview answered from the steers; preflight honest (no image generator connected; plates are authored SVG); the bar torn down into seven mechanisms in `apps/web/design/bar.md`. The builder's round: the hero now shows the *real* specimen — the Northwind page as read by `qwen3.5-2b-lora-2beb2897`, exported from rows by `scripts/export_specimen.py` with its hard spots (the stamp), OCR words, field boxes tinted by calibrated confidence, the readouts, the ledger's sentences and the verdict with its two reasons — where a grey schematic labelled "extractor · stub" had stood with a real model pinned. Five framed plates open the five story sections, each followed by the sample's scaffold: *what it does, in plain words* / *what it reads from* / *how you know it worked* — the last line always a measured number. A numbers strip under the fold: field-F1, invoice number, total, vendor name (0.0 %, in red), seconds per page. Render: `story/assets/design/home-round1.png`. Three critics with fresh context are judging it now — brief, system, craft — and their verdicts and the single biggest gap each names go into the table below as they land.
+
+| Piece | Round | Brief | System | Craft | Biggest gap | Changed |
+|---|---|---|---|---|---|---|
+| P1 home | 1 | … | … | … | … | real specimen, five plates, scaffold, numbers strip |
+
 *(continued below as the run progresses)*

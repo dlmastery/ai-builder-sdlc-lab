@@ -40,6 +40,15 @@ export type DocumentOut = {
   updated_at: string;
 };
 
+export type DocumentRowOut = DocumentOut & {
+  thumbnail_url: string | null;
+  vendor_name: string | null;
+  decision: string | null;
+  reasons: Array<Record<string, unknown>>;
+  field_count: number;
+  grounded_fields: number;
+};
+
 export type AlternativeOut = { rank: number; value: string | null; probability: number };
 
 export type CorrectionOut = { old_value: string | null; new_value: string | null; created_at: string };

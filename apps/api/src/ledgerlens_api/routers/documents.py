@@ -6,6 +6,7 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+from collections.abc import Sequence
 from typing import Any
 from uuid import UUID
 
@@ -21,6 +22,7 @@ from ledgerlens_api.schemas import (
     CorrectionOut,
     DocumentDetailOut,
     DocumentOut,
+    DocumentRowOut,
     ExtractionOut,
     FieldOut,
     JobOut,
@@ -166,14 +168,14 @@ def upload(
     return UploadAccepted(document=_document_out(document), job=_job_out(job))
 
 
-@router.get("", response_model=Paginated[DocumentOut])
+@router.get("", response_model=Paginated[DocumentRowOut])
 def list_documents(
     status_filter: str | None = None,
     limit: int = 50,
     offset: int = 0,
     principal: Principal = Depends(current_principal),
     db: DbSession = Depends(get_db),
-) -> Paginated[DocumentOut]:
+) -> Paginated[DocumentRowOut]:
     q = select(Document).where(Document.tenant_id == principal.tenant_id)
     if status_filter:
         q = q.where(Document.status == status_filter)
@@ -181,7 +183,64 @@ def list_documents(
     rows = db.scalars(
         q.order_by(Document.created_at.desc()).limit(min(limit, 200)).offset(offset)
     ).all()
-    return Paginated(items=[_document_out(d) for d in rows], total=total)
+    return Paginated(items=_document_rows(db, rows), total=total)
+
+
+def _document_rows(db: DbSession, docs: Sequence[Document]) -> list[DocumentRowOut]:
+    """Four batched queries for the whole page of rows, never one per document."""
+    if not docs:
+        return []
+    ids = [d.id for d in docs]
+    store = get_object_store()
+    first_page: dict[UUID, Page] = {}
+    for p in db.scalars(
+        select(Page).where(Page.document_id.in_(ids)).order_by(Page.document_id, Page.number)
+    ):
+        first_page.setdefault(p.document_id, p)
+    latest: dict[UUID, Extraction] = {}
+    for e in db.scalars(
+        select(Extraction)
+        .where(Extraction.document_id.in_(ids))
+        .options(selectinload(Extraction.verdict))
+        .order_by(Extraction.document_id, Extraction.created_at.desc())
+    ):
+        latest.setdefault(e.document_id, e)
+    counts: dict[UUID, tuple[int, int]] = {}
+    if latest:
+        for ex_id, n, grounded in db.execute(
+            select(
+                Field.extraction_id,
+                func.count(Field.id),
+                func.count(Field.id).filter(Field.grounded.is_(True)),
+            )
+            .where(Field.extraction_id.in_([e.id for e in latest.values()]))
+            .group_by(Field.extraction_id)
+        ):
+            counts[ex_id] = (int(n), int(grounded))
+    vendor_ids = {d.vendor_id for d in docs if d.vendor_id}
+    vendors = (
+        {v.id: v.name for v in db.scalars(select(Vendor).where(Vendor.id.in_(vendor_ids)))}
+        if vendor_ids
+        else {}
+    )
+    out: list[DocumentRowOut] = []
+    for d in docs:
+        ex = latest.get(d.id)
+        page = first_page.get(d.id)
+        n, grounded = counts.get(ex.id, (0, 0)) if ex else (0, 0)
+        verdict = ex.verdict if ex else None
+        out.append(
+            DocumentRowOut(
+                **_document_out(d).model_dump(),
+                thumbnail_url=store.presigned_get(page.object_key) if page else None,
+                vendor_name=vendors.get(d.vendor_id) if d.vendor_id else None,
+                decision=verdict.decision if verdict else None,
+                reasons=list(verdict.reasons or []) if verdict else [],
+                field_count=n,
+                grounded_fields=grounded,
+            )
+        )
+    return out
 
 
 @router.get("/{document_id}", response_model=DocumentDetailOut)

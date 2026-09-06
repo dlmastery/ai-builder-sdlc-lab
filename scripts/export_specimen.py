@@ -125,7 +125,11 @@ def main() -> int:
                 {
                     "rule": r.rule,
                     "passed": r.passed,
-                    "field": by_id[str(r.field_id)].name if r.field_id and str(r.field_id) in by_id else None,
+                    "field": (
+                        by_id[str(r.field_id)].name
+                        if r.field_id and str(r.field_id) in by_id
+                        else None
+                    ),
                     "detail": r.detail,
                 }
                 for r in results
