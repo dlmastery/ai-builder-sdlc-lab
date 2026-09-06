@@ -21,6 +21,19 @@ Walkthrough of Anthropic's AI-Native SDLC playbook. What Fable took from it for 
 
 <https://claude.com/blog/the-ai-native-sdlc-playbook> · Course: <https://academy.claude.com/courses/ai-native-sdlc-playbook> · Skill: <https://github.com/bashebr/ai-native-sdlc>
 
+## 4. Frontier-model design workflows (YouTube, "five use cases" walkthrough)
+
+<https://www.youtube.com/watch?v=swcKLJWnhNw>
+
+A creator's tour of what a September-2026 frontier model does well for builders. Fable's summary of what transfers to this lab (decision D-019):
+
+- **Interview first, then plan.** The model asks one question at a time until it has the context, then proposes a plan and has a second frontier model critique it. Our intent/spec gates already work this way; the critique step is added to the design loop.
+- **One coherent "operating system" UI** with breathing room and clear spacing beats a dense dashboard. Adopted as a density rule per view.
+- **Design references chosen before building**, from curated galleries, and a **design-loop skill with critics** that iterates on the result. Adopted: two named reference registers in `apps/web/DESIGN.md`; three written critiques before each taste review.
+- **Golden-ratio spacing and type scale** (φ ≈ 1.618) as the reason well-known product sites feel proportioned. Adopted as the token scale.
+- **Scroll-driven storytelling** on marketing pages. Adopted for the home page.
+- Not adopted: generated hero imagery and marketplace component grabbing — see D-019 for why.
+
 ## 3. The lab brief
 
 `Next Gen SDD for frontier AI.md` — the AI Builder's own synthesis: why late-2025/mid-2026 SDD is obsolete for Fable/Mythos-class models, the Fable-vs-Astra operating differences, and the two Step-0 prompts this lab grew out of. Not versioned here; the AI Builder owns it.

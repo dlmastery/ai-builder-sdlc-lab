@@ -5,9 +5,12 @@ description = "FastAPI application: auth, tenancy, documents, models, production
 requires-python = ">=3.12,<3.13"
 dependencies = [
   "ledgerlens-core",
+  "ledgerlens-worker",
   "fastapi>=0.115",
   "uvicorn[standard]>=0.34",
   "python-multipart>=0.0.20",
+  "email-validator>=2.2",
+  "pillow>=11.0",
 ]
 
 [build-system]
@@ -19,3 +22,4 @@ packages = ["src/ledgerlens_api"]
 
 [tool.uv.sources]
 ledgerlens-core = { workspace = true }
+ledgerlens-worker = { workspace = true }

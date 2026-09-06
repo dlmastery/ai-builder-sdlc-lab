@@ -135,6 +135,14 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** 3.12 is the safest floor for torch/paddle wheels today; the sync DB layer keeps the worker and the API on one code path with no dual-driver complexity, and it scales horizontally by replicas, which is the shape the spec asks for. Async buys nothing here that replicas do not.
 - **Date:** 2026-09-05
 
+## D-019 · Design techniques adopted from the AI Builder's second video; two deliberately rejected
+
+- **Source:** the AI Builder pointed Fable at a walkthrough of frontier-model design workflows (see `story/sources.md` §4).
+- **Adopted:** (1) *references before building* — the web app's design tokens are derived from two named reference registers (instrument panels; type-led editorial dashboards), written down in `apps/web/DESIGN.md` before the first component; (2) *golden-ratio scale* — type sizes and the spacing scale step by φ ≈ 1.618 from a 16 px base, so hierarchy is proportional, not ad hoc; (3) *breathing room* — a minimum-whitespace rule per surface, density chosen per view, never by default; (4) *scroll-driven storytelling* — the home page tells one story in one scroll with the specimen document's evidence layers arriving on scroll; (5) *critic loop before human review* — before the Slice A taste review Fable runs three written critiques (taste, information density, accessibility) against the running shell, fixes what they catch, and archives the critiques in the story chapter.
+- **Rejected:** external image/video generation for hero assets (our hero is a real document from the pipeline — anything generated would be decoration, spec §6); component "sniping" from marketplaces (policy 17: a screen that would look at home in a template marketplace fails).
+- **Why:** the adopted techniques are about *judgement applied early and repeatedly*; that is the AI Builder posture. The rejected ones would trade the taste bet for speed.
+- **Date:** 2026-09-05
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.

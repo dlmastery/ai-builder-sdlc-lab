@@ -10,7 +10,7 @@ from __future__ import annotations
 import enum
 import uuid
 from datetime import datetime
-from typing import Any
+from typing import Any, ClassVar
 
 from sqlalchemy import (
     Boolean,
@@ -30,7 +30,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class Base(DeclarativeBase):
-    type_annotation_map = {dict[str, Any]: JSONB, list[Any]: JSONB}
+    type_annotation_map: ClassVar[dict[Any, Any]] = {dict[str, Any]: JSONB, list[Any]: JSONB}
 
 
 def _uuid_pk() -> Mapped[uuid.UUID]:
@@ -70,7 +70,7 @@ def _int_zero() -> Mapped[int]:
 # --- identity -----------------------------------------------------------------------------
 
 
-class Role(str, enum.Enum):
+class Role(enum.StrEnum):
     owner = "owner"
     finance_lead = "finance_lead"
     clerk = "clerk"
@@ -122,7 +122,7 @@ class Session(Base):
 # --- documents ----------------------------------------------------------------------------
 
 
-class DocumentStatus(str, enum.Enum):
+class DocumentStatus(enum.StrEnum):
     uploaded = "uploaded"
     processing = "processing"
     needs_review = "needs_review"
@@ -317,7 +317,7 @@ class Correction(Base):
 # --- modeling -----------------------------------------------------------------------------
 
 
-class ModelKind(str, enum.Enum):
+class ModelKind(enum.StrEnum):
     extractor = "extractor"
     ocr = "ocr"
     calibrator = "calibrator"
