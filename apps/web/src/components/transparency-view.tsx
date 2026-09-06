@@ -175,9 +175,13 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
       <section className="flex flex-col gap-4">
         <div className="flex flex-col gap-3">
           <div className="min-w-0">
+            {/* plain words for the clerk (brief critic, round 11): what the number means, not the
+                model that produced it */}
             <p className="micro">
               Document{doc.vendor_name ? ` · ${doc.vendor_name}` : ""}
-              {doc.difficulty != null ? ` · predicted difficulty ${pct(doc.difficulty)}` : ""}
+              {doc.difficulty != null
+                ? ` · expected to be ${doc.difficulty >= 0.5 ? "hard" : "easy"} to read (${pct(doc.difficulty)} chance of needing a person)`
+                : ""}
             </p>
             {/* a designed title, not a filename slug (round 10): what the page is — its vendor and
                 invoice number as read — at the display step on its own line; the filename is the
@@ -188,9 +192,9 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
             <p className="mt-2 truncate font-mono text-step--1 text-ink-3">{doc.original_filename}</p>
           </div>
           <div className="micro flex items-center gap-4" role="group" aria-label="Evidence layers">
-            <LayerToggle on={layers.has("hard")} onClick={() => toggle("hard")} label={`hard spots · ${hardWords.length}`} disabled={words.length === 0} />
-            <LayerToggle on={layers.has("words")} onClick={() => toggle("words")} label={`OCR words · ${words.length}`} disabled={words.length === 0} />
-            <LayerToggle on={layers.has("fields")} onClick={() => toggle("fields")} label="fields" />
+            <LayerToggle on={layers.has("hard")} onClick={() => toggle("hard")} label={`words it struggled with · ${hardWords.length}`} disabled={words.length === 0} />
+            <LayerToggle on={layers.has("words")} onClick={() => toggle("words")} label={`every word it read · ${words.length}`} disabled={words.length === 0} />
+            <LayerToggle on={layers.has("fields")} onClick={() => toggle("fields")} label="where each value was found" />
           </div>
         </div>
         {/* the page is the plate (bar.md M1): a drafting-sheet frame with corner marks and a caption
@@ -247,10 +251,11 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
                   const conf = f.calibrated_confidence ?? 0;
                   const tone = toneFor(f, threshold);
                   const isSel = f.id === selected;
-                  // the number beside a header field's box; line items carry theirs in the table —
-                  // at that density a label per box overlapped its neighbour (legibility wins)
-                  const label = f.line_index === null ? (tone === "signal" ? pct(conf) : pct(conf, 2)) : null;
-                  const fs = Math.max(10, page.width * 0.012);
+                  // a number beside every box (DESIGN.md: colour never carries a meaning alone):
+                  // header fields to the right of the box; line items above it, right-aligned —
+                  // beside them a label ran into the next column (rounds 8 and 11)
+                  const label = tone === "signal" ? pct(conf) : pct(conf, 2);
+                  const fs = Math.max(10, page.width * (f.line_index === null ? 0.012 : 0.01));
                   return (
                     <g key={f.id} className="arrive" data-layer="4">
                       {spans.map(([x0, y0, x1, y1], i) => (
@@ -269,8 +274,12 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
                           strokeOpacity={isSel ? 1 : 0.8}
                         />
                       ))}
-                      {label && spans[0] ? (
+                      {spans[0] && f.line_index === null ? (
                         <text x={spans[0][2] + Math.max(10, fs * 0.9)} y={spans[0][1] + fs} fill={TONE_VAR[tone]} fontSize={fs} fontFamily="var(--font-mono)">
+                          {label}
+                        </text>
+                      ) : spans[0] ? (
+                        <text x={spans[0][2]} y={spans[0][1] - 3} textAnchor="end" fill={TONE_VAR[tone]} fontSize={fs} fontFamily="var(--font-mono)">
                           {label}
                         </text>
                       ) : null}
@@ -660,7 +669,7 @@ function StabilityRing({ value }: { value: number }) {
 function Alternatives({ field }: { field: FieldOut }) {
   return (
     <section className="flex flex-col gap-2">
-      <p className="micro">Other readings the model considered · {fieldLabel(field.name)}</p>
+      <p className="micro">Runner-up values for {fieldLabel(field.name)} · how likely each was</p>
       <ul className="rule-y border-t border-rule text-step--1">
         {field.alternatives.map((a) => (
           <li key={a.rank} className="grid grid-cols-[1fr_auto] py-2">

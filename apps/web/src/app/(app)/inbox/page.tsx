@@ -61,7 +61,7 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
           </h1>
           {next ? (
             <p className="callout mt-4 text-step-0">
-              <strong className="font-medium">Needs you:</strong> {total} document{total === 1 ? "" : "s"} in the queue
+              <strong className="font-medium"><span aria-hidden className="mr-2">◐</span>Needs you:</strong> {total} document{total === 1 ? "" : "s"} in the queue
               {inFlight > 0 ? `, ${inFlight} being read` : ""} ·{" "}
               <Link href={`/documents/${next.id}`} data-testid="review-next" className="font-medium text-ink underline decoration-ink-2 underline-offset-4 hover:decoration-ink">
                 review next →
