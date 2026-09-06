@@ -6,7 +6,7 @@
 
 > 6 — I like. What are the risks? How can you make the UI wow by showing how the AI concluded and where it was harder, per document? How easy is a confidence interval for OCR-like extraction, using the state-of-the-art September 2026 OCR small model that fits a laptop GPU? Is this marketable as a startup? What training happens, what datasets exist? Tell me why it's a good choice, pros and cons — enough to decide better.
 
-## What students should notice
+## What AI Builders should notice
 
 This is the AI Builder spending judgement where it matters — *before* the first gate — rather than on columns later. Fable answers with evidence (a web check of the 2026 model landscape, dataset licences verified), corrects its own menu where it was stale, and stops at the pick. It does not start building.
 
@@ -20,19 +20,19 @@ Menu v2 named **Donut** as the model. Donut is a 2022 architecture; in September
 
 1. **Tightest closed loop of the six.** A correction typed in the UI becomes a `corrections` row, becomes a training example in the next run, and the per-vendor F1 curve moves — all watchable inside one class. Loop engineering stops being a slide.
 2. **It teaches the 2026 applied-ML stack exactly as industry runs it:** small VLM + LoRA, structured (JSON-schema) generation, calibration, selective automation with a guaranteed error rate, deterministic verification, continual learning from human feedback. None of that is in an intro course.
-3. **The trust layer is the product.** Buyers of document AI do not pay for OCR; they pay for "how much can I auto-approve at ≤ 1 % field error, and can I audit why". That question is answerable with maths students can implement in an afternoon (see confidence below).
+3. **The trust layer is the product.** Buyers of document AI do not pay for OCR; they pay for "how much can I auto-approve at ≤ 1 % field error, and can I audit why". That question is answerable with maths AI Builders can implement in an afternoon (see confidence below).
 4. **Laptop-honest.** 4B QLoRA on ~1 MP page images trains in ~25 min on 1k documents, 6–8 h on ~15k. Inference is local. No cluster anywhere in the story.
 5. **Clean data story, no PII.** CORD (1k receipts, CC BY 4.0), DocILE (6.7k annotated real business documents + 100k synthetic + ~1M unlabelled, 55 field classes, line items; MIT licence, access-request form), and our own synthetic invoice generator (templates + Faker, degraded with Augraphy to look scanned). SROIE is dropped — research-only licence.
-6. **Real market, real reference points.** The AP-automation market is ~$8B in 2026; Rossum was acquired by Coupa in May 2026. Students build a miniature of a category that just had an exit.
+6. **Real market, real reference points.** The AP-automation market is ~$8B in 2026; Rossum was acquired by Coupa in May 2026. AI Builders build a miniature of a category that just had an exit.
 
 ### Cons (honest)
 
 1. **Quieter visuals than a map or a seismogram wall.** The wow must come from the transparency view. If that slice slips, the demo is a form next to a PDF.
-2. **The domain is unglamorous.** Invoices do not make students lean forward; "an AI that shows its work and knows when it doesn't know" does. The framing has to carry it from minute one.
+2. **The domain is unglamorous.** Invoices do not make AI Builders lean forward; "an AI that shows its work and knows when it doesn't know" does. The framing has to carry it from minute one.
 3. **Generative extraction hallucinates.** A VLM will confidently emit a plausible total that is not on the page. The verifier (OCR agreement + arithmetic) catches most of it — but the failure exists and must be shown, not hidden.
 4. **Attention visualisation is plumbing-heavy.** Attention rollout over image patches is feasible with open weights but fiddly; the fallback is grounding boxes plus OCR alignment, which is still good.
 5. **Licence admin.** DocILE needs an access request; do it on day one. CORD is Indonesian receipts, so English-invoice realism comes from DocILE + synthetic.
-6. **Evaluation subtlety.** Field F1 depends on normalisation (dates, currency, whitespace). The rules must be frozen in tests or students will "improve" the metric by loosening the match.
+6. **Evaluation subtlety.** Field F1 depends on normalisation (dates, currency, whitespace). The rules must be frozen in tests or AI Builders will "improve" the metric by loosening the match.
 
 ### What training actually happens
 
@@ -65,7 +65,7 @@ For any document, one screen, every element grounded in evidence rather than gen
 1. **Field overlays** — each field drawn on the page as a box (from the VLM's grounding output, aligned to OCR words), tinted by calibrated confidence.
 2. **Where it looked** — attention rollout over image patches for the selected field's tokens, as a soft heat layer. Fallback: the grounding box + matched OCR words.
 3. **Hard spots, before extraction** — OCR low-confidence regions and image-quality defects (blur, skew, stamps, handwriting) painted as a heat layer with the difficulty predictor's verdict: "this page will be hard here, here and here."
-4. **Alternatives** — top-k candidates per field with probabilities ("Total 128.50 · 0.71 — 123.50 · 0.22"), so students see the model *hesitating*.
+4. **Alternatives** — top-k candidates per field with probabilities ("Total 128.50 · 0.71 — 123.50 · 0.22"), so AI Builders see the model *hesitating*.
 5. **Consistency ledger** — arithmetic and format checks shown with the numbers: `Σ line items 128.50 = subtotal 128.50 ✓`, `subtotal + tax 141.35 ≠ total 141.53 ✗`.
 6. **Challenge log** — a short, templated narrative assembled *only* from the evidence above: "The '8' in the total sits under a stamp; OCR read it as '3'; the extractor chose 128.50 because the line items sum to 128.50." No free-form LLM explanation, so nothing in the log can be hallucinated.
 7. **Stability ring** — per-field agreement across the 5 perturbations.
@@ -95,12 +95,12 @@ The lab builds 1, 2 and 4 in miniature. As a portfolio piece or the seed of a we
 | Invalid JSON from the decoder | Low–Medium | Low | schema-constrained decoding; repair-and-retry; count as an error in eval |
 | DocILE access delay | Low | Medium | request day one; CORD + synthetic carry the demo path |
 | Eval normalisation gaming | Medium | Medium | normalisation rules frozen in tests; policy line 8 |
-| Students find invoices dull | Medium | Medium | frame as "AI that shows its work and knows when it doesn't"; lead every demo with the transparency screen |
+| AI Builders find invoices dull | Medium | Medium | frame as "AI that shows its work and knows when it doesn't"; lead every demo with the transparency screen |
 | Self-consistency cost (5× inference) | Low | Low | runs in the batch worker; UI shows honest "analysing" states |
 
 ### Recommendation
 
-Option 6 is a *great* choice if the AI Builder is willing to bet the wow on transparency and trust rather than on cinematic visuals — and that bet is the more valuable lesson for students who will build with 2026-class models, because it is the part of applied ML that does not commoditise. If the class needs a spectacle first and rigour second, option 5 (Tremor) or option 1 (Harbor Sentinel) is the safer wow.
+Option 6 is a *great* choice if the AI Builder is willing to bet the wow on transparency and trust rather than on cinematic visuals — and that bet is the more valuable lesson for AI Builders who will build with 2026-class models, because it is the part of applied ML that does not commoditise. If the class needs a spectacle first and rigour second, option 5 (Tremor) or option 1 (Harbor Sentinel) is the safer wow.
 
 ### Sources checked this turn
 

@@ -40,7 +40,7 @@ The screenshot run signed in as the demo data lead, uploaded the specimen, corre
 
 **Honesty.** The hard-spots layer reads **0** in these screens because the *stub* OCR is pinned and scores every word 0.99. That is the correct number for the stub, and it is the reason the verification step that follows pins the real OCR specialist and re-reads the specimen. Also visible and unexplained: the Next.js dev overlay's "1 issue" badge on the document page. The console-error assertion is green, so it is a dev-mode advisory; it stays on the list until named.
 
-**Screenshot run mechanics, for students.** Two failures were the test's fault, not the product's: re-uploading byte-identical bytes is correctly deduplicated to the *existing* document (so a screenshot run must nudge a pixel), and "first row visible" is satisfied by stale rows (so wait for the row with the new filename). Both are the kind of thing that looks like a bug and is not.
+**Screenshot run mechanics, for AI Builders.** Two failures were the test's fault, not the product's: re-uploading byte-identical bytes is correctly deduplicated to the *existing* document (so a screenshot run must nudge a pixel), and "first row visible" is satisfied by stale rows (so wait for the row with the new filename). Both are the kind of thing that looks like a bug and is not.
 
 ## Verification (plan §2 step 7) — the real OCR meets the stamp
 

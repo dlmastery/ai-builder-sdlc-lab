@@ -8,7 +8,7 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 
 - **Decided:** `dlmastery/ai-builder-sdlc-lab`, public. Product code at the root; `lab/` for gate artifacts; `lab/intent/` for production-generated intents; `story/` for one chapter per turn; git tags on accepted gates.
 - **Alternatives:** separate docs repo; a docs site only; commits without chapters.
-- **Why:** students must be able to `git checkout gate-2-spec` and see exactly what existed then. The story and the code must not drift apart, so they share history.
+- **Why:** AI Builders must be able to `git checkout gate-2-spec` and see exactly what existed then. The story and the code must not drift apart, so they share history.
 - **Evidence:** AI Builder: "everything must be archived in GitHub end to end — the whole script and story."
 - **Date:** 2026-09-05
 
@@ -50,14 +50,14 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 
 - **Decided:** CORD (CC BY 4.0), DocILE (MIT, access-request form — request on day one), our own synthetic invoice generator degraded with Augraphy. **SROIE excluded** (research-only licence).
 - **Alternatives:** SROIE; FUNSD; Kaggle invoice sets with unclear licences.
-- **Why:** a student tutorial must be redistributable; every dataset's licence is stated in the spec.
+- **Why:** An AI Builder tutorial must be redistributable; every dataset's licence is stated in the spec.
 - **Date:** 2026-09-05
 
 ## D-007 · Stack: FastAPI + Python worker, Postgres 16 + Alembic, Redis queue, MinIO, Next.js web, Stripe test mode, Compose, GitHub Actions
 
 - **Decided:** as titled. API and worker share one Python package and domain model; web is Next.js (App Router, TypeScript); contracts generated from one OpenAPI schema.
 - **Alternatives:** single Next.js full-stack app with Python sidecar; Django + HTMX; SvelteKit; Postgres-backed queue instead of Redis; Celery instead of a lighter Redis queue; SQLite for the lab.
-- **Why:** the ML must be Python and must share the domain model with the API to keep "training writes rows" honest. The home page and app need SSR-grade product quality, which Next.js gives cheaply. Postgres from day one because the intent demands a production migration path, and because per-tenant isolation and PostGIS-free relational integrity are the point. Redis queue because a GPU queue and a CPU queue must scale independently and students recognise the shape. MinIO because the S3 API is the production contract.
+- **Why:** the ML must be Python and must share the domain model with the API to keep "training writes rows" honest. The home page and app need SSR-grade product quality, which Next.js gives cheaply. Postgres from day one because the intent demands a production migration path, and because per-tenant isolation and PostGIS-free relational integrity are the point. Redis queue because a GPU queue and a CPU queue must scale independently and AI Builders recognise the shape. MinIO because the S3 API is the production contract.
 - **Cost accepted:** two runtimes, two toolchains.
 - **Date:** 2026-09-05
 
@@ -65,7 +65,7 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 
 - **Decided:** as titled; no OAuth/SSO in scope.
 - **Alternatives:** third-party auth service; JWT access tokens; a framework's built-in auth.
-- **Why:** "real enough to demo" plus the teaching value of seeing sessions, CSRF and tenant scoping in plain code. JWTs add revocation complexity the lab does not need. A hosted auth service hides exactly what students should see once.
+- **Why:** "real enough to demo" plus the teaching value of seeing sessions, CSRF and tenant scoping in plain code. JWTs add revocation complexity the lab does not need. A hosted auth service hides exactly what AI Builders should see once.
 - **Date:** 2026-09-05
 
 ## D-009 · Confidence is derived and calibrated by us; auto-approval requires threshold ∧ grounded ∧ ledger pass
@@ -91,7 +91,7 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 
 - **Decided:** default extractor Qwen3.5-2B, QLoRA. Qwen3.5-4B selectable per run on ≥ 16 GB GPUs and compared in the eval view. Fallback family: Gemma-4-E2B.
 - **Alternatives:** 4B default with 2B fallback (the spec's original position).
-- **Why:** AI Builder edit-in-spirit at gate 2: "try with 2B — fine-tuning 4B may be a stretch for GPUs like a 3060." Students' hardware is the constraint that binds, not this laptop's. A 2B QLoRA with capped image size fits 8–12 GB; the lab must be reproducible by the class, not only by the instructor.
+- **Why:** AI Builder edit-in-spirit at gate 2: "try with 2B — fine-tuning 4B may be a stretch for GPUs like a 3060." AI Builders' hardware is the constraint that binds, not this laptop's. A 2B QLoRA with capped image size fits 8–12 GB; the lab must be reproducible by the class, not only by the instructor.
 - **Cost accepted:** somewhat lower ceiling on line-item-heavy documents; the 2B-vs-4B comparison becomes a teaching artifact rather than a loss.
 - **Date:** 2026-09-05
 
@@ -99,7 +99,7 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 
 - **Decided:** `ModelVersion(kind=extractor, name=stub, pinned=true)` returns a deterministic fixture extraction via the same tasks, rows and API the real model will use.
 - **Alternatives:** build the UI against mock JSON; wait for Slice B before any UI.
-- **Why:** students see a database and a web app before a weight file exists (brief §6); Slice C swaps the model, not the plumbing; the taste review happens on real plumbing.
+- **Why:** AI Builders see a database and a web app before a weight file exists (brief §6); Slice C swaps the model, not the plumbing; the taste review happens on real plumbing.
 - **Date:** 2026-09-05
 
 ## D-014 · Grounding by OCR alignment, not by asking the extractor for boxes
@@ -113,7 +113,7 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 
 - **Decided:** Celery workers, Redis broker, no Celery result backend; status, attempts and logs live in `Job` rows; idempotency key unique per job; retries with backoff; GPU tasks only on the `gpu` queue.
 - **Alternatives:** arq (async, lighter); Dramatiq; a Postgres-backed queue; running training inline in the API.
-- **Why:** two queues that scale independently is the shape a cluster needs; Celery is what students will meet; keeping job truth in our table keeps the Production view honest and independent of the broker.
+- **Why:** two queues that scale independently is the shape a cluster needs; Celery is what AI Builders will meet; keeping job truth in our table keeps the Production view honest and independent of the broker.
 - **Date:** 2026-09-05
 
 ## D-016 · GPU worker runs Linux-in-Docker (WSL2 backend) with a native venv fallback
@@ -182,7 +182,7 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 
 - **Context:** the torch wheel extraction failed with 0.7 GB free on a 953 GB disk. Reclaimable candidates: pip cache 25 GB, uv cache 24 GB, Hugging Face cache 56 GB, Docker images 16 GB, Playwright browsers 5 GB.
 - **Decided:** purge the pip cache (26.8 GB freed) and prune the uv cache. Nothing else: the Hugging Face and Docker caches may hold the AI Builder's other work and are not Fable's to delete; the browsers are needed.
-- **Why:** package caches are disposable by definition and re-fill on demand; everything else is a judgement the machine's owner makes. This is recorded so students see the line an autonomous agent should not cross without being asked.
+- **Why:** package caches are disposable by definition and re-fill on demand; everything else is a judgement the machine's owner makes. This is recorded so AI Builders see the line an autonomous agent should not cross without being asked.
 - **Date:** 2026-09-06
 
 ## D-026 · OCR specialist speed: KV cache on; PaddleOCR-VL runs as an asynchronous stage, evaluation caps OCR-dependent splits

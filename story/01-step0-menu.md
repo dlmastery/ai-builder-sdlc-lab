@@ -21,7 +21,7 @@
 **Loop hook:** A sensor channel goes flat on ingest (stuck sensor) → prediction confidence collapses on that engine → `intent.md: stuck-sensor-handling`.
 **Won't build:** Real-time streaming ingest; multi-fleet tenancy; sensor-fusion physics.
 **Demo path:** FD001 only, 3-minute train. **Overnight:** all subsets, sweep, ensembling.
-**Teaching risk:** C-MAPSS is well-trodden in ML courses; students may treat it as "a Kaggle" unless the product framing stays dominant.
+**Teaching risk:** C-MAPSS is well-trodden in ML courses; AI Builders may treat it as "a Kaggle" unless the product framing stays dominant.
 
 ## 2. Routewise — consumer-complaint routing
 
@@ -32,7 +32,7 @@
 **Data plane day one:** `users`, `complaints`, `datasets`, `jobs`, `model_versions`, `predictions`, `eval_scores`, `review_flags`.
 **Modeling:** Multi-class text classification (product, ~9–12 classes after consolidation). Baseline: TF-IDF + logistic regression. Candidate: fine-tuned small encoder (DeBERTa-v3-small or MiniLM). 200 k narratives fine-tune in ~1–2 h on the 4090; overnight = full corpus + issue-level head. Good enough: macro-F1 ≥ 0.80 vs ~0.70 for TF-IDF; calibrated confidence (ECE reported).
 **Surface:** Inbox (queue with routing + confidence) → complaint detail (highlighted narrative, alternatives) → review queue (low-confidence) → model runs → eval by class → production view.
-**Why striking:** Token-attribution highlighting over real prose; a confusion matrix students can click into to read the actual misrouted texts.
+**Why striking:** Token-attribution highlighting over real prose; a confusion matrix AI Builders can click into to read the actual misrouted texts.
 **Loop hook:** A new sub-product appears in ingest that the label space has never seen → `intent.md: label-space-drift`.
 **Won't build:** Reply generation; multilingual; live CFPB sync.
 **Demo path:** 20 k narratives, 10-minute fine-tune. **Overnight:** 1 M+ narratives, two heads.
@@ -47,11 +47,11 @@
 **Data plane day one:** `users`, `parts` (image records), `categories`, `datasets`, `jobs`, `model_versions`, `predictions` (with heat-map artifact ref), `eval_scores`, `operator_overrides`.
 **Modeling:** Image anomaly detection via transfer learning (pretrained WideResNet-50 features + PatchCore-style memory bank, or fine-tuned classifier head). Baseline: autoencoder reconstruction error. "Training" is minutes per category on GPU; honest note: the 8–10 h budget is not needed, the overnight path is all 15 categories + backbone fine-tune. Good enough: image-level AUROC ≥ 0.95 on 3 chosen categories vs ~0.75 for the autoencoder.
 **Surface:** Today's line (stream of parts) → part lightbox (heat-map overlay, override) → category health → model runs → eval (AUROC per category, false-alarm gallery) → production view.
-**Why striking:** Anomaly heat-maps over real industrial photos; a "false alarms" gallery that shows students what the model gets wrong.
+**Why striking:** Anomaly heat-maps over real industrial photos; a "false alarms" gallery that shows AI Builders what the model gets wrong.
 **Loop hook:** Anomaly-score distribution shifts on a category (camera/lighting change) → `intent.md: score-drift-<category>`.
 **Won't build:** Camera ingestion; PLC integration; segmentation training from scratch.
 **Demo path:** 1 category, 2-minute build. **Overnight:** all 15 + fine-tune.
-**Teaching risk:** So fast to train that students may not see why a worker/queue matters; the lab must make batch scoring the long job.
+**Teaching risk:** So fast to train that AI Builders may not see why a worker/queue matters; the lab must make batch scoring the long job.
 
 ## 4. Loadline — day-ahead grid demand forecasting
 
@@ -66,7 +66,7 @@
 **Loop hook:** Day-ahead MAPE breaches the budget for 3 consecutive days (heat wave, holiday) → `intent.md: forecast-breach`.
 **Won't build:** Price forecasting; market bidding; live EIA polling.
 **Demo path:** one BA, 2 years. **Overnight:** ten BAs, quantiles, full backtest.
-**Teaching risk:** Split discipline is the whole game (no future leakage); if a student cuts a corner the metric lies and the lab quietly teaches the wrong lesson.
+**Teaching risk:** Split discipline is the whole game (no future leakage); if An AI Builder cuts a corner the metric lies and the lab quietly teaches the wrong lesson.
 
 ## 5. Dockflow — bike-share station rebalancing
 
@@ -88,11 +88,11 @@
 **Pitch:** Rank Chicago's food establishments by the probability that an inspection would find a critical violation, and explain every ranking in plain terms an inspector can defend.
 **User & decision:** Health department inspection scheduler. Decision changed: *which establishments get inspected this week*.
 **Taste frame:** Slop is a SHAP bar chart bolted onto a table. Great feels like a case file — one establishment, its history as a timeline, and the reasons for its risk written like an inspector's notes.
-**Data:** City of Chicago Food Inspections (~300 k inspections since 2010) + Business Licenses, public domain via the Chicago Data Portal. ~200 MB. Famous 2015 city analytics case study — students can compare their model against a real deployment.
+**Data:** City of Chicago Food Inspections (~300 k inspections since 2010) + Business Licenses, public domain via the Chicago Data Portal. ~200 MB. Famous 2015 city analytics case study — AI Builders can compare their model against a real deployment.
 **Data plane day one:** `users`, `establishments`, `inspections`, `datasets`, `jobs`, `model_versions`, `predictions`, `explanations`, `eval_scores`, `schedule_decisions`.
 **Modeling:** Tabular binary classification (critical violation at next inspection). Baseline: prior-failure rate per establishment. Candidate: gradient boosting (LightGBM/CatBoost) with per-row SHAP explanations persisted to the DB. Minutes to train; overnight = temporal backtest across years + calibration. Good enough: top-decile precision ≥ 2× random ordering; the 2015 city result (critical violations found ~7 days earlier) as a reference.
 **Surface:** This week's list (ranked) → establishment case file (timeline + explanation) → cohort view (by ward / cuisine) → model runs → eval (lift curve, calibration) → production view.
-**Why striking:** Explanation-first: a risk trajectory over years with the drivers annotated inline; a lift curve students can read as "inspect the top 10 % and you catch X % of violations".
+**Why striking:** Explanation-first: a risk trajectory over years with the drivers annotated inline; a lift curve AI Builders can read as "inspect the top 10 % and you catch X % of violations".
 **Loop hook:** A ward's precision collapses in the weekly backfill (new inspector cohort, new cuisine mix) → `intent.md: slice-collapse-ward-<n>`.
 **Won't build:** Inspector routing; live portal sync; fairness audit beyond a slice report.
 **Demo path:** 2018–2023, 5-minute train. **Overnight:** full history, temporal CV, calibration.

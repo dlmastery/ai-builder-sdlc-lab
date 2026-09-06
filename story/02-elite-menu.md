@@ -6,13 +6,13 @@
 
 > There is a meta-meta question of which end-to-end product to build — the starting point before going into the AI Builder simulation.
 
-> You are an expert in elite ML and an elite educator. Pick something novel and complex, not toy textbook crap. Something that will wow students.
+> You are an expert in elite ML and an elite educator. Pick something novel and complex, not toy textbook crap. Something that will wow AI Builders.
 
 > You are also an elite system architect, elite SWE, elite SRE — elite everything needed for this. Update skills and `intent.md` and everything with this steer.
 
 > I thought you would provide me six sample project ideas for an AI Builder and then I would choose.
 
-## What happened, for students
+## What happened, for AI Builders
 
 Fable read "you will pick" literally: it chose a product, HEAD-checked the dataset, wrote a 14-line `CLAUDE.md`, drafted `intent.md`, and was one commit from opening Gate 1. The fourth message corrected the read: **the pick is the AI Builder's**. The steer was about the *quality bar of the menu*, not about who chooses.
 
@@ -30,7 +30,7 @@ All six fit a 32 GB / 16 GB-GPU laptop, a ≤ 30 min demo train and a ≤ 8–10
 
 ### 1. Harbor Sentinel — vessel trajectory forecasting + anomaly review (maritime)
 
-- **Why it is on the menu / what is unique:** This is the only option where one model is a *feature* for another — the anomaly scorer eats the forecaster's residuals — which is how mature ML systems are actually built and almost never taught. Its baseline, dead reckoning, is honestly hard to beat at short horizons, so students watch a neural model fight a 200-year-old navigation rule and sometimes lose. The human review (true/false alarm) is the label supply, so the loop closes with real data, not a slide. And the domain is topical: dark-fleet tracking and AIS spoofing are in the news weekly, which makes "anomaly is not guilt" a live ethics constraint rather than a footnote.
+- **Why it is on the menu / what is unique:** This is the only option where one model is a *feature* for another — the anomaly scorer eats the forecaster's residuals — which is how mature ML systems are actually built and almost never taught. Its baseline, dead reckoning, is honestly hard to beat at short horizons, so AI Builders watch a neural model fight a 200-year-old navigation rule and sometimes lose. The human review (true/false alarm) is the label supply, so the loop closes with real data, not a slide. And the domain is topical: dark-fleet tracking and AIS spoofing are in the news weekly, which makes "anomaly is not guilt" a live ethics constraint rather than a footnote.
 - **Pitch:** For every ship in a busy US port, draw where it will be in 15/30/60 minutes and put the three vessels whose behaviour is diverging most into a review queue with reasons.
 - **User & decision:** Watch officer. *Who do I hail, where does the pilot boat go, what do I escalate — now.*
 - **Taste frame:** Slop is dots on a map with a red badge. Great feels like an air-traffic display for the sea: ghost tracks fade ahead of each hull, and an alarm reads like a colleague's note ("loitering 40 min outside the anchorage, AIS gap 12 min").
@@ -45,7 +45,7 @@ All six fit a 32 GB / 16 GB-GPU laptop, a ≤ 30 min demo train and a ≤ 8–10
 
 ### 2. Aftermath — building damage triage from pre/post satellite imagery (disaster response)
 
-- **Why it is on the menu / what is unique:** It is the one option where the model's output is a *map people act on within hours*, and the stakes are legible to any student. Technically it is paired-image reasoning — the model must compare two images, not classify one — which is a different architecture (siamese, shared weights) from anything in an intro course. The per-disaster evaluation is the teaching gem: a model trained on hurricanes is bad at floods, and the lab can show that as a real generalisation failure rather than a sentence in a lecture. It also has the cleanest "humility" baseline of the six: plain pixel differencing is embarrassingly competitive.
+- **Why it is on the menu / what is unique:** It is the one option where the model's output is a *map people act on within hours*, and the stakes are legible to any AI Builder. Technically it is paired-image reasoning — the model must compare two images, not classify one — which is a different architecture (siamese, shared weights) from anything in an intro course. The per-disaster evaluation is the teaching gem: a model trained on hurricanes is bad at floods, and the lab can show that as a real generalisation failure rather than a sentence in a lecture. It also has the cleanest "humility" baseline of the six: plain pixel differencing is embarrassingly competitive.
 - **Pitch:** Hours after a hurricane or wildfire, grade every building in the footprint from *no damage* to *destroyed* and hand responders a prioritised map.
 - **User & decision:** Response coordinator. *Which neighbourhoods get search teams first.*
 - **Taste frame:** Slop is a red/green overlay and a bar chart. Great feels like a field map you would print: before/after swipe, buildings graded in a restrained palette, a priority list with counts a human can say out loud on the radio.
@@ -60,7 +60,7 @@ All six fit a 32 GB / 16 GB-GPU laptop, a ≤ 30 min demo train and a ≤ 8–10
 
 ### 3. Soundscape — bioacoustic species detection for a conservancy (ecology / audio)
 
-- **Why it is on the menu / what is unique:** Audio is the modality students almost never touch, and this is audio done the way practitioners do it — spectrograms fed to an image backbone, weak labels (a 30-s clip tagged with a species that calls for 2 s of it), and sliding-window inference over hour-long soundscapes. It is the only option where the eval story is *itself* a research problem (what does "correct" mean when the label is weak?), which is honest about how much of real ML is measurement design. It is also the option students can literally hear: the failure cases are audible, which makes taste review visceral. Conservation framing gives it purpose without the ethical weight of surveillance.
+- **Why it is on the menu / what is unique:** Audio is the modality AI Builders almost never touch, and this is audio done the way practitioners do it — spectrograms fed to an image backbone, weak labels (a 30-s clip tagged with a species that calls for 2 s of it), and sliding-window inference over hour-long soundscapes. It is the only option where the eval story is *itself* a research problem (what does "correct" mean when the label is weak?), which is honest about how much of real ML is measurement design. It is also the option AI Builders can literally hear: the failure cases are audible, which makes taste review visceral. Conservation framing gives it purpose without the ethical weight of surveillance.
 - **Pitch:** Turn a week of field recordings from cheap forest microphones into a species-by-hour picture of who is calling where.
 - **User & decision:** Conservancy ecologist. *Which sites are recovering, which need a survey team.*
 - **Taste frame:** Slop is a table of species with confidence. Great feels like a naturalist's notebook: a spectrogram you can hear, detections drawn on it, a dawn-chorus heat strip per site.
@@ -68,16 +68,16 @@ All six fit a 32 GB / 16 GB-GPU laptop, a ≤ 30 min demo train and a ≤ 8–10
 - **Data plane day one:** `users`, `sites`, `recorders`, `recordings`, `segments`, `species`, `datasets`, `jobs`, `model_versions`, `detections`, `eval_scores`, `verifications`.
 - **Modelling:** Fine-tuned audio encoder on mel-spectrograms (EfficientNet-B0 or AST, transfer from AudioSet) with weak-label training and 5-s window inference. Baseline: MFCC statistics + logistic regression. Good enough: macro ROC-AUC ≥ 0.90 on held-out recordings vs ~0.75. Demo: 40 species, 20 min. Overnight: 182 species, mixup, SED post-processing.
 - **Surface:** Site map → recording player (spectrogram + detections) → species × hour matrix → verification queue → runs / eval per species → production view.
-- **Why striking:** Students hear the clip the model got right and the clip it got wrong; the dawn chorus emerges as a picture.
+- **Why striking:** AI Builders hear the clip the model got right and the clip it got wrong; the dawn chorus emerges as a picture.
 - **Loop hook:** A species is detected at a site and hour where it has never been verified → `intent.md: out-of-range-detection`.
 - **Won't build:** Recorder firmware; individual-bird identification; population estimates.
 - **Teaching risk:** Weak labels make eval subtle; per-recording licences require care in the spec.
 
 ### 4. Tower — air-traffic-control speech to structured readback (aviation / speech + NLP)
 
-- **Why it is on the menu / what is unique:** It is the only option built on fine-tuning a *foundation model* (Whisper) rather than training a task model, so students see LoRA adaptation, domain vocabulary, and the zero-shot-vs-fine-tuned comparison that defines 2026 practice. It is also two-stage in a different sense from Harbor Sentinel — speech becomes text becomes structure — and the final judgement (does the readback match the instruction?) is deterministic, which teaches where *not* to use a model. The domain has a built-in narrative: aviation phraseology exists precisely because miscommunication kills, and the readback check is a real safety procedure. Highest "wow" per minute of demo among the six.
+- **Why it is on the menu / what is unique:** It is the only option built on fine-tuning a *foundation model* (Whisper) rather than training a task model, so AI Builders see LoRA adaptation, domain vocabulary, and the zero-shot-vs-fine-tuned comparison that defines 2026 practice. It is also two-stage in a different sense from Harbor Sentinel — speech becomes text becomes structure — and the final judgement (does the readback match the instruction?) is deterministic, which teaches where *not* to use a model. The domain has a built-in narrative: aviation phraseology exists precisely because miscommunication kills, and the readback check is a real safety procedure. Highest "wow" per minute of demo among the six.
 - **Pitch:** Transcribe controller and pilot radio calls, pull out callsign, altitude, heading and speed, and flag readbacks that do not match the instruction.
-- **User & decision:** Flight-training instructor / safety reviewer. *Which exchanges to debrief, which student pilots are drifting.*
+- **User & decision:** Flight-training instructor / safety reviewer. *Which exchanges to debrief, which AI Builder pilots are drifting.*
 - **Taste frame:** Slop is a transcript box. Great feels like a cockpit voice recorder with subtitles: waveform, transcript, entities lit, and an instruction/readback pair judged in one glance.
 - **Data:** ATCOSIM (≈ 10.7 h, 10 controllers, simulator audio, free for research from TU Graz) + ATCO2 1-h public test set (real, noisy). The spec states the research-use licence.
 - **Data plane day one:** `users`, `sessions`, `utterances` (audio ref), `transcripts`, `entities`, `readback_pairs`, `datasets`, `jobs`, `model_versions`, `eval_scores`, `reviews`.
@@ -90,7 +90,7 @@ All six fit a 32 GB / 16 GB-GPU laptop, a ≤ 30 min demo train and a ≤ 8–10
 
 ### 5. Tremor — earthquake phase picking and event detection for a regional network (seismology / 1-D signals)
 
-- **Why it is on the menu / what is unique:** Dense per-sample prediction on raw 1-D signals is a shape students never meet — it is segmentation, but in time, at 100 Hz, with a tolerance of one-tenth of a second. The baseline (STA/LTA) has run in every observatory since the 1970s and is *good*, so beating it is a real achievement, and the comparison teaches respect for classical signal processing. The product surface is the most cinematic of the six: waveforms scrolling, picks snapping, stations lighting up on a map in arrival order, and a literal countdown of seconds saved. It also has the cleanest licence and the biggest public dataset (CC BY 4.0, 1.2 M traces), so nothing about the data is a compromise. Unique risk and unique reward: the physics is unfamiliar, which means the product framing has to be excellent.
+- **Why it is on the menu / what is unique:** Dense per-sample prediction on raw 1-D signals is a shape AI Builders never meet — it is segmentation, but in time, at 100 Hz, with a tolerance of one-tenth of a second. The baseline (STA/LTA) has run in every observatory since the 1970s and is *good*, so beating it is a real achievement, and the comparison teaches respect for classical signal processing. The product surface is the most cinematic of the six: waveforms scrolling, picks snapping, stations lighting up on a map in arrival order, and a literal countdown of seconds saved. It also has the cleanest licence and the biggest public dataset (CC BY 4.0, 1.2 M traces), so nothing about the data is a compromise. Unique risk and unique reward: the physics is unfamiliar, which means the product framing has to be excellent.
 - **Pitch:** Watch raw seismograms from a station network, pick P and S arrivals within a tenth of a second, and light up an event on the map seconds after the first station feels it.
 - **User & decision:** Seismic network operator. *Is this an event, which stations picked it, do we issue an alert.*
 - **Taste frame:** Slop is a line plot with vertical bars. Great feels like a mission-control wall: stacked waveforms scrolling, picks snapping into place, stations blooming on a map in arrival order.
@@ -101,11 +101,11 @@ All six fit a 32 GB / 16 GB-GPU laptop, a ≤ 30 min demo train and a ≤ 8–10
 - **Why striking:** Waveforms, picks and a map animating together; the "seconds matter" story of early warning.
 - **Loop hook:** Pick precision collapses at one station (instrument fault, noise change) → `intent.md: station-degraded-<code>`.
 - **Won't build:** Real-time SeedLink ingest; location inversion beyond grid search; magnitude (overnight stretch).
-- **Teaching risk:** Least familiar domain for students; the product framing must carry the physics.
+- **Teaching risk:** Least familiar domain for AI Builders; the product framing must carry the physics.
 
 ### 6. Ledgerlens — OCR-free invoice understanding with a human correction loop (finance ops / document AI)
 
-- **Why it is on the menu / what is unique:** This is the tightest closed loop of the six: a correction made in the UI is a row in the database is a training example in the next run, and students can watch that happen inside one class. It is also the only *generative* option — Donut emits structured JSON directly from pixels with no OCR — so students see encoder-decoder transfer on a business problem rather than a benchmark. It is the most industry-shaped: every company has an AP inbox, and human-in-the-loop extraction is where a great deal of applied ML money actually goes. The visuals are quieter than options 1–5; the wow is watching the system learn from the room.
+- **Why it is on the menu / what is unique:** This is the tightest closed loop of the six: a correction made in the UI is a row in the database is a training example in the next run, and AI Builders can watch that happen inside one class. It is also the only *generative* option — Donut emits structured JSON directly from pixels with no OCR — so AI Builders see encoder-decoder transfer on a business problem rather than a benchmark. It is the most industry-shaped: every company has an AP inbox, and human-in-the-loop extraction is where a great deal of applied ML money actually goes. The visuals are quieter than options 1–5; the wow is watching the system learn from the room.
 - **Pitch:** Drop a stack of scanned receipts and invoices into an accounts-payable inbox; a generative document model fills the fields, a human fixes what is wrong, and every fix becomes training data.
 - **User & decision:** AP clerk / finance lead. *What can be auto-approved, what needs a human, which vendor templates keep failing.*
 - **Taste frame:** Slop is a form next to a PDF. Great feels like a proof-reader's desk: fields snap onto the document as highlighted regions, one keystroke accepts, the correction visibly feeds the next model.

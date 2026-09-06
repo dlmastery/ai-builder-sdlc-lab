@@ -1,6 +1,6 @@
 # AI Builder SDLC Lab
 
-A student tutorial, archived end to end, showing how software gets built in September 2026 when the human is an **AI Builder** and the coding agent is Claude Fable 5.
+An AI Builder tutorial, archived end to end, showing how software gets built in September 2026 when the human is an **AI Builder** and the coding agent is Claude Fable 5.
 
 This repository is both the **product** (a full-stack ML web application) and the **story of how it was built**. Every artifact, every gate decision, and every turn of the pairing is committed here so you can replay the whole loop.
 
@@ -54,7 +54,7 @@ The last two rows are the product's numbers. The field-level guarantee is real a
 
 The overnight profile was run five times on the laptop and stopped at step 109 of 450 by the AI Builder's decision to close training (D-037); the demo adapter above is the delivered model. The 5,000-item `overnight-auto` dataset, the unknown-field mask (D-030) and the leaner trainer (D-036) are in place for the next loop, whose first item is `lab/intent/eval-vendor-name-unseen-vendor.md`.
 
-## Replaying the lab as a student
+## Replaying the lab as An AI Builder
 
 ```
 git clone https://github.com/dlmastery/ai-builder-sdlc-lab && cd ai-builder-sdlc-lab

@@ -1,12 +1,12 @@
 # Chapter 09 — Slice B: Modeling (a live lab log)
 
-**Setting:** The *Implement — Slice B* play. Tag `slice-a` behind us. The AI Builder approved Slice A and reminded Fable that the loop now runs without asking (D-022). This chapter is written **while the slice runs**, entry by entry, so students see the order things actually happened in — including the parts that went wrong.
+**Setting:** The *Implement — Slice B* play. Tag `slice-a` behind us. The AI Builder approved Slice A and reminded Fable that the loop now runs without asking (D-022). This chapter is written **while the slice runs**, entry by entry, so AI Builders see the order things actually happened in — including the parts that went wrong.
 
 ## AI Builder
 
 > approved. you remember you have to play both user and AI story jointly. why are you asking me. remember the original plan.
 
-> (later, 00:20) are you continuing to catalog everything you are doing for generating the story lesson for students to repeat?
+> (later, 00:20) are you continuing to catalog everything you are doing for generating the story lesson for AI Builders to repeat?
 
 ## The pairing, as the brief asks for it
 
@@ -54,7 +54,7 @@ Downloaded `PaddlePaddle/PaddleOCR-VL-1.6` (3½ minutes; the corporate TLS chain
 
 ### 00:45 — A recursion in the TLS layer, and why order matters
 
-The API refused to start: `RecursionError` inside `ssl.SSLContext`. Not a double injection (an idempotency guard was already in place) — an *ordering* problem: boto3/urllib3 capture the SSL context class at import; injecting the OS trust store afterwards makes the two classes chase each other. Reproduced in two one-liners (inject after boto3: recursion; before: fine). Fix: inject at `ledgerlens_core` package import, before any library can capture the class. Recorded here because it is the kind of bug students will hit and blame on the wrong thing.
+The API refused to start: `RecursionError` inside `ssl.SSLContext`. Not a double injection (an idempotency guard was already in place) — an *ordering* problem: boto3/urllib3 capture the SSL context class at import; injecting the OS trust store afterwards makes the two classes chase each other. Reproduced in two one-liners (inject after boto3: recursion; before: fine). Fix: inject at `ledgerlens_core` package import, before any library can capture the class. Recorded here because it is the kind of bug AI Builders will hit and blame on the wrong thing.
 
 ### 00:55 — Speed problem, not yet solved
 
@@ -62,7 +62,7 @@ Spotting one page took 335 s. A 0.9B model on a 4090 should do that in seconds. 
 
 ### 01:15 — The speed problem, solved by reading a config
 
-Isolation benchmark: prefill 1.5 s; decode with the KV cache **on** 12× faster than off; text-only decode fine. The published checkpoint's `generation_config` has `use_cache: false` — every decode step was recomputing the 2,027-token vision prompt. Steady state with the cache: 24.8 tokens/s, about 62 s per page. Not interactive, but the pipeline is asynchronous by design and the UI already has a "still reading" state, so the leader stays the OCR specialist inside the job; evaluation caps the OCR-dependent baseline split (D-026). The lesson for students: the first suspect for "the GPU is slow" is a flag, not the GPU.
+Isolation benchmark: prefill 1.5 s; decode with the KV cache **on** 12× faster than off; text-only decode fine. The published checkpoint's `generation_config` has `use_cache: false` — every decode step was recomputing the 2,027-token vision prompt. Steady state with the cache: 24.8 tokens/s, about 62 s per page. Not interactive, but the pipeline is asynchronous by design and the UI already has a "still reading" state, so the leader stays the OCR specialist inside the job; evaluation caps the OCR-dependent baseline split (D-026). The lesson for AI Builders: the first suspect for "the GPU is slow" is a flag, not the GPU.
 
 ### 01:30 — Zero-shot Qwen3.5-2B, before any training
 

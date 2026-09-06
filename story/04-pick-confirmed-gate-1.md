@@ -8,11 +8,11 @@ Condensed from four messages sent in quick succession:
 
 > I'll stick with project 6. Are you sure you picked the state-of-the-art small model for OCR as of September 2026? I'm sure you're using something stale — fix that.
 >
-> Dazzle with a stunning home page and cinematic visuals showing how and why this is better. Stunning explanations of which parts have which confidence. A wow experience. Full stack — database, login, all the way to pricing (fake it, but able to connect to a Stripe sample). Horizontally scalable, well-thought-out system design even though it runs on a laptop. Best-of-the-best coding and architecture practice; rigour, robustness, scaling. Add all these attributes to the intent and `CLAUDE.md` so students don't have to repeat this monologue.
+> Dazzle with a stunning home page and cinematic visuals showing how and why this is better. Stunning explanations of which parts have which confidence. A wow experience. Full stack — database, login, all the way to pricing (fake it, but able to connect to a Stripe sample). Horizontally scalable, well-thought-out system design even though it runs on a laptop. Best-of-the-best coding and architecture practice; rigour, robustness, scaling. Add all these attributes to the intent and `CLAUDE.md` so AI Builders don't have to repeat this monologue.
 >
 > Also: be a transparency lord — detailed artifacts showing exactly what you're doing and which decisions you're taking, at elite tech-writer quality.
 
-## What students should notice
+## What AI Builders should notice
 
 Three moves in one turn. The AI Builder **confirmed with taste** ("I like"), **challenged a fact** (the model pick), and **raised the bar** on product, engineering and transparency — then asked for the bar to be written down so it never has to be said again. That last request is the AI Builder posture in one sentence: turn a monologue into policy.
 

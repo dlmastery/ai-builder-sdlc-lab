@@ -37,7 +37,7 @@ A product where a document goes in and, for every extracted field, the user sees
 
 ## Definition of done for the lab
 
-- One command brings up database, API, worker, web client. A student signs in with a seeded account and reaches the protected app; an anonymous visitor sees the home page and pricing; the pricing page is wired to the payments provider's test mode with billing faked behind a flag.
+- One command brings up database, API, worker, web client. An AI Builder signs in with a seeded account and reaches the protected app; an anonymous visitor sees the home page and pricing; the pricing page is wired to the payments provider's test mode with billing faked behind a flag.
 - Ingest jobs load the public datasets and generated synthetic documents with dataset rows, licence records and split boundaries.
 - A training job produces a model-version row, an artifact, a model card and an eval report; a calibration job produces per-field calibration and the auto-approve threshold with its guarantee. The pinned extractor beats the OCR-plus-rules baseline on field F1, and the coverage-at-1 %-error number is published in the UI.
 - For any document, the transparency view shows field overlays with calibrated confidence, where the model looked, alternatives with probabilities, the verification ledger with the arithmetic, pre-extraction hard spots, and a templated challenge log — with no free-form generated text.

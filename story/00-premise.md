@@ -2,7 +2,7 @@
 
 **Date:** 5 September 2026
 **Agent:** Claude Fable 5.1 running in Claude Code
-**Human:** the AI Builder (instructor running a live lab for students)
+**Human:** the AI Builder (instructor running a live lab for AI Builders)
 
 ## Setting
 
@@ -10,9 +10,9 @@ An empty directory on a laptop: Windows 11, 32 GB RAM, RTX 4090 Laptop GPU (16 G
 
 ## What the AI Builder said
 
-> Read the brief. Any questions? Everything must be archived in GitHub end to end — the whole script and story. It should be a stellar tutorial for students.
+> Read the brief. Any questions? Everything must be archived in GitHub end to end — the whole script and story. It should be a stellar tutorial for AI Builders.
 >
-> Remember we are in a transition phase from developer/instructor → PM/final reviewer → a new persona: **AI Builder**. This is targeted at students becoming AI Builders. The new era.
+> Remember we are in a transition phase from developer/instructor → PM/final reviewer → a new persona: **AI Builder**. This is targeted at AI Builders becoming AI Builders. The new era.
 
 ## What Fable did
 
@@ -26,7 +26,7 @@ An empty directory on a laptop: Windows 11, 32 GB RAM, RTX 4090 Laptop GPU (16 G
 - **Archive:** one public GitHub repository, `dlmastery/ai-builder-sdlc-lab`. The product lives at the root; `lab/` holds gate artifacts; `story/` holds one chapter per turn. Every gate is a tag. (Renaming or making private is one command if the AI Builder objects.)
 - **Persona contract:** the AI Builder is addressed only with judgement questions — never columns, libraries, file lists, or pixels. Maximum three taste questions after a product is picked. Gate line is always: `WAITING ON YOU (judgement only)`.
 
-## Why this chapter matters to students
+## Why this chapter matters to AI Builders
 
 Notice what did **not** happen. Fable did not ask what stack to use, did not ask whether a GPU exists, did not propose a constitution, and did not start scaffolding an app. It verified facts it could verify, asked only what it could not decide, and moved on when the human answered only one of three. That is the operating posture for the rest of the lab.
 

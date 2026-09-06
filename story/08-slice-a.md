@@ -8,7 +8,7 @@
 
 *(plus, mid-build: "update GitHub periodically as you make progress", and a second video to draw techniques from — both absorbed into policy and `DESIGN.md`, see D-019.)*
 
-## What students should notice
+## What AI Builders should notice
 
 1. **Nothing here was written before its test.** Every production module — settings, migration, object store, auth, jobs, the stub pipeline, the API, the web app — started as a failing test that Fable ran and watched fail for the right reason. The commit history shows it: `tests/` files land before or alongside the code they prove.
 2. **The stub is not a shortcut.** A `ModelVersion` row named `stub` is *pinned* like a real model. The upload goes through the real job runtime, the real pipeline (OCR → extract → verify → calibrate → decide), and writes the real rows. Slice B swaps the model. Nothing else moves (D-013).

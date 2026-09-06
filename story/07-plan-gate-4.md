@@ -6,9 +6,9 @@
 
 > accept
 
-## What students should notice
+## What AI Builders should notice
 
-The plan is the last artifact before code, and it is written for a reader who has **read nothing else** — a fresh agent, a new teammate, a student opening the repo in a year. That is why it repeats the verified model table instead of pointing at the decision log, why it draws the repository layout, and why every slice ends with a proof (tests, CI, tag) rather than a feeling.
+The plan is the last artifact before code, and it is written for a reader who has **read nothing else** — a fresh agent, a new teammate, An AI Builder opening the repo in a year. That is why it repeats the verified model table instead of pointing at the decision log, why it draws the repository layout, and why every slice ends with a proof (tests, CI, tag) rather than a feeling.
 
 Notice the shape of the slices. **Slice A** produces a database, migrations, auth, a job runtime, a stub model and a real web app with empty states — before any model exists. **Slice B** and **Slice C** then run in parallel and meet at one row. The stub is not a shortcut; it is how the plumbing gets reviewed on its own.
 

@@ -34,7 +34,7 @@ Each row is a turn: what you say, what the agent must produce, what you look at,
 | Gate 4 | *"accept"* | `lab/plan.md` — implementable by a fresh agent that has read nothing else; three slices; hero-view directions | Pick the hero direction. That is your only design decision | `gate-4-plan` |
 | Slices | *"approved. You remember you have to play both user and AI story jointly. Why are you asking me. Remember the original plan."* | Slice A (product skeleton on a stub), B (modelling), C (real inference, hero view, closed loop) — each a running product | Look at the running product, not the diff. Reject slop; accept honesty | `slice-a/b/c` |
 | Steer | *"check the links and details from [a design video] and impress me using these techniques."* | Techniques adopted or rejected with reasons in `lab/decisions.md` | Steering is allowed at any time; it is recorded, not obeyed blindly | — |
-| Transparency | *"are you continuing to catalog everything you are doing for generating the story lesson for student to repeat?"* | Story chapters become live logs; every step commits and pushes | If the remote is behind the work, the record is broken | — |
+| Transparency | *"are you continuing to catalog everything you are doing for generating the story lesson for AI Builder to repeat?"* | Story chapters become live logs; every step commits and pushes | If the remote is behind the work, the record is broken | — |
 | Close | *"you are done with the training — I am happy with loss."* | The decision recorded as yours (D-037), the agent's one-line bet stated once, the final tag | The definition of done is yours; the agent may disagree exactly once, in writing | `loop-closed` |
 
 Three rules for your side of the table, learned the hard way in this run:
@@ -112,4 +112,4 @@ Thirty messages; four of them are the word "accept". That ratio is the lab.
 
 ## 8. When the loop is closed
 
-You will have: a measured model in a product you can use, a README that reports its numbers, a `lab/intent/` directory with at least one intent the *product* wrote, and a story a student can replay tag by tag. Start the next loop from that intent — with a new session and a fresh agent that has read nothing but the artifacts. That is the test of the plan.
+You will have: a measured model in a product you can use, a README that reports its numbers, a `lab/intent/` directory with at least one intent the *product* wrote, and a story An AI Builder can replay tag by tag. Start the next loop from that intent — with a new session and a fresh agent that has read nothing but the artifacts. That is the test of the plan.

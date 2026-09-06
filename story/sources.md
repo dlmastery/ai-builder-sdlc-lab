@@ -1,6 +1,6 @@
 # Sources the lab is built on
 
-Students should read/watch these in this order. Summaries are Fable's, not quotations.
+AI Builders should read/watch these in this order. Summaries are Fable's, not quotations.
 
 ## 1. Rob Shocks — "Claude Code's New INTENT.MD, What is It?" (YouTube, 1 Sep 2026, ~16 min)
 

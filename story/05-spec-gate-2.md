@@ -6,7 +6,7 @@
 
 > accept
 
-## What students should notice
+## What AI Builders should notice
 
 One word. No edits, no "but also". The AI Builder had already spent their judgement in Chapters 03 and 04; by the time the artifact arrived it matched, so the gate cost seconds. That is what it looks like when the human's time goes to *what* and *whether* and the agent's time goes to everything else.
 
@@ -19,7 +19,7 @@ Notice also what the spec is **not**: there is no requirements novel, no EARS, n
 **Decisions taken in the session, all logged:**
 
 - **D-007 stack** — FastAPI + Python worker sharing one domain model; Postgres 16 + Alembic; Redis queue with separate CPU and GPU queues; MinIO (S3 contract); Next.js web for home, pricing and app; Stripe test mode behind an adapter with a faked implementation when keys are absent; Compose; GitHub Actions. Two runtimes accepted for product quality; contracts generated from one OpenAPI schema so the seam is typed.
-- **D-008 auth** — own email + password, Argon2, server-side sessions, CSRF, tenant scoping on every query. No OAuth. Students should see sessions once in plain code.
+- **D-008 auth** — own email + password, Argon2, server-side sessions, CSRF, tenant scoping on every query. No OAuth. AI Builders should see sessions once in plain code.
 - **D-009 confidence** — derived from token log-probabilities, calibrated per field on a disjoint split, thresholded by conformal risk control; auto-approve requires *threshold ∧ grounded ∧ ledger pass*. A hallucinated-but-confident value cannot auto-approve by construction.
 - **D-010 open questions** — home-page persona is the regulated finance lead (sovereignty), clerk's relief second; retraining is triggered in the lab and scheduled in production as a configuration change. Brand register is deliberately *carried* to the plan gate, where the AI Builder picks between three hero directions.
 

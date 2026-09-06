@@ -99,7 +99,7 @@ Contracts: the API publishes OpenAPI; `apps/web` generates its client from it in
 | 8 GB GPUs in the class | `LOW_VRAM=1` path: 4-bit base, 768 px cap, accumulation 16 |
 | Bitsandbytes on Windows | GPU worker is Linux-in-Docker; native fallback documents the wheel |
 | Attention rollout plumbing | stretch; the view is complete without it |
-| Two toolchains | `make up` is the only command a student runs; CI proves both |
+| Two toolchains | `make up` is the only command An AI Builder runs; CI proves both |
 | Metric gaming | normalisers frozen in tests; policy 8 |
 
 ## 5. What we will not build

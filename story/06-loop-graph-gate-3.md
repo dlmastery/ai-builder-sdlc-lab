@@ -6,7 +6,7 @@
 
 > accept — try with the 2B model please; fine-tuning 4B may be a stretch for GPUs like a 3060.
 
-## What students should notice
+## What AI Builders should notice
 
 This is what an **edit-in-spirit** looks like. The AI Builder did not rewrite a section or name a library. They named a *constraint that binds* — the class's hardware, not the instructor's — and let Fable propagate it. Fable changed the default extractor to Qwen3.5-2B, kept 4B as an optional overnight comparison, updated the VRAM concern to "resolved", logged D-012, and tagged the gate on the edited artifact. One sentence from the human; four consistent changes from the agent; zero ambiguity about which version was accepted.
 
@@ -16,7 +16,7 @@ This is what an **edit-in-spirit** looks like. The AI Builder did not rewrite a 
 
 **Generated `loop.md`** — one screen. For every stage: trigger in, artifact out, what fires next, what "done" means, and which failure writes a new intent instead of silently continuing. Six concrete production signals; two implemented in the lab (vendor field-F1 drop, calibration drift), four documented as maintain-hook stubs. Human presence stated exactly: four gates plus one optional slice taste review.
 
-**Generated `graph.md`** with a mermaid flowchart students can read on a slide. Four node kinds only. The artifact chain at the top; the product subgraph and the modeling subgraph running in parallel after the Slice A taste review and meeting at the `ModelVersion` row; Train as a restartable cycle with its own OOM signal; pinning as an audited row flip; Maintain with no human in it, writing intents that land back at Gate 1. Five human nodes total, counted in the text, with an instruction to delete any sixth.
+**Generated `graph.md`** with a mermaid flowchart AI Builders can read on a slide. Four node kinds only. The artifact chain at the top; the product subgraph and the modeling subgraph running in parallel after the Slice A taste review and meeting at the `ModelVersion` row; Train as a restartable cycle with its own OOM signal; pinning as an audited row flip; Maintain with no human in it, writing intents that land back at Gate 1. Five human nodes total, counted in the text, with an instruction to delete any sixth.
 
 **Two decisions inside the graph worth naming.** Slices B and C are drawn in parallel rather than in sequence, because they share nothing but the pinned row and the plan will build C against a stub predictor first. And corrections crossing a threshold re-enter Train *directly* — the learning loop does not need a human to turn.
 
