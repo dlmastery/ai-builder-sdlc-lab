@@ -35,3 +35,33 @@ def test_build_synthetic_dataset_writes_items_with_disjoint_splits(db_session) -
     test_vendors = {i.labels["vendor_name"] for i in items if i.split == "test"}
     assert not (train_vendors & test_vendors)
     assert all(i.external_ref for i in items), "every item points at its page in the object store"
+
+
+def test_dataset_pages_are_stored_as_jpeg_not_multi_megabyte_png(db_session) -> None:  # type: ignore[no-untyped-def]
+    """A noised 1240x1754 scan is ~4.2 MB as PNG; 5,000 of them need ~21 GB and the overnight
+    build was stopped at 9.8 GB free (D-033). JPEG at quality 90 is what a scanner would have
+    produced anyway; every consumer decodes with Image.open."""
+    import io
+
+    from PIL import Image
+    from sqlalchemy import select
+
+    from ledgerlens_core.models import DatasetItem, Job
+    from ledgerlens_core.storage import get_object_store
+    from ledgerlens_ml.datasets.build import build_dataset
+
+    job = Job(kind="build_dataset", idempotency_key="ds-test-jpeg", payload={})
+    db_session.add(job)
+    db_session.flush()
+    result = build_dataset(
+        db_session, job, sources=[{"kind": "synthetic", "n": 2, "seed": 7}], name="jpeg-2"
+    )
+    items = db_session.scalars(
+        select(DatasetItem).where(DatasetItem.dataset_id == result["dataset_id"])
+    ).all()
+    for it in items:
+        assert it.external_ref and it.external_ref.endswith(".jpg")
+        data = get_object_store().get(it.external_ref)
+        assert len(data) < 800_000, f"{len(data)} bytes for one page"
+        img = Image.open(io.BytesIO(data))
+        assert img.format == "JPEG" and [img.width, img.height] == it.labels["__size"]

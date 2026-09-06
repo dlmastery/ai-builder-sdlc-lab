@@ -106,4 +106,10 @@ Before launching it I re-read D-029 against the CLI and found the rule had been 
 
 Launched detached at 12:12 UTC with 9.4 GB of commit headroom, the Celery worker stopped, the API left running (uploads will queue until a worker returns). The watcher reports stage transitions and every fiftieth step. This adapter trains with the D-030 mask: CORD's missing vendor fields are unknown, not null. The number to watch tomorrow is `vendor_name` on held-out layouts — if the mask was the whole story it moves from 0.0 toward the other fields; if the eight-name vocabulary is the larger cause, it moves only partly and the filed intent becomes the next loop's first item.
 
+### 12:35 — Stopped after three minutes: 4.2 MB a page
+
+I checked the object store for a progress signal (the build job commits at the end, so its row said *queued* while the process burned CPU) and found the number that mattered: 144 pages, 609 megabytes. A synthetic scan with noise, blur and a stamp is exactly what PNG is bad at. Multiply by 5,000 and the build needs 21 GB; the disk had 9.8 GB, and Postgres and MinIO live on it. Forty minutes from now the database would have stopped, mid-run, with the training not yet started.
+
+Stopped it. Deleted the 190 partial pages and the 400-page ghost of an earlier killed build that had never got as far as a dataset row. Marked the job failed with the reason in the row. Dataset pages become JPEG at quality 90 (D-033) — which is what a scanner would have produced in the first place — behind a test that was written before the change and asserts a page decodes to its recorded size in under 800 KB. Measured on six rendered pages: PNG median 4.06 MB, JPEG-90 median 0.46 MB — nine times smaller, 2.3 GB for the whole overnight dataset. Relaunched at 12:42 UTC.
+
 *(continued below as the run progresses)*

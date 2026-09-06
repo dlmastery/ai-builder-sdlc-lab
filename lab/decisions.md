@@ -238,6 +238,14 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** a budget that names only the flashy stage is how "overnight" becomes "by Tuesday". The rule for the process boundary belongs in the code path people actually run, not in a flag they have to remember.
 - **Date:** 2026-09-06
 
+## D-033 · Dataset pages are JPEG
+
+- **Context:** the overnight build was writing 4.2 MB per page — PNG of a synthetic scan with noise, blur and stamps compresses badly — at about one page a second. 5,000 pages would have needed ~21 GB; C: had 9.8 GB free, and the Docker volumes that hold Postgres and MinIO live on that disk. Stopped at 190 pages, partial objects deleted, the job row marked failed with this reason.
+- **Decided:** dataset pages are stored as JPEG at quality 90 (`.jpg` keys, `optimize=True`); uploaded tenant pages keep whatever the tenant sent. Every consumer decodes through `Image.open`, so nothing else changes. Test first: two synthetic pages, each under 800 KB, decoding to the recorded size.
+- **Alternatives:** fewer pages (hides the problem until the next profile); smaller renders (the OCR specialist wants ≥ 1500 px on the long side and upsamples anyway); pruning Docker images to free space (16 GB reclaimable, but D-025 forbids touching that cache and the build would still not fit).
+- **Why:** a scanner produces JPEGs; PNG was fidelity nobody asked for at a price the laptop could not pay. The lesson for the class is the order of operations: measure bytes per page *before* the multiplication, not after the disk alarm.
+- **Date:** 2026-09-06
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.

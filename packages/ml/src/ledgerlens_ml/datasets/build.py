@@ -175,10 +175,11 @@ def build_dataset(
         count = 0
         for e in loader(spec):
             i = len(staged)
-            key = keys.dataset(dataset.id, f"{i:06d}.png")
+            # JPEG, not PNG: a noised scan is ~4 MB as PNG and ~0.4 MB here (D-033)
+            key = keys.dataset(dataset.id, f"{i:06d}.jpg")
             buf = io.BytesIO()
-            e.image.convert("RGB").save(buf, format="PNG", optimize=False)
-            store.put(key, buf.getvalue(), content_type="image/png")
+            e.image.convert("RGB").save(buf, format="JPEG", quality=90, optimize=True)
+            store.put(key, buf.getvalue(), content_type="image/jpeg")
             labels = dict(e.labels)
             labels["__boxes"] = e.boxes
             labels["__difficulty"] = e.difficulty
