@@ -66,28 +66,43 @@ def cmd_dataset(a: argparse.Namespace) -> None:
     )
 
 
+def _build_dataset(profile: str) -> str:
+    n = {"smoke": 24, "demo": 400, "overnight": 4000}[profile]
+    cord = {"smoke": 0, "demo": 300, "overnight": 1000}[profile]
+    sources: list[dict[str, Any]] = [{"kind": "synthetic", "n": n, "seed": 1}]
+    if cord:
+        sources.append({"kind": "cord", "limit": cord})
+    dataset_id = _run(
+        "build_dataset", {"sources": sources, "name": f"{profile}-auto"}, queue="cpu"
+    )["dataset_id"]
+    print(f"built dataset {dataset_id}")
+    return str(dataset_id)
+
+
+def _dataset_of(model_version_id: str) -> str:
+    with session_scope() as db:
+        mv = db.get(ModelVersion, uuid.UUID(model_version_id))
+        if mv is None or mv.dataset_id is None:
+            raise SystemExit("no such model version, or it has no dataset")
+        return str(mv.dataset_id)
+
+
 def cmd_train(a: argparse.Namespace) -> None:
-    dataset_id = a.dataset or _latest_dataset(f"{a.profile}-auto")
-    if dataset_id is None:
-        n = {"smoke": 24, "demo": 400, "overnight": 4000}[a.profile]
-        cord = {"smoke": 0, "demo": 300, "overnight": 1000}[a.profile]
-        sources: list[dict[str, Any]] = [{"kind": "synthetic", "n": n, "seed": 1}]
-        if cord:
-            sources.append({"kind": "cord", "limit": cord})
-        dataset_id = _run(
-            "build_dataset", {"sources": sources, "name": f"{a.profile}-auto"}, queue="cpu"
-        )["dataset_id"]
-        print(f"built dataset {dataset_id}")
-    headroom = commit_headroom_gb()
-    if headroom is not None:
-        # a 2B bf16 load peaks near 12 GB of host commit on Windows (D-028); below that the
-        # process dies with "paging file too small (os error 1455)" rather than an OOM
-        print(f"commit headroom {headroom:.1f} GB before training", file=sys.stderr)
-    res = _run(
-        "train_extractor", {"dataset_id": dataset_id, "profile": a.profile, "model": a.model}
-    )
-    print(json.dumps(res, indent=1))
-    mv = res["model_version_id"]
+    if a.resume_from:
+        # the post-training stages against a saved adapter (D-029): no build, no train
+        mv, dataset_id = a.resume_from, _dataset_of(a.resume_from)
+    else:
+        dataset_id = a.dataset or _latest_dataset(f"{a.profile}-auto") or _build_dataset(a.profile)
+        headroom = commit_headroom_gb()
+        if headroom is not None:
+            # a 2B bf16 load peaks near 12 GB of host commit on Windows (D-028); below that the
+            # process dies with "paging file too small (os error 1455)" rather than an OOM
+            print(f"commit headroom {headroom:.1f} GB before training", file=sys.stderr)
+        res = _run(
+            "train_extractor", {"dataset_id": dataset_id, "profile": a.profile, "model": a.model}
+        )
+        print(json.dumps(res, indent=1))
+        mv = res["model_version_id"]
     limit = {"smoke": 8, "demo": 60, "overnight": None}[a.profile]
     # the baseline needs the OCR specialist per page (~1 min each on a laptop): keep it bounded
     baseline_limit = {"smoke": 8, "demo": 12, "overnight": 40}[a.profile]
@@ -168,6 +183,11 @@ def main(argv: list[str] | None = None) -> None:
     t.add_argument("--model", choices=["2b", "4b"], default="2b")
     t.add_argument("--dataset")
     t.add_argument("--baseline", action="store_true", help="also evaluate the OCR+rules baseline")
+    t.add_argument(
+        "--resume-from",
+        metavar="MODEL_VERSION",
+        help="skip build and train; evaluate/calibrate/difficulty this saved extractor",
+    )
     t.set_defaults(fn=cmd_train)
     e = sub.add_parser("evaluate")
     e.add_argument("--model-version", required=True)
