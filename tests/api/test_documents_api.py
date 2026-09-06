@@ -76,6 +76,24 @@ def test_list_rows_carry_what_the_inbox_shows(client: TestClient) -> None:
     assert 0 <= row["grounded_fields"] <= row["field_count"]
 
 
+def test_list_rows_carry_the_marks_a_thumbnail_needs(client: TestClient) -> None:
+    """The queue's thumbnail is a small transparency view (design loop P2, round 13): every
+    header field that was found on the page comes with its box and confidence, plus the page size
+    and the verdict's bar, so the row can draw where the evidence is — not just say it in a chip."""
+    headers = register_and_login(client, "clerk@acme.io", "Acme")
+    _upload(client, headers)
+    row = client.get("/documents", headers=headers).json()["items"][0]
+    assert row["page_width"] > 0 and row["page_height"] > 0
+    assert row["threshold"] is not None
+    assert row["marks"], "fields found on the page carry their boxes"
+    mark = row["marks"][0]
+    assert mark["field"]
+    assert len(mark["box"]) == 5
+    assert 0.0 <= mark["confidence"] <= 1.0
+    assert isinstance(mark["grounded"], bool)
+    assert all(m["field"] for m in row["marks"])
+
+
 def test_unfiltered_list_puts_actionable_documents_first(client: TestClient) -> None:
     """A queue shows what needs a person before what is settled (design loop P2, round 3):
     needs_review and failed rows come first, then in-flight, then approved — recency within."""

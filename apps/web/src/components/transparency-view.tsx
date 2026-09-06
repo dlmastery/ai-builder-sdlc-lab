@@ -319,9 +319,9 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
         <section className="flex flex-col gap-2">
           <p className="micro">Fields · as read</p>
           {HEADER_GROUPS.map((g) => (
-          <div key={g.label} className="mt-7 flex flex-col gap-1 first:mt-0">
+          <div key={g.label} className="mt-7 flex flex-col gap-1 border-t border-rule pt-3 first:mt-0">
           <p className="micro text-ink-3/80">{g.label}</p>
-          <ul className="rule-y border-t border-rule">
+          <ul className="rule-y">
             {missingRequired.filter((n) => g.names.includes(n)).map((n) => (
               <li key={`missing-${n}`} data-testid={`readout-${n}`} className="grid grid-cols-[1fr_auto] items-baseline gap-3 py-3">
                 {editing === `add:${n}` ? (

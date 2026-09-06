@@ -26,6 +26,7 @@ from ledgerlens_api.schemas import (
     ExtractionOut,
     FieldOut,
     JobOut,
+    MarkOut,
     ModelVersionOut,
     OcrWordOut,
     PageOut,
@@ -226,6 +227,24 @@ def _document_rows(db: DbSession, docs: Sequence[Document]) -> list[DocumentRowO
             .group_by(Field.extraction_id)
         ):
             counts[ex_id] = (int(n), int(grounded))
+    marks: dict[UUID, list[MarkOut]] = {}
+    if latest:
+        for f in db.scalars(
+            select(Field).where(
+                Field.extraction_id.in_([e.id for e in latest.values()]),
+                Field.line_index.is_(None),
+            )
+        ):
+            if not f.boxes:
+                continue
+            marks.setdefault(f.extraction_id, []).append(
+                MarkOut(
+                    field=f.name,
+                    box=[float(v) for v in f.boxes[0]],
+                    confidence=float(f.calibrated_confidence or 0.0),
+                    grounded=bool(f.grounded),
+                )
+            )
     vendor_ids = {d.vendor_id for d in docs if d.vendor_id}
     vendors = (
         {v.id: v.name for v in db.scalars(select(Vendor).where(Vendor.id.in_(vendor_ids)))}
@@ -247,6 +266,10 @@ def _document_rows(db: DbSession, docs: Sequence[Document]) -> list[DocumentRowO
                 reasons=list(verdict.reasons or []) if verdict else [],
                 field_count=n,
                 grounded_fields=grounded,
+                page_width=page.width if page else 0,
+                page_height=page.height if page else 0,
+                threshold=verdict.threshold if verdict else None,
+                marks=marks.get(ex.id, []) if ex else [],
             )
         )
     return out

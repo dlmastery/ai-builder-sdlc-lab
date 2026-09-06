@@ -139,6 +139,13 @@ class DocumentOut(BaseModel):
     updated_at: datetime
 
 
+class MarkOut(BaseModel):
+    field: str
+    box: list[float]
+    confidence: float
+    grounded: bool
+
+
 class DocumentRowOut(DocumentOut):
     """A list row carries what the inbox shows (D-041 P2): thumbnail, vendor, verdict, counts."""
 
@@ -148,6 +155,12 @@ class DocumentRowOut(DocumentOut):
     reasons: list[dict[str, Any]] = PField(default_factory=list)
     field_count: int = 0
     grounded_fields: int = 0
+    # the thumbnail is a small transparency view (design loop P2, round 13): where each header
+    # value was found, its confidence, and the bar it is judged against
+    page_width: int = 0
+    page_height: int = 0
+    threshold: float | None = None
+    marks: list[MarkOut] = PField(default_factory=list)
 
 
 class DocumentDetailOut(DocumentOut):

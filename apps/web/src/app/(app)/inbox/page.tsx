@@ -120,7 +120,7 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
                 href={`/documents/${d.id}`}
                 className="grid items-center gap-5 py-5 hover:bg-surface md:grid-cols-[88px_minmax(0,1fr)_180px_150px_90px]"
               >
-                <Thumb src={d.thumbnail_url} alt="" />
+                <Thumb src={d.thumbnail_url} alt="" width={d.page_width} height={d.page_height} marks={d.marks} threshold={d.threshold ?? 0.9} />
                 <span className="flex min-w-0 flex-col gap-1.5">
                   <span className="truncate text-step-0 font-medium leading-tight text-ink">{d.original_filename}</span>
                   <span className="micro truncate normal-case tracking-normal">
@@ -167,10 +167,65 @@ function oneReasonPerField(reasons: Array<Record<string, unknown>>): Array<{ fie
   return [...best.entries()].map(([field, why]) => ({ field, why }));
 }
 
-function Thumb({ src, alt }: { src: string | null; alt: string }) {
+const REQUIRED = new Set(["vendor_name", "invoice_number", "issue_date", "total"]);
+
+/** The thumbnail is a small transparency view (design loop P2, round 13): the page with a mark
+ *  where each header value was found, tinted as the document page tints it — so the queue argues
+ *  with the marks on the page, not only with a chip. */
+function Thumb({
+  src,
+  alt,
+  width,
+  height,
+  marks,
+  threshold,
+}: {
+  src: string | null;
+  alt: string;
+  width: number;
+  height: number;
+  marks: DocumentRowOut["marks"];
+  threshold: number;
+}) {
   if (!src) return <span className="block h-[116px] w-[88px] rounded-[2px] border border-rule bg-surface" aria-hidden />;
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt={alt} className="block h-[116px] w-[88px] rounded-[2px] border border-rule object-cover object-top" />;
+  return (
+    <span className="relative block h-[116px] w-[88px] overflow-hidden rounded-[2px] border border-rule">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt={alt} className="block h-full w-full object-cover object-top" />
+      {width > 0 && height > 0 ? (
+        <svg
+          className="pointer-events-none absolute left-0 top-0 w-full"
+          viewBox={`0 0 ${width} ${height}`}
+          style={{ aspectRatio: `${width} / ${height}` }}
+          aria-hidden
+        >
+          {marks.map((m) => {
+            const [, x0, y0, x1, y1] = m.box;
+            const tone = !m.grounded
+              ? "fault"
+              : m.confidence >= threshold
+                ? "signal"
+                : REQUIRED.has(m.field)
+                  ? "fault"
+                  : "caution";
+            return (
+              <rect
+                key={m.field}
+                x={x0}
+                y={y0}
+                width={x1 - x0}
+                height={y1 - y0}
+                fill={`var(--${tone})`}
+                fillOpacity={0.45}
+                stroke={`var(--${tone})`}
+                strokeWidth={Math.max(2, width * 0.004)}
+              />
+            );
+          })}
+        </svg>
+      ) : null}
+    </span>
+  );
 }
 
 function Grounded({ n, of }: { n: number; of: number }) {

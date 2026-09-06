@@ -47,6 +47,10 @@ export type DocumentRowOut = DocumentOut & {
   reasons: Array<Record<string, unknown>>;
   field_count: number;
   grounded_fields: number;
+  page_width: number;
+  page_height: number;
+  threshold: number | null;
+  marks: Array<{ field: string; box: number[]; confidence: number; grounded: boolean }>;
 };
 
 export type AlternativeOut = { rank: number; value: string | null; probability: number };
