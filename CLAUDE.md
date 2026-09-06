@@ -12,7 +12,7 @@
 10. Migrations are versioned artifacts; the app never creates tables at runtime.
 11. The UI never reads a weights file directly; inference goes through the pinned `model_versions` row.
 12. Anomaly is not guilt. UI copy says "review", never "suspect"; false-alarm rate is a first-class metric.
-13. Radical transparency, written at elite tech-writer quality: every turn gets a `story/NN-*.md` chapter (Setting / AI Builder / Fable / Gate) and a commit; every non-obvious decision gets an entry in `lab/decisions.md` (what, alternatives, why, evidence, date); accepted gates get a tag. Push after every commit.
+13. Radical transparency, written at elite tech-writer quality: every turn gets a `story/NN-*.md` chapter (Setting / AI Builder / Fable / Gate) and a commit; every non-obvious decision gets an entry in `lab/decisions.md` (what, alternatives, why, evidence, date); accepted gates get a tag. Commit and push to GitHub continuously as progress is made — after every artifact, every green test run, every completed step inside a slice — never batch work locally; the remote is the record.
 14. Over-specification is a bug. Under-constraint is a bug. If a section reads like a design novel, cut it in front of the class and say why.
 15. `plan.md` must be implementable by a fresh agent context that has read nothing else — files, order, risks, proof. Each stage may run in a new session or subagent; the artifact is the handoff, not the conversation.
 16. Production-generated intents land in `lab/intent/` with a signal prefix (e.g. `vendor-template-drift.md`); the maintain hook writes them, a human triages them into the next loop.
