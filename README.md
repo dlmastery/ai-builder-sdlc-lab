@@ -29,9 +29,26 @@ The AI Builder does not write code, columns, layer widths, or CSS. The AI Builde
 | [08 — Slice A](story/08-slice-a.md) | A database and a web app before any weight file; the critic loop | `slice-a` |
 | [09 — Slice B (live log)](story/09-slice-b.md) | Eval maths, calibration, synthetic data, the real OCR's undocumented format, a full disk, a slow flag, the smoke train | `slice-b` |
 | [10 — Slice C](story/10-slice-c.md) | Corrections → dataset; observe → signal → intent; billing; the real OCR meets the stamp | `slice-c` |
-| [11 — Verify and train (live log)](story/11-verify-and-train.md) | CI red for eight pushes, the wrong-dataset run, profiles sized to the clock, the demo and overnight trains | `overnight-1` |
+| [11 — Verify and train (live log)](story/11-verify-and-train.md) | CI red for eight pushes; six attempts to train on a laptop (watchdog, commit limit, a crash between stages); the demo adapter measured honestly — F1 0.95 and a zero that mattered more; the product on the real model; the overnight run | `overnight-1` (after the overnight run) |
 
-`lab/decisions.md` holds every non-obvious decision (D-001 onward) with alternatives, reasoning, evidence and date. `lab/intent/` holds intents the *product* wrote.
+`lab/decisions.md` holds every non-obvious decision (D-001 onward) with alternatives, reasoning, evidence and date. `lab/intent/` holds intents the *product* wrote — and one the evaluation wrote (`eval-vendor-name-unseen-vendor.md`).
+
+## Results so far (demo profile, 2026-09-06)
+
+Measured, not aspirational; every number has a row in `model_versions`, `eval_reports` or a job result, and chapter 11 shows how each was earned.
+
+| What | Number | Where it comes from |
+|---|---|---|
+| Extractor | Qwen3.5-2B + LoRA (r=16), 100 steps on 466 documents, 30.5 min, loss 0.0142 | `train_extractor` job |
+| Field-level F1, 60 held-out documents | **0.9499** (precision 0.985, recall 0.917) | `evaluate_model` job, `eval_reports` |
+| `vendor_name` on a never-seen vendor | **0.0** — the model abstained on all 50 | same report; diagnosed in D-030, fixed for the overnight run |
+| OCR + rules baseline, same split (12 docs, real OCR) | 0.826 | `evaluate_model` on `ocr-rules` |
+| Calibration (1,145 fields) | ECE 0.0026 → 0.0036 after temperature scaling | `calibrate_model` |
+| Conformal threshold at 1 % target error | 0.9999994, coverage 1.0 over 160 *answered* required fields | `threshold` row |
+| Documents that would auto-approve on the test split | **0 of 60** — every one is missing a required field | recomputed offline, D-031 |
+| End-to-end in the product | ~130 s per page (OCR ≈ 60 s, extraction with alternatives ≈ 60 s) | Celery worker log; `story/assets/verify/13-real-ocr.png` |
+
+The last two rows are the product's numbers. The field-level guarantee is real and the auto-approve rate is zero; chapter 11 (11:50) explains why both are true and which one a finance lead should be shown.
 
 ## Replaying the lab as a student
 
@@ -65,10 +82,19 @@ open http://localhost:3000
 For development on one machine: `make infra`, `make migrate`, `make seed`, then run the API
 (`JOBS_INLINE=1 uv run uvicorn ledgerlens_api.main:app --port 8000`) and the web app
 (`cd apps/web && pnpm dev`). Tests: `make test` (Python, needs `make infra`) and `make test-ui`
-(Playwright, needs the API and web running).
+(Playwright, needs the API and web running). With the stub models pinned, `JOBS_INLINE=1` runs
+the pipeline inside the request; once a real OCR or extractor is pinned, run the API with
+`JOBS_INLINE=0` and a worker (`make worker-gpu-native`) — the production shape (D-027).
 
-Behind a corporate TLS proxy on Windows: `UV_NATIVE_TLS=1` for `uv`, and `truststore` for Python
-scripts that fetch.
+Training on the laptop: `make smoke-train` (minutes), `make train PROFILE=demo` (~35 min train,
+~1.5 h with evaluation), `make train PROFILE=overnight` (~9 h for the whole chain). Each stage is
+a job row; the post-training stages run in a fresh process (D-029/D-032); `train --resume-from
+<model_version>` re-runs them against a saved adapter. Pin the result from the *Models & runs*
+page as the data lead, or `make pin MV=<id>`.
+
+Behind a corporate TLS proxy on Windows: `UV_NATIVE_TLS=1` for `uv`, and `LEDGERLENS_NATIVE_TLS=1`
+so Python trusts the system store. Long GPU runs on a busy Windows laptop die in two ways that are
+not out-of-memory — see D-025, D-028 and D-029 before you blame the model.
 
 ## What this lab is *not*
 
