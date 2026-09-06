@@ -29,7 +29,7 @@ The AI Builder does not write code, columns, layer widths, or CSS. The AI Builde
 | [08 — Slice A](story/08-slice-a.md) | A database and a web app before any weight file; the critic loop | `slice-a` |
 | [09 — Slice B (live log)](story/09-slice-b.md) | Eval maths, calibration, synthetic data, the real OCR's undocumented format, a full disk, a slow flag, the smoke train | `slice-b` |
 | [10 — Slice C](story/10-slice-c.md) | Corrections → dataset; observe → signal → intent; billing; the real OCR meets the stamp | `slice-c` |
-| [11 — Verify and train (live log)](story/11-verify-and-train.md) | CI red for eight pushes; six attempts to train on a laptop (watchdog, commit limit, a crash between stages); the demo adapter measured honestly — F1 0.95 and a zero that mattered more; the product on the real model; the overnight run | `overnight-1` (after the overnight run) |
+| [11 — Verify and train (live log)](story/11-verify-and-train.md) | CI red for eight pushes; six attempts to train on a laptop (watchdog, commit limit, a crash between stages); the demo adapter measured honestly — F1 0.95 and a zero that mattered more; the product on the real model; the overnight run | `loop-closed` |
 
 `lab/decisions.md` holds every non-obvious decision (D-001 onward) with alternatives, reasoning, evidence and date. `lab/intent/` holds intents the *product* wrote — and one the evaluation wrote (`eval-vendor-name-unseen-vendor.md`).
 
@@ -50,6 +50,8 @@ Measured, not aspirational; every number has a row in `model_versions`, `eval_re
 
 The last two rows are the product's numbers. The field-level guarantee is real and the auto-approve rate is zero; chapter 11 (11:50) explains why both are true and which one a finance lead should be shown.
 
+The overnight profile was run five times on the laptop and stopped at step 109 of 450 by the AI Builder's decision to close training (D-037); the demo adapter above is the delivered model. The 5,000-item `overnight-auto` dataset, the unknown-field mask (D-030) and the leaner trainer (D-036) are in place for the next loop, whose first item is `lab/intent/eval-vendor-name-unseen-vendor.md`.
+
 ## Replaying the lab as a student
 
 ```
@@ -57,7 +59,7 @@ git clone https://github.com/dlmastery/ai-builder-sdlc-lab && cd ai-builder-sdlc
 git checkout gate-4-plan      # read lab/*.md exactly as the AI Builder accepted them
 git checkout slice-a          # make up && make seed — a product with a stub inside
 git checkout slice-b          # make smoke-train — the first real model version in ~5 min
-git checkout main             # the closed loop
+git checkout loop-closed      # the closed loop: measured model, product on it, next intent filed
 ```
 
 Each tag is a point where a human said "accept" and nothing after it existed yet.

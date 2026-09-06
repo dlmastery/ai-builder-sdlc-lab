@@ -269,6 +269,14 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** three failures with "free" memory on the device were one failure on the host, and the host budget was a disk number nobody had written down. The trainer now runs 2.3 GB leaner and the ceiling is 40 GB higher; if it still fails, the next message is to the AI Builder, not another relaunch.
 - **Date:** 2026-09-06
 
+## D-037 · Training is closed by the AI Builder; the demo adapter is the delivered model
+
+- **Context:** at the power-outage checkpoint the overnight run stood at step 109 of 450 with a training loss of 0.0001. The AI Builder: *"you are done with the training — do not need to further train — I am happy with loss."*
+- **Decided:** no relaunch. The pinned production set stays the demo adapter `qwen3.5-2b-lora-2beb2897` with its calibrator, conformal threshold and difficulty model — the only extractor with a held-out evaluation (field-F1 0.9499; `vendor_name` 0.0 on the unseen vendor; 0/60 documents auto-approvable). The `overnight-auto` dataset, the D-030 mask and the leaner trainer remain in the repository for whoever runs the next loop. The final state is tagged `loop-closed` instead of `overnight-1`.
+- **Stated once, as the agent's bet:** a training loss near zero on a set that is 80 % synthetic layouts measures memorisation, not reading; the number that would have changed the product is held-out `vendor_name`, and it was never measured for this adapter. The demo's measured numbers are the ones the README reports, and the vendor-diversity intent (`lab/intent/eval-vendor-name-unseen-vendor.md`) stays open as the first item of the next loop.
+- **Why:** rule 1 — accept/reject and definition of done are the AI Builder's. The lab's purpose was the loop, and the loop closed: intent → spec → plan → three slices → a measured model in the product → production signals writing the next intent. Six failed training attempts taught more than a seventh success would have.
+- **Date:** 2026-09-06
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.

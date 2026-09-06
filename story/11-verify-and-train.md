@@ -142,4 +142,18 @@ Then the AI Builder: *"time to shutdown for a restart — my power is going out.
 
 **Resume checklist:** Docker Desktop up (`make infra`); API from the venv (`.venv\Scripts\python.exe -m uvicorn ledgerlens_api.main:app --port 8000`, `JOBS_INLINE=0`) — not via `uv run`, which holds the uv cache lock for the life of the child; check commit headroom and free disk; relaunch detached from the venv python: `python -m ledgerlens_worker.cli train --profile overnight --baseline`; arm a jobs-table watcher; afterwards mark any `running` job left by the outage as failed. Then: numbers into this chapter, tag `overnight-1`, pin through the audited path if held-out `vendor_name` earns it. A mid-run checkpoint every N steps is the obvious improvement this entry argues for; it is filed as the next item, not done at the last minute.
 
-*(continued below as the run progresses)*
+### 16:15 — The AI Builder closes training
+
+*AI Builder:* "You are done with the training — do not need to further train — I am happy with loss."
+
+*Fable:* "Then the demo adapter is the delivered model: it is the one with a held-out evaluation, and its numbers stay on the README exactly as measured — including the zero. One line for the record, then I stop arguing: a loss of 0.0001 on a set that is four-fifths synthetic layouts is memorisation, and the number that would have moved the product — vendor name on a layout it never saw — was never measured for the overnight adapter. The vendor-diversity intent stays open as the next loop's first item. That is the bet, stated once (D-037)."
+
+No relaunch. The dataset, the mask, the leaner trainer and the resume checklist stay in the repository for the next loop. The final state is tagged `loop-closed`.
+
+---
+
+## Gate
+
+**Slice C verified; the loop closed.** What exists: a product with real auth, billing wired to Stripe test mode, a queue-backed pipeline running a real OCR specialist and a fine-tuned 2B extractor; a transparency view in which every number is a row and every box an OCR alignment; a measured model (field-F1 0.9499, and an honest 0/60 auto-approve rate with the reasons on screen); a maintain hook whose production signals write `lab/intent/`, and an evaluation that wrote one too. What a student should take from this chapter is not the model. It is that eleven decisions (D-025 to D-036) came from *measuring* the thing that was failing — commit, not VRAM; bytes per page, not page count; the process that trained, not the one that evaluated — and that the four numbers a finance lead would ask for were reported even when one of them was zero.
+
+**Tag:** `loop-closed`.
