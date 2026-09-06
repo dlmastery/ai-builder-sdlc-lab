@@ -40,4 +40,10 @@ The demo run died during `build_dataset`: "stopped because the system is running
 
 Same stage, same message. The streaming builder was correct and insufficient: the *synthetic loader* called `generate(n=400)`, which renders every page into a list before yielding the first — ~2.6 GB of decoded images on a machine with 5.5 GB free. Now one page at a time. And every model load staged bf16 weights in host RAM before moving them to the GPU; `device_map="cuda"` sends them straight there. The idle Celery worker (1.9 GB, holding the OCR model) is stopped during training — the CLI run loads its own. Attempt four. The lesson: "streams to storage" and "streams from the source" are two different promises, and a 32 GB laptop with a browser open is a 6 GB machine.
 
+### 10:05 — Third kill; measure instead of guess
+
+Same message a third time — but this time the dataset build had *finished* and training had started. Measured the CORD loader alone: 60 receipts in 9 seconds, flat memory. It was never the loader. The kill comes from the coding harness's own low-memory watchdog on background commands, which fires at *system* free memory on a laptop already at 6–7 GB free, regardless of what the process itself holds. Two consequences: the 700-document `demo-auto` dataset exists and is reused by name; and the training run now launches as a detached operating-system process, watched through the `jobs` table — which is how a worker would be watched in production anyway.
+
+While re-reading the dataset rows: the vendor-first split had put **no synthetic layout in the test split** (eight layouts, one shuffle, coarse slices). Splits are now stratified by source, then by vendor within source; the existing items were re-split in place without rebuilding. Test: 50 synthetic + 24 CORD. Calibration: 86 documents ≈ 344 required fields — enough for the conformal maths to certify 1 % if the model earns it.
+
 *(continued below as the run progresses)*
