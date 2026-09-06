@@ -37,7 +37,7 @@ MAX_SPAN = 8
 
 
 def _lines(ocr: OcrResult) -> list[list[OcrWord]]:
-    """Group words into reading lines: same page, vertical centres within 0.6 × word height."""
+    """Group words into reading lines: same page, vertical centres within 0.6 x word height."""
     ordered = sorted(ocr.words, key=lambda w: (w.box.page, (w.box.y0 + w.box.y1) / 2, w.box.x0))
     lines: list[list[OcrWord]] = []
     for w in ordered:

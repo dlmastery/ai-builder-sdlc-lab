@@ -2,7 +2,8 @@
 
 Batch size 1 with gradient accumulation, gradient checkpointing, bf16, image long side capped,
 loss only on the assistant JSON tokens. `LOW_VRAM=1` loads the base in 4-bit and caps images at
-768 px for 8 GB cards. Profiles bound the run: smoke (minutes, CI-sized), demo (≤ 30 min), overnight.
+768 px for 8 GB cards. Profiles bound the run: smoke (minutes, CI-sized), demo (about half an
+hour), overnight (about eight hours).
 """
 
 from __future__ import annotations
@@ -40,13 +41,16 @@ class TrainProfile:
     max_train_items: int | None = None
 
 
+# Measured on the RTX 4090 Laptop (2B, bf16, gradient checkpointing): ~6 s per micro-batch at
+# 1024 px, ~47 s per optimiser step at accumulation 8. Profiles are sized to the lab budgets
+# (demo <= ~35 min, overnight <= ~8 h), not to a step count that sounds impressive.
 PROFILES: dict[str, TrainProfile] = {
     "smoke": TrainProfile(
         "smoke", max_steps=6, grad_accum=2, max_long_side=640, max_train_items=12
     ),
-    "demo": TrainProfile("demo", max_steps=250, grad_accum=8, max_long_side=1024, epochs=1.0),
+    "demo": TrainProfile("demo", max_steps=100, grad_accum=4, max_long_side=896, epochs=1.0),
     "overnight": TrainProfile(
-        "overnight", max_steps=6000, grad_accum=8, max_long_side=1280, epochs=3.0
+        "overnight", max_steps=700, grad_accum=8, max_long_side=1024, epochs=3.0
     ),
 }
 
@@ -79,8 +83,9 @@ def _encode(processor: Any, image: Image.Image, target: str, max_long_side: int)
     prompt = processor.apply_chat_template(
         messages, add_generation_prompt=True, tokenize=True, return_dict=True, return_tensors="pt"
     )
-    full_messages = messages + [
-        {"role": "assistant", "content": [{"type": "text", "text": target}]}
+    full_messages = [
+        *messages,
+        {"role": "assistant", "content": [{"type": "text", "text": target}]},
     ]
     full = processor.apply_chat_template(
         full_messages,
@@ -150,7 +155,7 @@ def train_lora(
     if not items:
         raise RuntimeError("no training examples")
     steps_per_epoch = max(1, math.ceil(len(items) / prof.grad_accum))
-    max_steps = min(prof.max_steps, int(math.ceil(steps_per_epoch * prof.epochs)))
+    max_steps = min(prof.max_steps, math.ceil(steps_per_epoch * prof.epochs))
 
     opt = torch.optim.AdamW(
         [p for p in model.parameters() if p.requires_grad], lr=prof.lr, weight_decay=0.0

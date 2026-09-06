@@ -1,4 +1,5 @@
-"""The OCR + rules baseline (plan B.5) must be respectable on idealised OCR of synthetic invoices."""
+"""The OCR + rules baseline (plan B.5) must be respectable on idealised OCR of synthetic
+invoices."""
 
 from __future__ import annotations
 

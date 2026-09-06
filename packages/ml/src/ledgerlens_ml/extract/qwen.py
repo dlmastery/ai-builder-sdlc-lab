@@ -53,7 +53,7 @@ def resize_long_side(image: Image.Image, max_long_side: int) -> Image.Image:
 
 
 def value_spans(generated: str) -> dict[tuple[str, int | None], tuple[int, int]]:
-    """Character spans of each field value inside the generated JSON text (for token attribution)."""
+    """Character spans of each field value inside the generated JSON (for token attribution)."""
     spans: dict[tuple[str, int | None], tuple[int, int]] = {}
     obj = parse_json(generated)
     if obj is None:

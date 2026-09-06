@@ -45,9 +45,12 @@ def _run(kind: str, payload: dict[str, Any], *, queue: str = "gpu") -> dict[str,
         time.sleep(2)
 
 
-def _latest_dataset() -> str | None:
+def _latest_dataset(name: str) -> str | None:
+    """Reuse only a dataset built for this profile; never silently train on a smaller one."""
     with session_scope() as db:
-        ds = db.scalar(select(Dataset).order_by(Dataset.created_at.desc()))
+        ds = db.scalar(
+            select(Dataset).where(Dataset.name == name).order_by(Dataset.created_at.desc())
+        )
         return str(ds.id) if ds else None
 
 
@@ -63,7 +66,7 @@ def cmd_dataset(a: argparse.Namespace) -> None:
 
 
 def cmd_train(a: argparse.Namespace) -> None:
-    dataset_id = a.dataset or _latest_dataset()
+    dataset_id = a.dataset or _latest_dataset(f"{a.profile}-auto")
     if dataset_id is None:
         n = {"smoke": 24, "demo": 400, "overnight": 4000}[a.profile]
         cord = {"smoke": 0, "demo": 300, "overnight": 1000}[a.profile]

@@ -9,6 +9,8 @@ a new vendor template breaks that assumption, which is exactly the calibration-d
 
 from __future__ import annotations
 
+import itertools
+
 import numpy as np
 from numpy.typing import NDArray
 from scipy.optimize import minimize_scalar
@@ -45,7 +47,7 @@ def expected_calibration_error(p: Array, correct: NDArray[np.bool_], bins: int =
     correct = np.asarray(correct, dtype=bool)
     edges = np.linspace(0.0, 1.0, bins + 1)
     ece = 0.0
-    for lo, hi in zip(edges[:-1], edges[1:], strict=True):
+    for lo, hi in itertools.pairwise(edges):
         mask = (p > lo) & (p <= hi) if lo > 0 else (p >= lo) & (p <= hi)
         if not mask.any():
             continue
@@ -60,7 +62,7 @@ def reliability_curve(
     correct = np.asarray(correct, dtype=bool)
     edges = np.linspace(0.0, 1.0, bins + 1)
     out: list[dict[str, float]] = []
-    for lo, hi in zip(edges[:-1], edges[1:], strict=True):
+    for lo, hi in itertools.pairwise(edges):
         mask = (p > lo) & (p <= hi) if lo > 0 else (p >= lo) & (p <= hi)
         if not mask.any():
             continue

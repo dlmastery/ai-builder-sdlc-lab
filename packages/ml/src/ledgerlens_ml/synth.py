@@ -324,7 +324,7 @@ def generate_one(seed: int, *, degrade: float | None = None) -> SynthDoc:
     items_boxes: list[dict[str, list[float]]] = []
     subtotal = Decimal(0)
     for desc, unit, qty in chosen:
-        qty_v = max(1, int(round(qty * rnd.uniform(0.6, 1.6))))
+        qty_v = max(1, round(qty * rnd.uniform(0.6, 1.6)))
         unit_v = Decimal(str(unit)) * Decimal(str(rnd.choice([1, 1, 1.05, 0.95])))
         unit_v = unit_v.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         amount = (unit_v * qty_v).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)

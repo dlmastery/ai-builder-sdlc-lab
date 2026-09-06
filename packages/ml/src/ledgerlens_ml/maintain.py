@@ -54,7 +54,8 @@ def _write_intent(
     lines = [
         f"# Intent: {kind} · {scope}",
         "",
-        f"*Written by the maintain job, {datetime.now(UTC).isoformat(timespec='seconds')}. Not yet triaged.*",
+        f"*Written by the maintain job, {datetime.now(UTC).isoformat(timespec='seconds')}. "
+        "Not yet triaged.*",
         "",
         "## Problem",
         "",
@@ -83,12 +84,14 @@ def _write_intent(
         "",
         "## Open questions",
         "",
-        "- Is this a layout change on the vendor's side, a scan-quality change, or a model regression?",
+        "- Is this a layout change on the vendor's side, a scan-quality change, or a model",
+        "  regression?",
         "",
         "## Definition of done",
         "",
-        "- A new extractor version whose evaluation on this vendor's corrected documents is at or",
-        "  above the floor, pinned through the audited path; the signal closed with a reference to it.",
+        "- A new extractor version whose evaluation on this vendor's corrected documents is at",
+        "  or above the floor, pinned through the audited path; the signal closed with a",
+        "  reference to it.",
     ]
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return path
@@ -143,7 +146,7 @@ def observe(db: DbSession, job: Job) -> dict[str, Any]:
                 continue
             counts = {name: wrong_names.count(name) for name in sorted(set(wrong_names))}
             by_field = ", ".join(
-                f"{name} ×{c}" for name, c in sorted(counts.items(), key=lambda kv: -kv[1])
+                f"{name} x{c}" for name, c in sorted(counts.items(), key=lambda kv: -kv[1])
             )
             evidence = {
                 "vendor": scope,
@@ -163,8 +166,8 @@ def observe(db: DbSession, job: Job) -> dict[str, Any]:
                 f"({k} of {n} required fields corrected; floor {floor:.0%}). Corrected by field: "
                 f"{by_field or '-'}.",
                 evidence,
-                f"An extractor version that reads {scope}'s documents at or above the floor, trained "
-                "on the corrections that produced this signal.",
+                f"An extractor version that reads {scope}'s documents at or above the floor, "
+                "trained on the corrections that produced this signal.",
             )
             sig = Signal(
                 kind="vendor-f1-drop", scope=scope, evidence=evidence, intent_path=str(path)
@@ -201,7 +204,8 @@ def observe(db: DbSession, job: Job) -> dict[str, Any]:
                 "calibration-drift",
                 "auto-approved",
                 f"The live error rate on auto-approved required fields is {rate:.1%}, above the "
-                f"{target:.1%} guarantee. Production documents no longer look like the calibration set.",
+                f"{target:.1%} guarantee. Production documents no longer look like the "
+                "calibration set.",
                 evidence,
                 "A recalibrated threshold (and, if needed, a retrained extractor) whose live error "
                 "rate on the next reviewed batch is within the guarantee.",

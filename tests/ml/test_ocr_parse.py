@@ -30,7 +30,10 @@ def test_recorded_spotting_output_parses_into_elements_with_pixel_boxes() -> Non
 
 
 def test_loc_tokens_are_thousandths_regardless_of_image_size() -> None:
-    line = "Net 30<|LOC_88|><|LOC_699|><|LOC_147|><|LOC_699|><|LOC_147|><|LOC_711|><|LOC_88|><|LOC_711|></s>"
+    line = (
+        "Net 30<|LOC_88|><|LOC_699|><|LOC_147|><|LOC_699|>"
+        "<|LOC_147|><|LOC_711|><|LOC_88|><|LOC_711|></s>"
+    )
     ((t, b),) = parse_spotting(line, 500, 500)
     assert t == "Net 30"
     assert b == (44.0, 349.5, 73.5, 355.5)

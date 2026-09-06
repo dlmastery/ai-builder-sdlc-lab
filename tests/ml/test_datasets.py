@@ -1,4 +1,5 @@
-"""Dataset build job: rows with splits and licences; the calibration split is disjoint (plan B.3)."""
+"""Dataset build job: rows with splits and licences; the calibration split is disjoint
+(plan B.3)."""
 
 from __future__ import annotations
 

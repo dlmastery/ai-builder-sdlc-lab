@@ -22,7 +22,10 @@ def test_target_json_round_trips_labels() -> None:
 
 def test_parse_json_tolerates_fences_and_truncation() -> None:
     assert parse_json('```json\n{"total": "1.00", "line_items": []}\n```')["total"] == "1.00"
-    truncated = '{"vendor_name": "Acme", "total": "9.50", "line_items": [{"description": "x", "amount": "9.50"}, {"description": "y'
+    truncated = (
+        '{"vendor_name": "Acme", "total": "9.50", '
+        '"line_items": [{"description": "x", "amount": "9.50"}, {"description": "y'
+    )
     obj = parse_json(truncated)
     assert obj is not None and obj["total"] == "9.50"
     assert parse_json("no json here") is None

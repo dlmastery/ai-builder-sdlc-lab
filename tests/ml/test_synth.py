@@ -1,4 +1,5 @@
-"""Synthetic invoices: deterministic by seed, several vendor layouts, labels with boxes (plan B.2)."""
+"""Synthetic invoices: deterministic by seed, several vendor layouts, labels with boxes
+(plan B.2)."""
 
 from __future__ import annotations
 

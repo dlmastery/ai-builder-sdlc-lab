@@ -140,14 +140,18 @@ def _model_card(mv: ModelVersion, stats: dict[str, Any]) -> str:
             "",
             f"- Kind: extractor (LoRA adapter on `{prof.get('base')}`)",
             f"- Trained: {datetime.now(UTC).isoformat(timespec='seconds')}",
-            f"- Profile: {prof.get('name')} · steps {stats.get('steps')} · examples {stats.get('examples')} · final loss {stats.get('final_loss')}",
-            f"- Trainable parameters: {stats.get('trainable_params'):,} of {stats.get('total_params'):,}",
-            f"- Image long side: {prof.get('max_long_side')} px · 4-bit base: {prof.get('load_in_4bit')}",
+            f"- Profile: {prof.get('name')} · steps {stats.get('steps')} · "
+            f"examples {stats.get('examples')} · final loss {stats.get('final_loss')}",
+            f"- Trainable parameters: {stats.get('trainable_params'):,} "
+            f"of {stats.get('total_params'):,}",
+            f"- Image long side: {prof.get('max_long_side')} px · "
+            f"4-bit base: {prof.get('load_in_4bit')}",
             f"- Dataset: {mv.dataset_id}",
             "",
             "## Intended use",
-            "Key-information extraction from invoices and receipts into the Ledgerlens schema. Confidence",
-            "values must pass the calibrator and threshold before any auto-approval (D-009).",
+            "Key-information extraction from invoices and receipts into the Ledgerlens schema.",
+            "Confidence values must pass the calibrator and threshold before any auto-approval",
+            "(D-009).",
             "",
             "## Evaluation",
             "See the evaluation report attached to this version once the evaluate job has run.",
@@ -250,16 +254,15 @@ def evaluate_model(db: DbSession, job: Job) -> dict[str, Any]:
         scores.append(s)
         by_vendor.setdefault(r["vendor"] or "unknown", []).append(s)
         for name, fs in s.per_field.items():
-            if fs.fp or fs.fn:
-                if len(errors_sample) < 40:
-                    errors_sample.append(
-                        {
-                            "item_id": r["item_id"],
-                            "field": name,
-                            "truth": r["labels"].get(name),
-                            "pred": r["pred"].get(name),
-                        }
-                    )
+            if (fs.fp or fs.fn) and len(errors_sample) < 40:
+                errors_sample.append(
+                    {
+                        "item_id": r["item_id"],
+                        "field": name,
+                        "truth": r["labels"].get(name),
+                        "pred": r["pred"].get(name),
+                    }
+                )
     agg = aggregate(scores)
     per_vendor = {
         v: {k: fs.as_dict() for k, fs in aggregate(ss).items()} for v, ss in by_vendor.items()
@@ -318,7 +321,7 @@ def evaluate_model(db: DbSession, job: Job) -> dict[str, Any]:
     }
 
 
-# ----------------------------------------------------------------------------- calibrate + threshold
+# ------------------------------------------------------------------- calibrate + threshold
 
 
 def calibrate_model(db: DbSession, job: Job) -> dict[str, Any]:
@@ -481,7 +484,7 @@ def train_difficulty(db: DbSession, job: Job) -> dict[str, Any]:
     return {"difficulty_id": str(dmv.id), **info}
 
 
-# ----------------------------------------------------------------------------- baseline registration
+# ------------------------------------------------------------------- baseline registration
 
 
 def ensure_baseline(db: DbSession, dataset_id: uuid.UUID | None = None) -> ModelVersion:
