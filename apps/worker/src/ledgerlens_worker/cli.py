@@ -19,6 +19,7 @@ from sqlalchemy import select
 from ledgerlens_core import jobs
 from ledgerlens_core.db import session_scope
 from ledgerlens_core.models import Dataset, Job, ModelVersion
+from ledgerlens_ml.loading import commit_headroom_gb
 from ledgerlens_worker import tasks  # noqa: F401  register handlers
 
 
@@ -77,6 +78,11 @@ def cmd_train(a: argparse.Namespace) -> None:
             "build_dataset", {"sources": sources, "name": f"{a.profile}-auto"}, queue="cpu"
         )["dataset_id"]
         print(f"built dataset {dataset_id}")
+    headroom = commit_headroom_gb()
+    if headroom is not None:
+        # a 2B bf16 load peaks near 12 GB of host commit on Windows (D-028); below that the
+        # process dies with "paging file too small (os error 1455)" rather than an OOM
+        print(f"commit headroom {headroom:.1f} GB before training", file=sys.stderr)
     res = _run(
         "train_extractor", {"dataset_id": dataset_id, "profile": a.profile, "model": a.model}
     )

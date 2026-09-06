@@ -22,6 +22,7 @@ from PIL import Image
 
 from ledgerlens_ml.extract.prompt import target_json
 from ledgerlens_ml.extract.qwen import DEFAULT_BASE, build_messages, resize_long_side
+from ledgerlens_ml.loading import from_pretrained_kwargs
 
 
 @dataclass
@@ -114,20 +115,14 @@ def train_lora(
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     dtype = torch.bfloat16 if device == "cuda" else torch.float32
-    kwargs: dict[str, Any] = {"dtype": dtype}
+    model: Any = AutoModelForImageTextToText.from_pretrained(
+        prof.base, **from_pretrained_kwargs(device, load_in_4bit=prof.load_in_4bit)
+    )
     if prof.load_in_4bit and device == "cuda":
         from peft import prepare_model_for_kbit_training
-        from transformers import BitsAndBytesConfig
 
-        kwargs["quantization_config"] = BitsAndBytesConfig(
-            load_in_4bit=True, bnb_4bit_compute_dtype=torch.bfloat16, bnb_4bit_quant_type="nf4"
-        )
-    if device == "cuda":
-        kwargs["device_map"] = "cuda"  # weights go straight to the GPU; no host-RAM staging copy
-    model: Any = AutoModelForImageTextToText.from_pretrained(prof.base, **kwargs)
-    if prof.load_in_4bit and device == "cuda":
         model = prepare_model_for_kbit_training(model)
-    elif device != "cuda":
+    else:
         model = model.to(device)
     processor = AutoProcessor.from_pretrained(prof.base)
     model.gradient_checkpointing_enable()

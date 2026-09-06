@@ -17,6 +17,7 @@ from typing import Any
 from PIL import Image
 
 from ledgerlens_ml.extract.prompt import SYSTEM, USER, labels_from_json, parse_json
+from ledgerlens_ml.loading import from_pretrained_kwargs
 from ledgerlens_ml.schema import HEADER_FIELDS, LINE_ITEM_FIELDS
 from ledgerlens_ml.types import Candidate, ExtractedField, ExtractionResult
 
@@ -103,17 +104,11 @@ class QwenExtractor:
         from transformers import AutoModelForImageTextToText, AutoProcessor
 
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        kwargs: dict[str, Any] = {"dtype": torch.bfloat16 if device == "cuda" else torch.float32}
-        if self.config.load_in_4bit and device == "cuda":
-            from transformers import BitsAndBytesConfig
-
-            kwargs["quantization_config"] = BitsAndBytesConfig(
-                load_in_4bit=True, bnb_4bit_compute_dtype=torch.bfloat16, bnb_4bit_quant_type="nf4"
-            )
-        if device == "cuda":
-            kwargs["device_map"] = "cuda"  # straight to the GPU; no host-RAM staging copy
-        model: Any = AutoModelForImageTextToText.from_pretrained(self.config.base, **kwargs)
-        if device != "cuda":
+        model: Any = AutoModelForImageTextToText.from_pretrained(
+            self.config.base,
+            **from_pretrained_kwargs(device, load_in_4bit=self.config.load_in_4bit),
+        )
+        if not (self.config.load_in_4bit and device == "cuda"):
             model = model.to(device)
         if self.config.adapter_dir:
             from peft import PeftModel

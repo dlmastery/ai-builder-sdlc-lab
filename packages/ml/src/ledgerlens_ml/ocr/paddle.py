@@ -17,6 +17,7 @@ from typing import Any
 
 from PIL import Image
 
+from ledgerlens_ml.loading import from_pretrained_kwargs
 from ledgerlens_ml.types import Box, OcrResult, OcrWord
 
 MODEL_ID = "PaddlePaddle/PaddleOCR-VL-1.6"
@@ -197,12 +198,10 @@ class PaddleOcrVL:
         from transformers import AutoModelForImageTextToText, AutoProcessor
 
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        dtype = torch.bfloat16 if device == "cuda" else torch.float32
-        kwargs: dict[str, Any] = {"dtype": dtype}
-        if device == "cuda":
-            kwargs["device_map"] = "cuda"  # straight to the GPU; no host-RAM staging copy
-        model: Any = AutoModelForImageTextToText.from_pretrained(MODEL_ID, **kwargs)
-        self._model = (model if device == "cuda" else model.to(device)).eval()
+        model: Any = AutoModelForImageTextToText.from_pretrained(
+            MODEL_ID, **from_pretrained_kwargs(device)
+        )
+        self._model = model.to(device).eval()
         # The published checkpoint's generation config disables the KV cache; without it every
         # decode step recomputes the ~2k-token vision prompt (measured: 1.2 tok/s vs 10x+ with it).
         self._model.generation_config.use_cache = True

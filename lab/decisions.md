@@ -200,6 +200,14 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** the spec's non-functionals (stateless API, queue-backed workers) were written for exactly this; a convenience flag was quietly bypassing them. The failure surfaced the moment a real component arrived, which is what Slice A's stub-through-real-plumbing design was for (D-013).
 - **Date:** 2026-09-06
 
+## D-028 · Weights load on CPU and move to the GPU; commit headroom is the number that matters
+
+- **Context:** the fifth demo-train attempt died at `safe_open` with Windows error 1455, "the paging file is too small for this operation to complete", after the dataset build had succeeded. Not an out-of-memory in the process: the *system commit charge* (RAM + page file, 49 GB limit on this laptop with a fixed 16.8 GB page file) was already at 39 GB from Chrome, the Docker VM and an antivirus before the trainer started.
+- **Measured** (Qwen3.5-2B bf16, transformers 5.16.1, safetensors 0.8.0, torch 2.14+cu126): CUDA context init alone charges 2.6 GB of commit. `device_map="cuda"` — which I had adopted two attempts earlier as "no host-RAM staging copy" — peaks at **16.5 GB** of process commit and takes **48 s**. Loading on CPU and calling `.to("cuda")` peaks at **11.7 GB** and takes **9 s**. After either path, the process still holds ~7.5 GB of commit with the weights on the GPU: under WDDM, GPU allocations are mirrored in system commit.
+- **Decided:** one `from_pretrained_kwargs()` in `ledgerlens_ml.loading` used by the trainer, the extractor and the OCR engine; it never sets `device_map`. The CLI prints commit headroom before training. Tests pin the contract (`tests/ml/test_loading.py`).
+- **Why:** the earlier comment was a belief about an API, not a measurement, and it cost a run. Two memory ceilings exist on this machine — the coding harness's watchdog (system free RAM, D-025's neighbour) and the OS commit limit — and they favour opposite load strategies; the commit limit is the one that kills a detached process, so it wins. Raising the page file is the user's system setting to change, not mine.
+- **Date:** 2026-09-06
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.

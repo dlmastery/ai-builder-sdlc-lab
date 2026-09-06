@@ -46,4 +46,14 @@ Same message a third time — but this time the dataset build had *finished* and
 
 While re-reading the dataset rows: the vendor-first split had put **no synthetic layout in the test split** (eight layouts, one shuffle, coarse slices). Splits are now stratified by source, then by vendor within source; the existing items were re-split in place without rebuilding. Test: 50 synthetic + 24 CORD. Calibration: 86 documents ≈ 344 required fields — enough for the conformal maths to certify 1 % if the model earns it.
 
+### 10:20 — Fourth death, different killer: "the paging file is too small"
+
+Attempt five ran detached, out of the harness's reach, and died anyway — this time at the moment transformers opened the Qwen weights: Windows error 1455. That is not the process running out of memory; it is the *system* running out of commit (RAM plus page file, a 49 GB ceiling here, with a fixed 16.8 GB page file). Chrome, the Docker VM and an antivirus had 39 GB of it before the trainer started.
+
+I had a belief and no number, so I measured (script in the session scratchpad; results in D-028): the CUDA context alone charges 2.6 GB; `device_map="cuda"` — the flag I had adopted two attempts ago with a comment claiming "no host-RAM staging copy" — peaks at 16.5 GB of commit and takes 48 s; loading on CPU and calling `.to("cuda")` peaks at 11.7 GB and takes 9 s. The comment was wrong in both directions. The fix is one function (`from_pretrained_kwargs`) shared by the trainer, the extractor and the OCR engine, pinned by tests written before it existed, and a one-line commit-headroom print in the CLI so the next person sees the ceiling before they hit it. The orphaned `ModelVersion` row (created before training starts, no artifact) was deleted; the job row keeps its error text.
+
+Two lessons for the student. First, the machine has two different memory ceilings that punish opposite strategies — the harness watchdog looks at free RAM, the OS looks at commit — and only measurement tells you which one you are under. Second, a comment that explains *why* a flag is set is a claim, and claims made without a number get audited by the operating system.
+
+Attempt six is running, detached, watched through the `jobs` table.
+
 *(continued below as the run progresses)*
