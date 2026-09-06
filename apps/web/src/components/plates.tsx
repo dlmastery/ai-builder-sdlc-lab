@@ -25,7 +25,7 @@ function Plate({ title, children }: { title: string; children: React.ReactNode }
         <path d="M12 72V12h60M728 12h60v60M12 428v60h60M728 488h60v-60" />
       </g>
       <g fill={INK3} fontSize="10" style={{ fontFamily: "var(--font-mono)" }}>
-        <text x="20" y="480">LEDGERLENS · PLATE</text>
+        <text x="20" y="480">LEDGERLENS · DRAWN FROM A REAL INVOICE</text>
         <text x="780" y="480" textAnchor="end">{title.length} · 800 × 500</text>
       </g>
       <text
@@ -155,7 +155,7 @@ export function PlateRead() {
       <line x1={372} y1={414} x2={430} y2={470} stroke={ACCENT} strokeWidth="6" strokeLinecap="round" />
       <g style={MONO} fontSize="14">
         <line x1={480} y1={130} x2={480} y2={430} stroke={INK3} strokeWidth="1" />
-        <text x={500} y={162} fill={INK3} fontSize="12" letterSpacing="0.14em">WORD · SCORE</text>
+        <text x={500} y={162} fill={INK3} fontSize="12" letterSpacing="0.14em">WORD · HOW CLEARLY IT READ IT</text>
         {[
           ["Northwind", "0.99"],
           ["Traders", "0.99"],
@@ -171,9 +171,9 @@ export function PlateRead() {
             <text x={710} y={192 + i * 28} textAnchor="end" fill={i >= 6 ? "var(--ink)" : INK3}>{s}</text>
           </g>
         ))}
-        <text x={500} y={430} fill={INK3} fontSize="12">under 0.85 = hard spot</text>
+        <text x={500} y={430} fill={INK3} fontSize="12">under 0.85 = hard to read</text>
       </g>
-      <Dim x1={110} y1={462} x2={410} y2={462} label="1 page · 40 words · 20 hard spots" />
+      <Dim x1={110} y1={462} x2={410} y2={462} label="1 page · 40 words · 20 hard to read" />
     </Plate>
   );
 }
@@ -257,14 +257,14 @@ export function PlateCalibrate() {
         <g key={c}>
           <rect x={px(c) - 22} y={py(a)} width={44} height={Math.max(0, y0 - py(a))} fill={ACCENT} fillOpacity={n > 100 ? 0.5 : 0.18} stroke={ACCENT} strokeWidth="1" />
           <text x={px(c)} y={y0 + 20} textAnchor="middle" fill={INK3} fontSize="12" style={MONO}>{c.toFixed(2)}</text>
-          <text x={px(c)} y={py(a) - 8} textAnchor="middle" fill={INK} fontSize="12" style={MONO}>n={n}</text>
+          <text x={px(c)} y={py(a) - 8} textAnchor="middle" fill={INK} fontSize="12" style={MONO}>{n} {n === 1 ? "field" : "fields"}</text>
         </g>
       ))}
       <text x={x0 + w / 2} y={y0 + 44} textAnchor="middle" fill={INK3} fontSize="13" style={MONO}>what it said it was sure of</text>
       <text x={x0 - 18} y={y0 - h / 2} textAnchor="middle" fill={INK3} fontSize="13" transform={`rotate(-90 ${x0 - 18} ${y0 - h / 2})`} style={MONO}>observed accuracy</text>
       <g style={MONO}>
         <text x={640} y={150} fill={INK3} fontSize="12" letterSpacing="0.14em">OFF BY</text>
-        <text x={640} y={182} fill="var(--ink)" fontSize="28" style={{ fontFamily: "var(--font-sans)" }}>0.003</text>
+        <text x={640} y={182} fill="var(--ink)" fontSize="28" style={{ fontFamily: "var(--font-sans)" }}>0.3 %</text>
         <text x={640} y={206} fill={INK3} fontSize="12">1,145 fields</text>
       </g>
     </Plate>
@@ -324,7 +324,7 @@ export function PlateGuarantee() {
       <path d={d} fill="none" stroke={ACCENT} strokeWidth="2.5" />
       <line x1={px(0.08)} y1={y0} x2={px(0.08)} y2={y0 - h} stroke={INK} strokeDasharray="5 5" strokeWidth="1.2" />
       <text x={px(0.08) + 8} y={y0 - h + 18} fill={INK} fontSize="13" style={MONO}>target error 1 %</text>
-      <text x={x0 + w / 2} y={y0 + 44} textAnchor="middle" fill={INK3} fontSize="13" style={MONO}>field error allowed</text>
+      <text x={x0 + w / 2} y={y0 + 44} textAnchor="middle" fill={INK3} fontSize="13" style={MONO}>errors you allow, per 100 fields</text>
       <text x={x0 - 18} y={y0 - h / 2} textAnchor="middle" fill={INK3} fontSize="13" transform={`rotate(-90 ${x0 - 18} ${y0 - h / 2})`} style={MONO}>fields auto-approved</text>
       <g style={MONO}>
         <text x={640} y={150} fill={INK3} fontSize="12" letterSpacing="0.14em">FIELDS · 1 %</text>

@@ -26,9 +26,9 @@ const STORY = [
     n: "01",
     title: "It reads every word — and tells you which ones it struggled with",
     plate: <PlateRead />,
-    does: "Before it fills in a single field, Ledgerlens reads the whole page word by word and scores how clearly it could read each one. A smudge, a stamp, a fold: those words are flagged as hard spots, so you know where the page was difficult before you trust anything on it.",
+    does: "Before it fills in a single field, Ledgerlens reads the whole page word by word and scores how clearly it could read each one. A smudge, a stamp, a fold: those words are flagged as hard to read, so you know where the page was difficult before you trust anything on it.",
     need: "Just the page. A scan or a photo, PNG or JPEG.",
-    figure: `${hardSpots} hard spots`,
+    figure: `${hardSpots} words hard to read`,
     proof: `on the invoice above — most of them under the RECEIVED stamp — flagged before any field was read. The total under that stamp was then held back for a person, and the page says so in words.`,
   },
   {
@@ -54,9 +54,9 @@ const STORY = [
     title: "When it says 98 %, it is right 98 % of the time",
     plate: <PlateCalibrate />,
     does: "Models are naturally over-confident. Ledgerlens corrects each confidence against invoices it had never seen, so the percentage beside a value means what it says. The next-best readings it considered are listed too, with how likely each was.",
-    need: "Nothing. The correction is measured on held-out invoices and the measurement is on this page.",
+    need: "Nothing. The correction is measured on invoices it had never seen, and the measurement is on this page.",
     figure: "0.3 % off",
-    proof: "across 1,145 held-out fields — that is how far the stated confidence was from the truth on average; the chart above is drawn from those measurements.",
+    proof: "across 1,145 fields on invoices it had never seen — that is how far the stated confidence was from the truth on average; the chart above is drawn from those measurements.",
   },
   {
     n: "05",
@@ -128,7 +128,7 @@ export default function HomePage() {
         {[
           ["invoice numbers", per.invoice_number != null ? `${Math.round(per.invoice_number * 100)} of 100` : "—", "read correctly"],
           ["totals", per.total != null ? `${Math.round(per.total * 100)} of 100` : "—", "read correctly"],
-          ["approved without a person", "0 of 60", "today, at ≤ 1 % error — it would not guess a vendor it had never seen; that is the next thing it learns"],
+          ["approved without a person, today", "0 of 60", "on purpose: it would not guess a vendor it had never seen, so every one went to a person. That is the next thing it learns"],
         ].map(([label, value, sub]) => (
           <div key={label} className="flex flex-col gap-2">
             <p className="micro">{label}</p>

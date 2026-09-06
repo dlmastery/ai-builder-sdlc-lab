@@ -34,8 +34,8 @@ export default async function MarketingLayout({ children }: LayoutProps<"/">) {
       </header>
       <main className="flex-1">{children}</main>
       <footer className="mx-auto w-full max-w-[1200px] px-6 py-7 text-step--1 text-ink-3">
-        Ledgerlens · an AI Builder SDLC lab artifact · every number on this site is computed,
-        never typed.
+        Ledgerlens · every number on this site is measured on real invoices, never typed · built in
+        the open — the whole build is public.
       </footer>
     </div>
   );
