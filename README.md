@@ -29,6 +29,7 @@ The AI Builder does not write code, columns, layer widths, or CSS. The AI Builde
 | [08 — Slice A](story/08-slice-a.md) | A database and a web app before any weight file; the critic loop | `slice-a` |
 | [09 — Slice B (live log)](story/09-slice-b.md) | Eval maths, calibration, synthetic data, the real OCR's undocumented format, a full disk, a slow flag, the smoke train | `slice-b` |
 | [10 — Slice C](story/10-slice-c.md) | Corrections → dataset; observe → signal → intent; billing; the real OCR meets the stamp | `slice-c` |
+| [11 — Verify and train (live log)](story/11-verify-and-train.md) | CI red for eight pushes, the wrong-dataset run, profiles sized to the clock, the demo and overnight trains | `overnight-1` |
 
 `lab/decisions.md` holds every non-obvious decision (D-001 onward) with alternatives, reasoning, evidence and date. `lab/intent/` holds intents the *product* wrote.
 
