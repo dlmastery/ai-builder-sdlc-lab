@@ -33,3 +33,25 @@ def test_resume_from_skips_build_and_train(
     assert [k for k, _ in calls] == ["evaluate_model", "calibrate_model", "train_difficulty"]
     assert all(p["model_version_id"] == "mv-1" for _, p in calls)
     assert calls[0][1] == {"model_version_id": "mv-1", "split": "test", "limit": 60}
+
+
+def test_evaluate_passes_the_dataset_through(
+    monkeypatch: pytest.MonkeyPatch, test_database_url: str
+) -> None:
+    """A shared model row (the baseline) must be evaluated on the dataset named, not on the one
+    it was registered with (D-031)."""
+    from ledgerlens_worker import cli
+
+    calls: list[tuple[str, dict[str, Any]]] = []
+    monkeypatch.setattr(
+        cli, "_run", lambda kind, payload, *, queue="gpu": calls.append((kind, payload)) or {}
+    )
+    cli.cmd_evaluate(
+        argparse.Namespace(model_version="mv-1", split="test", limit=12, dataset="ds-1")
+    )
+    assert calls == [
+        (
+            "evaluate_model",
+            {"model_version_id": "mv-1", "split": "test", "limit": 12, "dataset_id": "ds-1"},
+        )
+    ]

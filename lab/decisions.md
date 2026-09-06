@@ -224,6 +224,13 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** the adapter is retrained by the overnight profile anyway; the demo numbers stay as measured, including the zero, because the transparency view and the conformal threshold must be shown on the model that exists, not the one we hope for.
 - **Date:** 2026-09-06
 
+## D-031 · Abstention is a review case; caches are keyed by what they cache
+
+- **Context:** the demo run's calibration and threshold looked excellent — ECE 0.0026 raw, conformal threshold 0.9999994 at 1 % target error with coverage 1.0 over 160 calibration fields — and were misleading in a way the numbers themselves revealed. The 160 fields are the required fields the model *answered*; it had abstained on `vendor_name` for every unseen vendor (D-030), and abstentions are not errors, so the field-level guarantee held on a set that excluded the failure. `decide()` then checked only the required fields *present* in the extraction: a document with no vendor name at all raised no reason and would have auto-approved. Separately, the baseline "evaluation" reported 3 documents with zero latency: `_predict_split` cached predictions under `reports/<model>/predictions-<split>.jsonl`, and the baseline row is one row for all datasets, so the demo evaluation served the smoke dataset's cache.
+- **Decided:** (1) `decide()` lists every required field absent from the extraction as `{"why": "missing"}`; abstention lands in review. Recomputed offline with that rule, the document-level auto-approve upper bound on the test split is **0 %** (50/50 synthetic documents missing `vendor_name`, 10/10 receipts missing an invoice number or issue date). That is the demo's honest headline number. (2) The prediction cache is keyed by (model, dataset, split); the baseline is re-evaluated on the demo dataset with real OCR; the CLI's `evaluate` takes `--dataset`.
+- **Why:** the conformal guarantee is exactly as good as the population it is computed on, and "fields the model chose to answer" is not "fields the finance lead needs". The product's metric is documents auto-approved at ≤ 1 % error, and it must be reported even when it is zero — especially when it is zero.
+- **Date:** 2026-09-06
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.

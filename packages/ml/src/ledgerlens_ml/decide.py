@@ -40,6 +40,11 @@ def decide(
 ) -> Decision:
     reasons: list[dict[str, object]] = []
     grounded = {(o.field_name, o.line_index): o.passed for o in outcomes if o.rule == "grounding"}
+    # an extractor that abstains on a required field is a review case, not a pass (D-031)
+    present = {f.name for f in fields if f.line_index is None and f.value is not None}
+    reasons.extend(
+        {"field": name, "why": "missing"} for name in REQUIRED_FOR_APPROVAL if name not in present
+    )
     for i, f in enumerate(fields):
         if f.name not in REQUIRED_FOR_APPROVAL:
             continue

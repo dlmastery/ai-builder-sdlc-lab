@@ -59,3 +59,20 @@ def test_hand_computed_threshold_case() -> None:
     t, coverage = fit_threshold(conf, errors, target_error=0.2)
     assert t == pytest.approx(0.5)
     assert coverage == pytest.approx(0.6)
+
+
+def test_a_missing_required_field_blocks_auto_approval() -> None:
+    """The demo LoRA answered null for every unseen vendor's name; an extractor that abstains on
+    a required field must land in review, not slip past a check that only sees present fields
+    (D-031)."""
+    from ledgerlens_ml.decide import decide
+    from ledgerlens_ml.schema import REQUIRED_FOR_APPROVAL
+    from ledgerlens_ml.types import ExtractedField
+    from ledgerlens_ml.verify import VerifierOutcome
+
+    present = [n for n in REQUIRED_FOR_APPROVAL if n != "vendor_name"]
+    fields = [ExtractedField(n, "x", 0.999, [], [], None) for n in present]
+    outcomes = [VerifierOutcome("grounding", True, n) for n in present]
+    d = decide(fields, dict.fromkeys(range(len(fields)), 0.999), outcomes, threshold=0.9)
+    assert d.decision == "needs_review"
+    assert {"field": "vendor_name", "why": "missing"} in d.reasons

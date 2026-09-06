@@ -176,7 +176,7 @@ def _predict_split(
     """Run (or load) predictions for a split. Each record: item id, vendor, labels, prediction
     labels, per-field raw confidence, correctness, difficulty features."""
     store = get_object_store()
-    key = keys.report(mv.id, f"predictions-{split}.jsonl")
+    key = predictions_key(mv.id, dataset_id, split)
     if store.exists(key):
         return [json.loads(line) for line in store.get(key).decode("utf-8").splitlines() if line]
     extractor = load_extractor(mv, beams=1)  # greedy: alternatives are not scored
@@ -222,6 +222,12 @@ def _predict_split(
         content_type="application/x-ndjson",
     )
     return records
+
+
+def predictions_key(mv_id: uuid.UUID, dataset_id: uuid.UUID, split: str) -> str:
+    """Prediction cache per (model, dataset, split): the baseline row is shared across datasets,
+    and a cache keyed by model alone once served another dataset's predictions (D-031)."""
+    return keys.report(mv_id, f"predictions-{dataset_id}-{split}.jsonl")
 
 
 def _truth_value(labels: dict[str, Any], name: str, line_index: int | None) -> str | None:

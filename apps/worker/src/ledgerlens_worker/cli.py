@@ -137,15 +137,14 @@ def cmd_train(a: argparse.Namespace) -> None:
 
 
 def cmd_evaluate(a: argparse.Namespace) -> None:
-    print(
-        json.dumps(
-            _run(
-                "evaluate_model",
-                {"model_version_id": a.model_version, "split": a.split, "limit": a.limit},
-            ),
-            indent=1,
-        )
-    )
+    payload: dict[str, Any] = {
+        "model_version_id": a.model_version,
+        "split": a.split,
+        "limit": a.limit,
+    }
+    if a.dataset:
+        payload["dataset_id"] = a.dataset
+    print(json.dumps(_run("evaluate_model", payload), indent=1))
 
 
 def cmd_pin(a: argparse.Namespace) -> None:
@@ -193,6 +192,7 @@ def main(argv: list[str] | None = None) -> None:
     e.add_argument("--model-version", required=True)
     e.add_argument("--split", default="test")
     e.add_argument("--limit", type=int)
+    e.add_argument("--dataset", help="evaluate on this dataset (a shared row has no default)")
     e.set_defaults(fn=cmd_evaluate)
     p = sub.add_parser("pin")
     p.add_argument("--model-version", required=True)

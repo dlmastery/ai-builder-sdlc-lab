@@ -83,3 +83,16 @@ def test_aggregate_f1_over_documents() -> None:
     assert agg["total"].f1 == pytest.approx(1.0)
     assert agg["tax"].f1 == pytest.approx(0.0)
     assert 0.0 < agg["__all__"].f1 < 1.0
+
+
+def test_prediction_cache_is_keyed_by_dataset_and_split() -> None:
+    """The baseline model row is shared across datasets; a cache keyed by model alone served the
+    smoke dataset's three predictions as the demo baseline (D-031)."""
+    import uuid
+
+    from ledgerlens_ml.jobs import predictions_key
+
+    mv, ds_a, ds_b = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+    assert predictions_key(mv, ds_a, "test") != predictions_key(mv, ds_b, "test")
+    assert predictions_key(mv, ds_a, "test") != predictions_key(mv, ds_a, "calibration")
+    assert str(ds_a) in predictions_key(mv, ds_a, "test")
