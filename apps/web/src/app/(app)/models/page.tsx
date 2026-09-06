@@ -41,7 +41,7 @@ export default async function ModelsPage() {
                 <span className="micro">{m.kind}</span>
                 <span className="text-step-0 text-ink">
                   {m.name}
-                  {m.pinned ? <span className="ml-3 text-step--1 text-signal">● pinned</span> : null}
+                  {m.pinned ? <span className="chip chip-ink ml-3">pinned · serving</span> : null}
                 </span>
                 <span className="readout text-step--1 text-ink-2">
                   {typeof m.metrics.test_field_f1 === "number" ? `F1 ${pct(m.metrics.test_field_f1 as number, 1)}` : ""}
@@ -92,8 +92,9 @@ export default async function ModelsPage() {
             {jobs.items.map((j) => (
               <li key={j.id} className="grid items-center gap-4 py-2 md:grid-cols-[180px_100px_80px_1fr_120px]">
                 <span className="text-step--1 text-ink">{j.kind}</span>
-                <span className={`micro ${j.status === "failed" ? "text-fault" : j.status === "succeeded" ? "text-signal" : "text-ink-2"}`}>
-                  {statusLabel(j.status)}
+                {/* state by tint with the word inside; a failed job is the one red thing in the list */}
+                <span>
+                  <span className={`chip ${j.status === "failed" ? "chip-fault" : "chip-ink"}`}>{statusLabel(j.status)}</span>
                 </span>
                 <span className="micro">{j.queue}</span>
                 <span className="truncate font-mono text-step--1 text-ink-3">{j.error ? j.error.split("\n")[0] : j.id}</span>

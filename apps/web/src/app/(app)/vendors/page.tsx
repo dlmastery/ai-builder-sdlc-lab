@@ -42,8 +42,13 @@ export default async function VendorsPage() {
                     {v.curve
                       .map((c) => `${String(c.model_version ?? "")} · ${c.fields} fields reviewed · ${c.corrections} corrected`)
                       .join(" → ")}
-                    {v.curve.length === 1 ? " · the curve needs a second extractor version" : ""}
                   </span>
+                  {v.curve.length === 1 ? (
+                    <span className="callout mt-1 text-step--1">
+                      <strong className="font-medium">Honest limit.</strong> One extractor version has reviewed
+                      documents here; the curve moves when a second one reads this vendor.
+                    </span>
+                  ) : null}
                 </span>
                 <span className="text-right">
                   <span className={`readout block text-step-2 leading-none ${(last?.accuracy ?? 0) >= 0.9 ? "text-signal" : "text-caution"}`}>

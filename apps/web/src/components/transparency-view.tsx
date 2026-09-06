@@ -112,6 +112,12 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
   const words = page.ocr_words ?? [];
   const hardWords = words.filter((w) => w.score < HARD_SPOT_SCORE);
   const corrected = ex.fields.filter((f) => f.corrections.length > 0).length;
+  const invoiceNumber = ex.fields.find((f) => f.name === "invoice_number" && f.line_index === null)?.value;
+  const documentTitle = doc.vendor_name
+    ? `${doc.vendor_name}${invoiceNumber ? ` · ${invoiceNumber}` : ""}`
+    : invoiceNumber
+      ? `Invoice ${invoiceNumber}`
+      : doc.original_filename;
 
   function toggle(l: Layer) {
     setLayers((prev) => {
@@ -173,12 +179,13 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
               Document{doc.vendor_name ? ` · ${doc.vendor_name}` : ""}
               {doc.difficulty != null ? ` · predicted difficulty ${pct(doc.difficulty)}` : ""}
             </p>
-            {/* display step (≥ 4× body, bar.md M2) on its own full-width line, truncated — the round-6
-                regression was the title sharing a line with the layer toggles and spilling into the
-                verdict column; the toggles now sit beneath it */}
-            <h1 className="mt-2 truncate text-step-3 font-medium leading-none tracking-tight" title={doc.original_filename}>
-              {doc.original_filename}
+            {/* a designed title, not a filename slug (round 10): what the page is — its vendor and
+                invoice number as read — at the display step on its own line; the filename is the
+                identifier, so it goes beneath in monospace at the small size (DESIGN.md) */}
+            <h1 className="mt-2 truncate text-step-3 font-medium leading-none tracking-tight" title={documentTitle}>
+              {documentTitle}
             </h1>
+            <p className="mt-2 truncate font-mono text-step--1 text-ink-3">{doc.original_filename}</p>
           </div>
           <div className="micro flex items-center gap-4" role="group" aria-label="Evidence layers">
             <LayerToggle on={layers.has("hard")} onClick={() => toggle("hard")} label={`hard spots · ${hardWords.length}`} disabled={words.length === 0} />
@@ -186,7 +193,14 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
             <LayerToggle on={layers.has("fields")} onClick={() => toggle("fields")} label="fields" />
           </div>
         </div>
-        <div className="relative overflow-hidden rounded-[var(--radius)] border border-rule bg-surface">
+        {/* the page is the plate (bar.md M1): a drafting-sheet frame with corner marks and a caption
+            in the drawing's ink, the same frame the home-page plates use (round 10) */}
+        <div className="relative border border-rule bg-surface p-3">
+          <span aria-hidden className="pointer-events-none absolute left-0 top-0 h-5 w-5 border-l-[3px] border-t-[3px] border-ink" />
+          <span aria-hidden className="pointer-events-none absolute right-0 top-0 h-5 w-5 border-r-[3px] border-t-[3px] border-ink" />
+          <span aria-hidden className="pointer-events-none absolute bottom-0 left-0 h-5 w-5 border-b-[3px] border-l-[3px] border-ink" />
+          <span aria-hidden className="pointer-events-none absolute bottom-0 right-0 h-5 w-5 border-b-[3px] border-r-[3px] border-ink" />
+        <div className="relative overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={page.image_url}
@@ -265,6 +279,11 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
                 })}
           </svg>
         </div>
+          <p className="mt-2 flex justify-between font-mono text-[10px] uppercase tracking-[0.12em] text-ink-3">
+            <span>Ledgerlens · page 1 of {doc.page_count}</span>
+            <span>{page.width} × {page.height}</span>
+          </p>
+        </div>
         <p className="text-step--1 text-ink-3">
           Boxes show where each value was found on the page, with its confidence beside it.
           Green: at or above the {pct(threshold, 2)} bar. Amber: below the bar on a field that cannot
@@ -276,7 +295,7 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
       </section>
 
       {/* --- the readouts --- */}
-      <aside className="flex flex-col gap-10">
+      <aside className="flex flex-col gap-[68px]">
         <Verdict
           decision={doc.approved ? "approved" : (verdict?.decision ?? doc.status)}
           reasons={doc.approved ? [] : (verdict?.reasons ?? [])}
@@ -289,7 +308,7 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
         />
 
         <section className="flex flex-col gap-2">
-          <p className="micro">Fields · {ex.model_version.kind} {ex.model_version.name}</p>
+          <p className="micro">Fields · as read</p>
           {HEADER_GROUPS.map((g) => (
           <div key={g.label} className="mt-6 flex flex-col gap-1 first:mt-0">
           <p className="micro text-ink-3/80">{g.label}</p>
@@ -401,9 +420,14 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
 
         <Ledger results={ex.verifier_results} byId={byId} />
 
+        {/* provenance stays (rule 11: the view is served by a pinned, audited model version — a
+            clerk may need to quote it), but as a plain sentence in the footer, not a header
+            (brief critic, rounds 9–10) */}
         <p className="text-step--1 text-ink-3">
-          Extracted in {ex.latency_ms ?? "—"} ms · OCR {ex.ocr_version?.name ?? "—"} · this view
-          is rendered from rows, never from a model file.
+          Read in {ex.latency_ms != null ? `${Math.round(ex.latency_ms / 1000)} s` : "—"} by extractor version{" "}
+          <span className="font-mono">{ex.model_version.name}</span> with page reader{" "}
+          <span className="font-mono">{ex.ocr_version?.name ?? "—"}</span>. Everything on this screen is
+          what those two produced — nothing is added by the view.
         </p>
       </aside>
     </div>
@@ -636,7 +660,7 @@ function StabilityRing({ value }: { value: number }) {
 function Alternatives({ field }: { field: FieldOut }) {
   return (
     <section className="flex flex-col gap-2">
-      <p className="micro">Alternatives weighed · {fieldLabel(field.name)}</p>
+      <p className="micro">Other readings the model considered · {fieldLabel(field.name)}</p>
       <ul className="rule-y border-t border-rule text-step--1">
         {field.alternatives.map((a) => (
           <li key={a.rank} className="grid grid-cols-[1fr_auto] py-2">

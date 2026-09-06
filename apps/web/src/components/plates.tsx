@@ -89,6 +89,50 @@ function Lines({ x, y, rows, w = 140 }: { x: number; y: number; rows: number[]; 
 
 const MONO = { fontFamily: "var(--font-mono)" } as const;
 
+/** Production · what is serving now — the five pinned versions as the pipeline they form; the
+ *  document's path through them is the accent. Names come from rows, never typed. */
+export function PlatePipeline({ stages }: { stages: Array<{ kind: string; name: string | null }> }) {
+  const w = 132;
+  const gap = 20;
+  const x0 = 400 - (stages.length * w + (stages.length - 1) * gap) / 2;
+  return (
+    <Plate title="What is serving now">
+      <g stroke={INK} strokeWidth="1.2" fill="none">
+        {stages.map((s, i) => (
+          <rect key={s.kind} x={x0 + i * (w + gap)} y={190} width={w} height={96} />
+        ))}
+      </g>
+      <g stroke={ACCENT} strokeWidth="2" fill="none" markerEnd="url(#dim)">
+        {stages.slice(0, -1).map((s, i) => (
+          <line key={s.kind} x1={x0 + i * (w + gap) + w} y1={238} x2={x0 + (i + 1) * (w + gap)} y2={238} />
+        ))}
+      </g>
+      <g fill={INK3} fontSize="11" letterSpacing="0.12em" style={MONO}>
+        {stages.map((s, i) => (
+          <text key={s.kind} x={x0 + i * (w + gap) + w / 2} y={180} textAnchor="middle">
+            {s.kind.toUpperCase()}
+          </text>
+        ))}
+      </g>
+      <g fill="var(--ink)" fontSize="12" style={MONO}>
+        {stages.map((s, i) => {
+          const name = s.name ?? "unpinned";
+          const lines = name.length > 16 ? [name.slice(0, 16), name.slice(16)] : [name];
+          return lines.map((t, j) => (
+            <text key={`${s.kind}-${j}`} x={x0 + i * (w + gap) + w / 2} y={232 + j * 16} textAnchor="middle" fill={s.name ? "var(--ink)" : FAULT}>
+              {t}
+            </text>
+          ));
+        })}
+      </g>
+      <Dim x1={x0} y1={330} x2={x0 + stages.length * w + (stages.length - 1) * gap} y2={330} label="one document · every stage a pinned row, flipped by an audited action" />
+      <text x="400" y="400" textAnchor="middle" fill={INK3} fontSize="13" style={MONO}>
+        page reader → extractor → calibrator → threshold; difficulty is predicted before any of it
+      </text>
+    </Plate>
+  );
+}
+
 /** 01 · What it read — a page under a lens; the lens is the accent. */
 export function PlateRead() {
   return (

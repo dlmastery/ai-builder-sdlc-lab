@@ -6,7 +6,9 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
       <header className="mx-auto w-full max-w-[1200px] px-6 py-5">
         <Wordmark />
       </header>
-      <main className="mx-auto flex w-full max-w-[420px] flex-1 flex-col justify-center px-6 pb-8">
+      {/* wide enough for a plate beside the form (design loop, sign-in round 1); the form itself
+          keeps its 400 px column inside the page */}
+      <main className="mx-auto flex w-full max-w-[1100px] flex-1 flex-col justify-center px-6 pb-8">
         {children}
       </main>
     </div>

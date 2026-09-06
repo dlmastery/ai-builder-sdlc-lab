@@ -71,14 +71,17 @@ export default function HomePage() {
   return (
     <div className="mx-auto w-full max-w-[1200px] px-6">
       <section className="grid items-center gap-16 py-24 md:min-h-[92vh] md:grid-cols-[1.1fr_1fr] md:py-16">
-        <div className="flex max-w-[24ch] flex-col gap-9">
+        <div className="flex max-w-[34ch] flex-col gap-9">
           <p className="micro">Sovereign document AI · runs on your hardware</p>
+          {/* three lines, not six: the fold must be ≥ 40 % empty ground (bar.md M6, round 9); the
+              second half of the old headline is the first sentence of the standfirst */}
           <h1 className="text-step-3 font-medium leading-[1.02] tracking-tight text-ink">
-            Extraction that shows its work — and knows when it doesn&apos;t.
+            Extraction that shows its work.
           </h1>
           <p className="max-w-[40ch] text-step-0 leading-relaxed text-ink-2">
-            For finance teams that cannot send an invoice to a cloud API: calibrated confidence per
-            field, evidence for every value, one honest automation number.
+            And knows when it doesn&apos;t. For finance teams that cannot send an invoice to a cloud
+            API: calibrated confidence per field, evidence for every value, one honest automation
+            number.
           </p>
           <div className="flex items-center gap-6">
             <Link

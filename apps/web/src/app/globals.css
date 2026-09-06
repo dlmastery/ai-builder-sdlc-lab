@@ -24,8 +24,8 @@
   --surface: #12151a;
   --rule: #1f242c;
   --ink: #e6e8eb;
-  --ink-2: #a3a7ac; /* neutral secondary ink; the slate #9aa3ad read as "steel blue" to a critic */
-  --ink-3: #868c93; /* 5.2:1 on --ground; neutral, not blue — a critic read the old cool grey as a fourth hue */
+  --ink-2: #a9a9a9; /* secondary ink: a true neutral. #a3a7ac still read as blue to five critics (round 10) */
+  --ink-3: #8a8a8a; /* tertiary ink, 5.1:1 on --ground: a true neutral; every cool cast became "a fourth hue" */
   --signal: #7cf2c4;
   --fault: #ff6b6b;
   --caution: #f2c879;

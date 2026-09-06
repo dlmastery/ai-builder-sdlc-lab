@@ -21,6 +21,7 @@ export default async function ModelDetailPage(props: PageProps<"/models/[id]">) 
   const curve = (m.metrics.curve ?? []) as Array<{ target_error: number; threshold: number; coverage: number }>;
   const ev = m.eval_summary;
   const fieldRows = ev ? Object.entries(ev.per_field).filter(([k]) => k !== "__all__") : [];
+  const weakest = fieldRows.length > 0 ? fieldRows.reduce((a, b) => (b[1].f1 < a[1].f1 ? b : a)) : null;
 
   return (
     <div className="flex flex-col gap-8">
@@ -97,6 +98,15 @@ export default async function ModelDetailPage(props: PageProps<"/models/[id]">) 
             </p>
           </div>
         </section>
+      ) : null}
+
+      {weakest ? (
+        <p className="callout callout-fault max-w-[72ch] text-step-0">
+          <strong className="font-medium">Honest limit.</strong> {weakest[0].replaceAll("_", " ")} reads at{" "}
+          <span className="readout text-ink">{pct(weakest[1].f1, 1)}</span> F1 on {weakest[1].support} held-out
+          fields — the weakest field of this version, and the reason a document with that field
+          required goes to a person.
+        </p>
       ) : null}
 
       {fieldRows.length > 0 ? (
