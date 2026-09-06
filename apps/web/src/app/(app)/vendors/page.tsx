@@ -1,4 +1,4 @@
-import { Sparkline } from "@/components/charts";
+import { VendorCurve } from "@/components/charts";
 import { EmptyState } from "@/components/empty-state";
 import { api } from "@/lib/api";
 import { pct } from "@/lib/format";
@@ -36,17 +36,19 @@ export default async function VendorsPage() {
                     {v.documents} documents · {v.corrections} corrections
                   </span>
                 </span>
-                <span className="flex flex-col gap-1">
-                  <Sparkline values={v.curve.map((c) => c.accuracy ?? 0)} width={320} height={56} scale="unit" />
-                  <span className="readout text-step--1 text-ink-3">
-                    {v.curve
-                      .map((c) => `${String(c.model_version ?? "")} · ${c.fields} fields reviewed · ${c.corrections} corrected`)
-                      .join(" → ")}
-                  </span>
+                <span className="flex flex-col gap-2">
+                  <VendorCurve
+                    points={v.curve.map((c) => ({
+                      version: String(c.model_version ?? ""),
+                      accuracy: typeof c.accuracy === "number" ? c.accuracy : null,
+                      fields: Number(c.fields ?? 0),
+                      corrections: Number(c.corrections ?? 0),
+                    }))}
+                  />
                   {v.curve.length === 1 ? (
-                    <span className="callout mt-1 text-step--1">
-                      <strong className="font-medium">Honest limit.</strong> One extractor version has reviewed
-                      documents here; the curve moves when a second one reads this vendor.
+                    <span className="callout text-step--1">
+                      <strong className="font-medium"><span aria-hidden className="mr-2">◐</span>Honest limit.</strong> One
+                      extractor version has reviewed documents here; the curve moves when a second one reads this vendor.
                     </span>
                   ) : null}
                 </span>

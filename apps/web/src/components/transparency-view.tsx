@@ -183,13 +183,7 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
                 ? ` · expected to be ${doc.difficulty >= 0.5 ? "hard" : "easy"} to read (${pct(doc.difficulty)} chance of needing a person)`
                 : ""}
             </p>
-            {/* a designed title, not a filename slug (round 10): what the page is — its vendor and
-                invoice number as read — at the display step on its own line; the filename is the
-                identifier, so it goes beneath in monospace at the small size (DESIGN.md) */}
-            <h1 className="mt-2 truncate text-step-3 font-medium leading-none tracking-tight" title={documentTitle}>
-              {documentTitle}
-            </h1>
-            <p className="mt-2 truncate font-mono text-step--1 text-ink-3">{doc.original_filename}</p>
+            <p className="mt-1 truncate font-mono text-step--1 text-ink-3">{doc.original_filename}</p>
           </div>
           <div className="micro flex items-center gap-4" role="group" aria-label="Evidence layers">
             <LayerToggle on={layers.has("hard")} onClick={() => toggle("hard")} label={`words it struggled with · ${hardWords.length}`} disabled={words.length === 0} />
@@ -204,6 +198,12 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
           <span aria-hidden className="pointer-events-none absolute right-0 top-0 h-5 w-5 border-r-[3px] border-t-[3px] border-ink" />
           <span aria-hidden className="pointer-events-none absolute bottom-0 left-0 h-5 w-5 border-b-[3px] border-l-[3px] border-ink" />
           <span aria-hidden className="pointer-events-none absolute bottom-0 right-0 h-5 w-5 border-b-[3px] border-r-[3px] border-ink" />
+          {/* the title lettered inside the plate (bar.md M1, round 11): what the page is — its
+              vendor and invoice number as read — at the display step; the filename, the
+              identifier, sits above the frame in monospace (DESIGN.md) */}
+          <h1 className="truncate px-2 pb-3 pt-1 text-step-3 font-medium leading-none tracking-tight" title={documentTitle}>
+            {documentTitle}
+          </h1>
         <div className="relative overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -255,7 +255,7 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
                   // header fields to the right of the box; line items above it, right-aligned —
                   // beside them a label ran into the next column (rounds 8 and 11)
                   const label = tone === "signal" ? pct(conf) : pct(conf, 2);
-                  const fs = Math.max(10, page.width * (f.line_index === null ? 0.012 : 0.01));
+                  const fs = Math.max(10, page.width * 0.012);
                   return (
                     <g key={f.id} className="arrive" data-layer="4">
                       {spans.map(([x0, y0, x1, y1], i) => (
@@ -319,7 +319,7 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
         <section className="flex flex-col gap-2">
           <p className="micro">Fields · as read</p>
           {HEADER_GROUPS.map((g) => (
-          <div key={g.label} className="mt-6 flex flex-col gap-1 first:mt-0">
+          <div key={g.label} className="mt-7 flex flex-col gap-1 first:mt-0">
           <p className="micro text-ink-3/80">{g.label}</p>
           <ul className="rule-y border-t border-rule">
             {missingRequired.filter((n) => g.names.includes(n)).map((n) => (

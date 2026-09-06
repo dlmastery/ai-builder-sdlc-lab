@@ -99,7 +99,7 @@ body {
   border-left: 2px solid var(--ink-3);
   padding: 10px 16px;
   color: var(--ink-2);
-  background: color-mix(in oklab, var(--ink-3) 10%, transparent);
+  background: color-mix(in oklab, var(--ink-3) 16%, transparent); /* 10 % was too faint to read as a tinted panel (round 11) */
 }
 .callout strong { color: var(--ink); }
 .callout-caution { border-left-color: var(--caution); background: color-mix(in oklab, var(--caution) 9%, transparent); }

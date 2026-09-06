@@ -102,7 +102,7 @@ export default async function ModelDetailPage(props: PageProps<"/models/[id]">) 
 
       {weakest ? (
         <p className="callout callout-fault max-w-[72ch] text-step-0">
-          <strong className="font-medium">Honest limit.</strong> {weakest[0].replaceAll("_", " ")} reads at{" "}
+          <strong className="font-medium"><span aria-hidden className="mr-2">◐</span>Honest limit.</strong> {weakest[0].replaceAll("_", " ")} reads at{" "}
           <span className="readout text-ink">{pct(weakest[1].f1, 1)}</span> F1 on {weakest[1].support} held-out
           fields — the weakest field of this version, and the reason a document with that field
           required goes to a person.

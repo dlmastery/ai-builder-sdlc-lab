@@ -125,18 +125,18 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
                   <span className="truncate text-step-0 font-medium leading-tight text-ink">{d.original_filename}</span>
                   <span className="micro truncate normal-case tracking-normal">
                     {d.vendor_name ?? "vendor not yet known"}
-                    {d.difficulty != null ? ` · predicted difficulty ${Math.round(d.difficulty * 100)}%` : ""}
+                    {d.difficulty != null ? ` · expected to be ${d.difficulty >= 0.5 ? "hard" : "easy"} to read · ${Math.round(d.difficulty * 100)}%` : ""}
                   </span>
                   {d.status === "approved" ? (
                     <span className="micro normal-case tracking-normal">approved by a person{d.reasons.length ? ` · ${d.reasons.length} review reason${d.reasons.length === 1 ? "" : "s"} overridden` : ""}</span>
                   ) : d.reasons.length > 0 ? (
                     <span className="flex flex-wrap gap-2">
-                      {d.reasons.slice(0, 3).map((r, i) => (
+                      {oneReasonPerField(d.reasons).slice(0, 3).map((r, i) => (
                         <span key={i} className="chip chip-fault">
-                          {reasonChip(String(r.field ?? ""), String(r.why ?? ""))}
+                          {reasonChip(r.field, r.why)}
                         </span>
                       ))}
-                      {d.reasons.length > 3 ? <span className="text-ink-3">+{d.reasons.length - 3}</span> : null}
+                      {oneReasonPerField(d.reasons).length > 3 ? <span className="text-ink-3">+{oneReasonPerField(d.reasons).length - 3}</span> : null}
                     </span>
                   ) : null}
                 </span>
@@ -150,6 +150,21 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
       )}
     </div>
   );
+}
+
+/** A field can fail the verdict for two reasons at once (below the bar *and* not confirmed on the
+ *  page); the queue shows one chip per field — the strongest reason — and the document page lists
+ *  them all (design loop, inbox round 11: two "total" chips read as a labelling defect). */
+const REASON_RANK: Record<string, number> = { missing: 0, ungrounded: 1, below_threshold: 2 };
+function oneReasonPerField(reasons: Array<Record<string, unknown>>): Array<{ field: string; why: string }> {
+  const best = new Map<string, string>();
+  for (const r of reasons) {
+    const field = String(r.field ?? "");
+    const why = String(r.why ?? "");
+    const prev = best.get(field);
+    if (prev === undefined || (REASON_RANK[why] ?? 9) < (REASON_RANK[prev] ?? 9)) best.set(field, why);
+  }
+  return [...best.entries()].map(([field, why]) => ({ field, why }));
 }
 
 function Thumb({ src, alt }: { src: string | null; alt: string }) {

@@ -80,6 +80,62 @@ export function CoverageCurve({
   );
 }
 
+/** A vendor's learning curve as a drawn chart (design loop, vendors round 3): a 0–100 % axis with
+ *  ticks, one point per extractor version labelled with its name and the accuracy it earned on the
+ *  team's reviews, the line between them. One point is still a chart — the axis says what it
+ *  would move on. */
+export function VendorCurve({
+  points,
+  width = 360,
+  height = 120,
+}: {
+  points: Array<{ version: string; accuracy: number | null; fields: number; corrections: number }>;
+  width?: number;
+  height?: number;
+}) {
+  const padL = 34;
+  const padR = 16;
+  const padT = 18;
+  const padB = 30;
+  const w = width - padL - padR;
+  const h = height - padT - padB;
+  const n = points.length;
+  const x = (i: number) => padL + (n === 1 ? w / 2 : (i / (n - 1)) * w);
+  const y = (v: number) => padT + (1 - Math.min(1, Math.max(0, v))) * h;
+  const drawn = points.map((p, i) => ({ ...p, cx: x(i), cy: y(p.accuracy ?? 0) }));
+  const path = drawn.map((p, i) => `${i === 0 ? "M" : "L"}${p.cx},${p.cy}`).join(" ");
+  return (
+    <svg width={width} height={height} role="img" aria-label="Accuracy on reviews by extractor version" className="block">
+      <g stroke="var(--rule)" strokeWidth="1">
+        {[0, 0.5, 1].map((t) => (
+          <line key={t} x1={padL} y1={y(t)} x2={width - padR} y2={y(t)} strokeDasharray={t === 0 ? undefined : "2 3"} />
+        ))}
+        <line x1={padL} y1={y(0)} x2={padL} y2={y(1)} />
+      </g>
+      <g fill="var(--ink-3)" fontSize="9" fontFamily="var(--font-mono)" textAnchor="end">
+        {[0, 0.5, 1].map((t) => (
+          <text key={t} x={padL - 5} y={y(t) + 3}>{Math.round(t * 100)}%</text>
+        ))}
+      </g>
+      {n > 1 ? <path d={path} fill="none" stroke="var(--signal)" strokeWidth={1.5} /> : null}
+      {drawn.map((p) => (
+        <g key={p.version}>
+          <circle cx={p.cx} cy={p.cy} r={3.5} fill="var(--signal)" />
+          <text x={p.cx} y={p.cy - 8} textAnchor="middle" fill="var(--signal)" fontSize="10" fontFamily="var(--font-mono)">
+            {p.accuracy != null ? `${(p.accuracy * 100).toFixed(1)}%` : "—"}
+          </text>
+          <text x={p.cx} y={height - 16} textAnchor="middle" fill="var(--ink-2)" fontSize="10" fontFamily="var(--font-mono)">
+            {p.version}
+          </text>
+          <text x={p.cx} y={height - 5} textAnchor="middle" fill="var(--ink-3)" fontSize="9" fontFamily="var(--font-mono)">
+            {p.fields} fields reviewed · {p.corrections} corrected
+          </text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
 export function Sparkline({
   values,
   width = 220,

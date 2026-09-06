@@ -16,6 +16,19 @@ export default async function ModelsPage() {
   ]);
   const byKind = new Map<string, ModelVersionOut[]>();
   for (const m of models.items) byKind.set(m.kind, [...(byKind.get(m.kind) ?? []), m]);
+  const pinnedOf = (kind: string) => models.items.find((m) => m.kind === kind && m.pinned);
+  const ext = pinnedOf("extractor");
+  const cal = pinnedOf("calibrator");
+  const thr = pinnedOf("threshold");
+  const servingLine = ext
+    ? [
+        `extractor ${ext.name}${typeof ext.metrics.test_field_f1 === "number" ? ` at ${pct(ext.metrics.test_field_f1 as number, 1)} field F1 on held-out documents` : ""}`,
+        cal && typeof cal.metrics.ece_after === "number" ? `calibration error ${(cal.metrics.ece_after as number).toFixed(3)}` : null,
+        thr && typeof thr.metrics.coverage === "number" ? `${pct(thr.metrics.coverage as number)} of required fields clear the bar at the target error` : null,
+      ]
+        .filter(Boolean)
+        .join(" · ")
+    : null;
 
   return (
     <div className="flex flex-col gap-8">
@@ -27,6 +40,13 @@ export default async function ModelsPage() {
           version links to the dataset it was trained on and the job that produced it.
         </p>
       </div>
+
+      {/* the measured line that leads the page (bar.md M4): what the pinned rows earned, from rows */}
+      {servingLine ? (
+        <p className="callout max-w-[80ch] text-step-0">
+          <strong className="font-medium"><span aria-hidden className="mr-2">✓</span>Serving now:</strong> {servingLine}
+        </p>
+      ) : null}
 
       <section className="flex flex-col gap-3">
         <p className="micro">Model versions</p>

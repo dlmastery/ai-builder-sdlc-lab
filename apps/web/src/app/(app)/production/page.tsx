@@ -59,7 +59,7 @@ export default async function ProductionPage() {
           <p className="mt-2 text-step-1 text-ink">{sub ? `${sub.plan.name} · ${sub.provider}` : p.billing_provider}</p>
           {/* an honest limit is a tinted callout with a lead-in (bar.md M5), not a footnote */}
           <p className="callout mt-2 text-step--1">
-            <strong className="font-medium">Honest limit.</strong>{" "}
+            <strong className="font-medium"><span aria-hidden className="mr-2">◐</span>Honest limit.</strong>{" "}
             {sub ? `${sub.status}${sub.provider === "fake" ? " · billing is simulated" : " · payment provider in test mode"}` : p.billing_provider === "fake" ? "billing is simulated: no payment keys are configured, no card is charged" : "payment provider in test mode"}
           </p>
         </div>
