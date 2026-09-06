@@ -277,6 +277,13 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** rule 1 — accept/reject and definition of done are the AI Builder's. The lab's purpose was the loop, and the loop closed: intent → spec → plan → three slices → a measured model in the product → production signals writing the next intent. Six failed training attempts taught more than a seventh success would have.
 - **Date:** 2026-09-06
 
+## D-038 · CI runs the browser flows on the stub; the smoke train stays local
+
+- **Context:** plan §3 promised CI with ruff, mypy, pytest, Playwright and a CPU smoke train. Through slice C, CI ran the first three plus the web build; the browser flows and the smoke train ran only on the laptop.
+- **Decided:** a `ui` job runs the Playwright suites against the seeded product with the stub extractor and inline jobs (Postgres, Redis, MinIO, migrations, seed, API, dev server) on every push; the real-model flow (`verify-ocr`) stays opt-in and local. The smoke train does **not** run in CI: the runner has no GPU and no torch, and the base model is a 4.4 GB download per run.
+- **Why:** the browser flows are the proof the plan named for the UI and are cheap to run without weights; a CI smoke train would prove little beyond "the download works" at a cost paid on every push. The deviation is recorded here rather than left as a silent gap in §3.
+- **Date:** 2026-09-06
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.

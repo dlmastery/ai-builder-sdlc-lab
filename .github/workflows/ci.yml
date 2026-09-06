@@ -72,3 +72,67 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm build
+
+  # Playwright flows (plan §3): the product on the stub extractor, inline jobs, seeded tenant.
+  # Real-model flows (verify-ocr) stay opt-in and local: CI has no GPU and no model weights.
+  ui:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ledgerlens
+          POSTGRES_PASSWORD: ledgerlens
+          POSTGRES_DB: ledgerlens
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ledgerlens" --health-interval 5s --health-timeout 3s --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+    env:
+      JOBS_INLINE: "1"
+      API_URL: http://127.0.0.1:8000
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start MinIO
+        run: |
+          docker run -d --name minio -p 9000:9000 \
+            -e MINIO_ROOT_USER=ledgerlens -e MINIO_ROOT_PASSWORD=ledgerlens-secret \
+            minio/minio:latest server /data
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:9000/minio/health/live && break
+            sleep 1
+          done
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv python install 3.12
+      - run: uv sync --frozen
+      - run: uv run alembic -c packages/core/alembic.ini upgrade head
+      - run: uv run python -m ledgerlens_core.seed
+      - name: Start API
+        run: |
+          nohup uv run uvicorn ledgerlens_api.main:app --host 127.0.0.1 --port 8000 > api.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -sf http://127.0.0.1:8000/health && break
+            sleep 1
+          done
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: apps/web/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+        working-directory: apps/web
+      - run: pnpm exec playwright install --with-deps chromium
+        working-directory: apps/web
+      - run: pnpm exec playwright test
+        working-directory: apps/web
+      - name: API log on failure
+        if: failure()
+        run: tail -n 200 api.log
