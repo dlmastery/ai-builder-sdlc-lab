@@ -34,7 +34,7 @@ A multi-tenant web product. A tenant uploads invoices and receipts; a queue-back
 **ML pipeline (per document, in the worker).**
 1. *Prepare*: rasterise pages, compute image-quality features (blur, skew, contrast, ink density), run the **difficulty predictor**.
 2. *OCR specialist*: **PaddleOCR-VL-1.6** (frozen) — locked as the #1 open model on the official OmniDocBench v1.6 table (96.34, verified 2026-09-05; AI Builder: "pick the leader in leaderboard"). MinerU2.5-Pro and GLM-OCR are fallbacks only if the leader cannot run on the laptop → words, boxes, layout blocks, per-word scores. Hard-spot map = low OCR scores ∪ quality defects.
-3. *Extractor*: Qwen3.5 small dense (~4B, QLoRA-tuned) → schema-constrained JSON with grounding; token log-probs retained per field; beam or sampled alternatives kept top-3.
+3. *Extractor*: **Qwen3.5-2B** (QLoRA-tuned) → schema-constrained JSON with grounding; token log-probs retained per field; beam or sampled alternatives kept top-3. The 2B checkpoint is the default so the lab fine-tunes on 3060-class GPUs (8–12 GB) as well as this 16 GB laptop; Qwen3.5-4B is an *optional* overnight path on ≥ 16 GB, selectable per run and compared in the eval view (AI Builder edit at gate 2; D-012).
 4. *Verifier* (deterministic): OCR-grounding check, arithmetic (Σ items = subtotal, subtotal + tax = total), date and currency format, duplicate-invoice check against the tenant.
 5. *Calibrate + decide*: apply the pinned calibrator and threshold; write extraction, fields, verdict.
 6. *Robustness probe* (batch, off the request path): five mild perturbations; per-field agreement.
@@ -59,8 +59,8 @@ A multi-tenant web product. A tenant uploads invoices and receipts; a queue-back
 
 ## 5. Concerns flagged (for the AI Builder to see, not solve)
 
-- **VRAM.** QLoRA on a ~4B VLM with ~1 MP pages and long JSON outputs is tight on 16 GB. Mitigations in the plan: batch 1, accumulation, checkpointing, image long-side cap; fallback to the ~2B checkpoint. Not a blocker, but the overnight path may choose 2B for line-item-heavy documents.
-- **Exact extractor checkpoint.** Qwen3.5's small dense sizes and grounding fidelity will be locked at plan time with a same-day re-check (policy 20). Fallback: Gemma-4-E4B.
+- **VRAM.** Resolved at gate 2 by the AI Builder: default extractor is the 2B checkpoint so 3060-class GPUs (8–12 GB) can fine-tune. Plan still applies batch 1, accumulation, checkpointing and an image long-side cap; 4B is an optional path on ≥ 16 GB.
+- **Exact extractor checkpoint.** Qwen3.5-2B, grounding fidelity confirmed at plan time with a same-day re-check (policy 20). Fallback: Gemma-4-E2B.
 - **Attention "where it looked" layer.** Attention rollout on a fine-tuned VLM is plumbing-heavy. Day-one implementation is grounding box + matched OCR words; rollout is a Slice C stretch. The transparency view does not depend on it.
 - **DocILE access.** Requires a form; requested day one. CORD + synthetic carry the demo path regardless.
 - **Two runtimes.** Next.js and Python double the toolchain. Accepted: the home page and app need SSR-grade product quality, and the ML must be Python. Contracts are generated from one OpenAPI schema so the seam is typed.

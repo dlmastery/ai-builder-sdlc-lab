@@ -87,6 +87,14 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** AI Builder instruction: "pick the leader in leaderboard." It is #1 open model on the official OmniDocBench v1.6_full table (96.34) as of 2026-09-05. For the extractor there is no comparable public leaderboard for fine-tunable small VLMs on key-information extraction, so the pick is the leading fully open small-VLM family (Qwen3.5) with the exact checkpoint locked at plan time and our own eval as arbiter.
 - **Date:** 2026-09-05
 
+## D-012 · Extractor default is the 2B checkpoint (Qwen3.5-2B); 4B is an optional overnight path
+
+- **Decided:** default extractor Qwen3.5-2B, QLoRA. Qwen3.5-4B selectable per run on ≥ 16 GB GPUs and compared in the eval view. Fallback family: Gemma-4-E2B.
+- **Alternatives:** 4B default with 2B fallback (the spec's original position).
+- **Why:** AI Builder edit-in-spirit at gate 2: "try with 2B — fine-tuning 4B may be a stretch for GPUs like a 3060." Students' hardware is the constraint that binds, not this laptop's. A 2B QLoRA with capped image size fits 8–12 GB; the lab must be reproducible by the class, not only by the instructor.
+- **Cost accepted:** somewhat lower ceiling on line-item-heavy documents; the 2B-vs-4B comparison becomes a teaching artifact rather than a loss.
+- **Date:** 2026-09-05
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.
