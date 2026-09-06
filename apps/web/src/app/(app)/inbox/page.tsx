@@ -24,6 +24,15 @@ const CHIP: Record<string, string> = {
   processing: "chip-ink",
   uploaded: "chip-ink",
 };
+// one glyph per state, beside the word (bar.md M5)
+const GLYPH: Record<string, string> = {
+  needs_review: "◐",
+  auto_approved: "✓",
+  approved: "✓",
+  failed: "✗",
+  processing: "…",
+  uploaded: "…",
+};
 
 const STATES: Array<[string, string, string]> = [
   ["needs_review", "needs review", "a person decides"],
@@ -138,6 +147,7 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
                     <span className="flex flex-wrap gap-2">
                       {oneReasonPerField(d.reasons).slice(0, 3).map((r, i) => (
                         <span key={i} className="chip chip-fault">
+                          <span aria-hidden className="chip-glyph">✗</span>
                           {reasonChip(r.field, r.why)}
                         </span>
                       ))}
@@ -146,7 +156,10 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
                   ) : null}
                 </span>
                 <Grounded n={d.grounded_fields} of={d.field_count} />
-                <span className={`chip ${CHIP[d.status] ?? "chip-ink"}`}>{statusLabel(d.status)}</span>
+                <span className={`chip ${CHIP[d.status] ?? "chip-ink"}`}>
+                  <span aria-hidden className="chip-glyph">{GLYPH[d.status] ?? "·"}</span>
+                  {statusLabel(d.status)}
+                </span>
                 <span className="micro normal-case tracking-normal md:text-right">{relTime(d.created_at)}</span>
               </Link>
             </li>

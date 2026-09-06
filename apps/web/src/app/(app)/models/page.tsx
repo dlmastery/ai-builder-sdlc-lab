@@ -114,7 +114,10 @@ export default async function ModelsPage() {
                 <span className="text-step--1 text-ink">{j.kind}</span>
                 {/* state by tint with the word inside; a failed job is the one red thing in the list */}
                 <span>
-                  <span className={`chip ${j.status === "failed" ? "chip-fault" : "chip-ink"}`}>{statusLabel(j.status)}</span>
+                  <span className={`chip ${j.status === "failed" ? "chip-fault" : "chip-ink"}`}>
+                    <span aria-hidden className="chip-glyph">{j.status === "failed" ? "✗" : j.status === "succeeded" ? "✓" : "…"}</span>
+                    {statusLabel(j.status)}
+                  </span>
                 </span>
                 <span className="micro">{j.queue}</span>
                 <span className="truncate font-mono text-step--1 text-ink-3">{j.error ? j.error.split("\n")[0] : j.id}</span>

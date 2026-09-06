@@ -118,10 +118,16 @@ body {
   white-space: nowrap;
   line-height: 1.6;
 }
+/* tint carries the state, the text stays ink, a glyph leads (bar.md M5; round 14: "coloured
+   words, not ink on a tint") */
 .chip-ink { background: color-mix(in oklab, var(--ink-3) 18%, transparent); color: var(--ink-2); }
-.chip-signal { background: color-mix(in oklab, var(--signal) 16%, transparent); color: var(--signal); }
-.chip-caution { background: color-mix(in oklab, var(--caution) 16%, transparent); color: var(--caution); }
-.chip-fault { background: color-mix(in oklab, var(--fault) 14%, transparent); color: var(--fault); }
+.chip-signal { background: color-mix(in oklab, var(--signal) 22%, transparent); color: var(--ink); }
+.chip-caution { background: color-mix(in oklab, var(--caution) 24%, transparent); color: var(--ink); }
+.chip-fault { background: color-mix(in oklab, var(--fault) 22%, transparent); color: var(--ink); }
+.chip-glyph { margin-right: 0.45em; opacity: 0.9; }
+.chip-signal .chip-glyph { color: var(--signal); }
+.chip-caution .chip-glyph { color: var(--caution); }
+.chip-fault .chip-glyph { color: var(--fault); }
 
 /* One reveal per screen: layers arrive in the order the pipeline produced them. */
 @keyframes arrive {
