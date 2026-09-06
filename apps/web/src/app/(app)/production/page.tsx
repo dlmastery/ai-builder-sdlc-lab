@@ -36,8 +36,10 @@ export default async function ProductionPage() {
 
       <section className="grid gap-6 md:grid-cols-4">
         <Stat label="documents" value={String(total)} />
-        <Stat label="needs review" value={String(p.documents.needs_review ?? 0)} tone="caution" />
-        <Stat label="auto-approve rate" value={autoRate != null ? pct(autoRate) : "—"} tone="signal" />
+        {/* counts in ink; colour only where it means something — red on open signals, because each
+            one is an intent waiting for a person (design loop, production round 1) */}
+        <Stat label="needs review" value={String(p.documents.needs_review ?? 0)} />
+        <Stat label="auto-approve rate" value={autoRate != null ? pct(autoRate) : "—"} />
         <Stat label="open signals" value={String(p.open_signals)} tone={p.open_signals ? "fault" : undefined} />
       </section>
 

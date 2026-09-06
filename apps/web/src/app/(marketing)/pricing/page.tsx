@@ -104,7 +104,7 @@ export default async function PricingPage() {
           {plans.map((p) => (
             <article key={p.code} data-testid="plan-card" className="flex flex-col gap-6 bg-ground pr-4 pt-6 md:pl-5 md:first:pl-0">
               <div>
-                <div className="micro">{p.name}</div>
+                <h3 className="micro">{p.name}</h3>
                 {/* the price is the display numeral of this page — the hero step, so the page
                     keeps three sizes: display, section title, body (design loop P4 round 8);
                     the column padding is the ladder's 26 px, not 110, so the numeral fits */}

@@ -85,21 +85,31 @@ export function Sparkline({
   width = 220,
   height = 48,
   tone = "signal",
+  scale = "auto",
 }: {
   values: number[];
   width?: number;
   height?: number;
   tone?: "signal" | "ink-2";
+  /** "unit": a fixed 0–1 axis so curves compare across rows; "auto": fit the values (a loss). */
+  scale?: "unit" | "auto";
 }) {
-  if (values.length < 2) return null;
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const x = (i: number) => (i / (values.length - 1)) * (width - 2) + 1;
-  const y = (v: number) => height - 2 - ((v - min) / Math.max(1e-9, max - min)) * (height - 4);
+  if (values.length === 0) return null;
+  // a single evaluated version is still a mark on the page rather than nothing (design loop,
+  // vendors round 1)
+  const lo = scale === "unit" ? 0 : Math.min(...values);
+  const hi = scale === "unit" ? 1 : Math.max(...values);
+  const x = (i: number) => (values.length === 1 ? 1 : (i / (values.length - 1)) * (width - 2) + 1);
+  const y = (v: number) =>
+    height - 2 - ((Math.min(hi, Math.max(lo, v)) - lo) / Math.max(1e-9, hi - lo)) * (height - 4);
   const d = values.map((v, i) => `${i === 0 ? "M" : "L"}${x(i)},${y(v)}`).join(" ");
   return (
     <svg width={width} height={height} className="block" role="img" aria-label="Trend">
+      <line x1={1} y1={y(lo)} x2={width - 1} y2={y(lo)} stroke="var(--rule)" />
       <path d={d} fill="none" stroke={`var(--${tone})`} strokeWidth={1.25} />
+      {values.map((v, i) => (
+        <circle key={i} cx={x(i)} cy={y(v)} r={2.5} fill={`var(--${tone})`} />
+      ))}
     </svg>
   );
 }
