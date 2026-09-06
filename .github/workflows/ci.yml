@@ -31,14 +31,18 @@ jobs:
       redis:
         image: redis:7-alpine
         ports: ["6379:6379"]
-      minio:
-        image: bitnami/minio:latest
-        env:
-          MINIO_ROOT_USER: ledgerlens
-          MINIO_ROOT_PASSWORD: ledgerlens-secret
-        ports: ["9000:9000"]
     steps:
       - uses: actions/checkout@v4
+      # `services` cannot override a container's command; MinIO needs `server /data`.
+      - name: Start MinIO
+        run: |
+          docker run -d --name minio -p 9000:9000 \
+            -e MINIO_ROOT_USER=ledgerlens -e MINIO_ROOT_PASSWORD=ledgerlens-secret \
+            minio/minio:latest server /data
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:9000/minio/health/live && break
+            sleep 1
+          done
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
