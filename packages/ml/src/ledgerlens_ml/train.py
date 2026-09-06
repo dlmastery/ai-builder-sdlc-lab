@@ -13,7 +13,7 @@ import json
 import math
 import os
 import time
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
@@ -85,6 +85,33 @@ def mask_token_indices(offsets: list[tuple[int, int]], spans: list[tuple[int, in
     return [
         i for i, (a, b) in enumerate(offsets) if any(a < e and b > s for s, e in spans) and b > a
     ]
+
+
+def supervised_targets(labels: Any) -> tuple[Any, Any]:
+    """Positions whose *next* token is supervised, and those tokens (D-036). Position t predicts
+    token t+1, so hidden[t] pairs with labels[t+1]; the LM head then runs on ~25 % of the
+    sequence instead of all of it (peak GPU 9.15 → 8.07 GB measured, same loss)."""
+    import torch
+
+    shifted = labels[0, 1:]
+    positions = torch.nonzero(shifted != -100, as_tuple=False).squeeze(-1)
+    return positions, shifted[positions]
+
+
+def _masked_loss(model: Any, batch: dict[str, Any]) -> Any:
+    """Cross-entropy over supervised positions only; falls back to the model's own loss when the
+    architecture does not expose an inner model and LM head."""
+    import torch
+
+    inner = getattr(getattr(model, "base_model", None), "model", None) or model
+    body, head = getattr(inner, "model", None), getattr(inner, "lm_head", None)
+    if body is None or head is None:
+        return model(**batch).loss
+    labels = batch.pop("labels")
+    hidden = body(**batch).last_hidden_state
+    positions, targets = supervised_targets(labels)
+    logits = head(hidden[0, positions]).float()
+    return torch.nn.functional.cross_entropy(logits, targets)
 
 
 def _encode(
@@ -174,7 +201,9 @@ def train_lora(
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total = sum(p.numel() for p in model.parameters())
 
-    items = list(examples)
+    # a Sequence (e.g. jobs.LazyExamples) is read one page at a time; only an iterator is
+    # materialised (D-036: 3,188 pages held as bytes is 1.5 GB of host commit)
+    items: Sequence[Example] = examples if isinstance(examples, Sequence) else list(examples)
     if prof.max_train_items:
         items = items[: prof.max_train_items]
     if not items:
@@ -219,10 +248,10 @@ def train_lora(
             total_tokens += int(batch["labels"].numel())
             batch = {k: v.to(model.device) if hasattr(v, "to") else v for k, v in batch.items()}
             with torch.autocast(device_type=device, dtype=dtype, enabled=device == "cuda"):
-                out = model(**batch)
-                loss = out.loss / prof.grad_accum
+                full_loss = _masked_loss(model, batch)
+                loss = full_loss / prof.grad_accum
             loss.backward()
-            losses.append(float(out.loss.item()))
+            losses.append(float(full_loss.item()))
             micro += 1
             if micro % prof.grad_accum == 0:
                 torch.nn.utils.clip_grad_norm_(

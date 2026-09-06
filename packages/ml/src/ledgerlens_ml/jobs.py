@@ -10,10 +10,10 @@ import io
 import json
 import tempfile
 import uuid
-from collections.abc import Iterator
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any, overload
 
 import numpy as np
 from PIL import Image
@@ -28,6 +28,9 @@ from ledgerlens_ml.quality import DifficultyModel, feature_vector, quality_featu
 from ledgerlens_ml.registry import load_extractor, run_ocr
 from ledgerlens_ml.schema import REQUIRED_FOR_APPROVAL, normalize
 from ledgerlens_ml.types import ExtractionResult
+
+if TYPE_CHECKING:
+    from ledgerlens_ml.train import Example
 
 # ----------------------------------------------------------------------------- helpers
 
@@ -80,19 +83,40 @@ def build_dataset(db: DbSession, job: Job) -> dict[str, Any]:
 # ----------------------------------------------------------------------------- train
 
 
+class LazyExamples(Sequence["Example"]):
+    """Training pages fetched from the object store when their turn comes, never all at once
+    (D-036: the whole overnight train split held as bytes is ~1.5 GB of host commit)."""
+
+    def __init__(self, refs: list[tuple[str, dict[str, Any]]]) -> None:
+        self._refs = refs
+
+    def __len__(self) -> int:
+        return len(self._refs)
+
+    @overload
+    def __getitem__(self, i: int) -> Example: ...
+    @overload
+    def __getitem__(self, i: slice) -> Sequence[Example]: ...
+    def __getitem__(self, i: int | slice) -> Example | Sequence[Example]:
+        from ledgerlens_ml.train import Example
+
+        if isinstance(i, slice):
+            return LazyExamples(self._refs[i])
+        key, labels = self._refs[i]
+        return Example(get_object_store().get(key), labels)
+
+
 def train_extractor(db: DbSession, job: Job) -> dict[str, Any]:
-    from ledgerlens_ml.train import Example, profile, train_lora
+    from ledgerlens_ml.train import profile, train_lora
 
     p = job.payload or {}
     dataset_id = uuid.UUID(p["dataset_id"])
     prof = profile(p.get("profile", "demo"), model=p.get("model"))
     train_items = _items(db, dataset_id, "train", limit=prof.max_train_items)
     store = get_object_store()
-
-    def examples() -> Iterator[Example]:
-        for it in train_items:
-            assert it.external_ref
-            yield Example(store.get(it.external_ref), _clean_labels(it.labels or {}))
+    examples = LazyExamples(
+        [(it.external_ref or "", _clean_labels(it.labels or {})) for it in train_items]
+    )
 
     size = "4b" if "4B" in prof.base else "2b"
     mv = ModelVersion(
@@ -118,7 +142,7 @@ def train_extractor(db: DbSession, job: Job) -> dict[str, Any]:
 
     with tempfile.TemporaryDirectory() as tmp:
         out_dir = Path(tmp) / "adapter"
-        stats = train_lora(examples(), prof, out_dir, log=log)
+        stats = train_lora(examples, prof, out_dir, log=log)
         files = sorted(f.name for f in out_dir.iterdir() if f.is_file())
         for name in files:
             store.put(keys.artifact(mv.id, f"adapter/{name}"), (out_dir / name).read_bytes())

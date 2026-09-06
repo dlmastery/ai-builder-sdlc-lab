@@ -261,6 +261,14 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** a resolution the demo had already shown to be at the edge was not the place to add 30 %. On this Windows laptop a GPU allocation also needs host commit behind it (D-028), so "free" on the device is not the whole budget; the honest fix is the smaller footprint, and the allocator setting is a second line, not the first.
 - **Date:** 2026-09-06
 
+## D-036 · The disk is the page file is the GPU: train within a measured commit budget
+
+- **Context:** attempt four failed exactly like attempt three at 896 px — even a 20 MB mapping refused with 8 GiB of VRAM free. Hypotheses measured and dropped: target length (the overnight and demo train splits have the same distribution, max 860 tokens); resolution (896 px failed too). What held: a real six-micro-batch run shows the trainer at **9.15 GB peak GPU** (of 16) and **14.4 GB peak process commit** — 12.0 GB during the weight load alone, 7.8 GB idle with the weights on the GPU. System headroom was 8.6 GB. The page file is system-managed, so its growth room is the free disk; the overnight dataset and its orphans had taken C: from 9.8 GB to 4.3 GB free, the commit limit fell from 49 GB to 47.4 GB, and CUDA allocations failed with VRAM to spare. The demo run survived the same numbers because the page file could still grow.
+- **Decided:** (1) the LM head runs only on supervised positions (`supervised_targets`, tested for the shift-by-one), measured 9.15 → 8.07 GB GPU and −0.8 GB commit at identical losses; (2) training pages are read from the object store one at a time (`LazyExamples`) instead of 1.5 GB of bytes held for the run; (3) the uv (28.7 GB) and npm (12.4 GB) package caches were cleared — the caches D-025 permits — so the page file has room again. The overnight profile stays at 896 px.
+- **Alternatives:** 4-bit base via bitsandbytes (installed; saves ~3 GB but trains against a quantised base the extractor would not serve — a mismatch this lab should not introduce at midnight); pruning Docker images (16 GB reclaimable, forbidden by D-025); enlarging the page file explicitly (the user's system setting; recorded as the durable fix in the README).
+- **Why:** three failures with "free" memory on the device were one failure on the host, and the host budget was a disk number nobody had written down. The trainer now runs 2.3 GB leaner and the ceiling is 40 GB higher; if it still fails, the next message is to the AI Builder, not another relaunch.
+- **Date:** 2026-09-06
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.

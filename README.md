@@ -93,8 +93,13 @@ a job row; the post-training stages run in a fresh process (D-029/D-032); `train
 page as the data lead, or `make pin MV=<id>`.
 
 Behind a corporate TLS proxy on Windows: `UV_NATIVE_TLS=1` for `uv`, and `LEDGERLENS_NATIVE_TLS=1`
-so Python trusts the system store. Long GPU runs on a busy Windows laptop die in two ways that are
-not out-of-memory — see D-025, D-028 and D-029 before you blame the model.
+so Python trusts the system store. Long GPU runs on a busy Windows laptop die in ways that are
+not out-of-memory — see D-025, D-028, D-029 and D-036 before you blame the model. The 2B LoRA
+train needs about **14 GB of host commit** on Windows (measured: the GPU allocations are backed by
+system memory); with a system-managed page file that budget is bounded by *free disk*. If
+`train` fails with "CUDA out of memory" while `nvidia-smi` shows gigabytes free, either free
+disk or set an explicit page file (System → Advanced → Performance → Virtual memory, e.g. initial
+16 GB, maximum 48 GB) — a system setting, so a human's decision, not the agent's.
 
 ## What this lab is *not*
 
