@@ -7,6 +7,7 @@
 const INK = "var(--ink-2)";
 const INK3 = "var(--ink-3)";
 const ACCENT = "var(--signal)";
+const FAULT = "var(--fault)"; // a failed check is data: it reads in fault, never in the accent
 
 function Plate({ title, children }: { title: string; children: React.ReactNode }) {
   const size = title.length > 22 ? 26 : 34;
@@ -19,9 +20,13 @@ function Plate({ title, children }: { title: string; children: React.ReactNode }
       </defs>
       {/* a drafting-sheet frame: one hairline in the drawing's own ink, no fill, corner ticks —
           a drawn plate (bar.md M1), not a UI card (DESIGN.md) */}
-      <rect x="12" y="12" width="776" height="476" fill="none" stroke={INK3} strokeWidth="1" />
-      <g stroke={INK3} strokeWidth="1">
-        <path d="M12 40V12h28M760 12h28v28M12 460v28h28M760 488h28v-28" fill="none" />
+      <rect x="12" y="12" width="776" height="476" fill="none" stroke={INK3} strokeWidth="0.8" strokeOpacity="0.7" />
+      <g stroke={INK} strokeWidth="1.6" fill="none">
+        <path d="M12 56V12h44M744 12h44v44M12 444v44h44M744 488h44v-44" />
+      </g>
+      <g fill={INK3} fontSize="10" style={{ fontFamily: "var(--font-mono)" }}>
+        <text x="20" y="480">LEDGERLENS · PLATE</text>
+        <text x="780" y="480" textAnchor="end">{title.length} · 800 × 500</text>
       </g>
       <text
         x="400"
@@ -176,8 +181,8 @@ export function PlateLedger() {
           <line x1={120} y1={156 + i * 56} x2={680} y2={156 + i * 56} stroke={INK} strokeOpacity="0.25" />
           <text x={180} y={148 + i * 56} fill="var(--ink)">{lhs}</text>
           <text x={420} y={148 + i * 56} fill={INK}>{rhs}</text>
-          <text x={650} y={149 + i * 56} textAnchor="end" fill={ok ? INK : ACCENT} fontSize="18">{ok ? "✓" : "✗"}</text>
-          {!ok ? <rect x={168} y={128 + i * 56} width={496} height={30} fill="none" stroke={ACCENT} strokeWidth="1.5" /> : null}
+          <text x={650} y={149 + i * 56} textAnchor="end" fill={ok ? INK : FAULT} fontSize="18">{ok ? "✓" : "✗"}</text>
+          {!ok ? <rect x={168} y={128 + i * 56} width={496} height={30} fill="none" stroke={FAULT} strokeWidth="1.5" /> : null}
         </g>
       ))}
       <Dim x1={120} y1={462} x2={680} y2={462} label="every check shows the numbers it used" />

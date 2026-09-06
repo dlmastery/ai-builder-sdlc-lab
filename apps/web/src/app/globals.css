@@ -94,6 +94,17 @@ body {
   border-top: 1px solid var(--rule);
 }
 
+/* Callouts (bar.md M5): tint + a bold lead-in carry state; the text stays ink. */
+.callout {
+  border-left: 2px solid var(--ink-3);
+  padding: 10px 16px;
+  color: var(--ink-2);
+  background: color-mix(in oklab, var(--ink-3) 10%, transparent);
+}
+.callout strong { color: var(--ink); }
+.callout-caution { border-left-color: var(--caution); background: color-mix(in oklab, var(--caution) 9%, transparent); }
+.callout-fault { border-left-color: var(--fault); background: color-mix(in oklab, var(--fault) 9%, transparent); }
+
 /* State chips: tint carries the state, the word is always inside (design loop round 3). */
 .chip {
   display: inline-flex;

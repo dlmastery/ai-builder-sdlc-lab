@@ -26,7 +26,8 @@ const STORY = [
     plate: <PlateRead />,
     does: "Before any field exists, a specialist model reads the page word by word and scores each word. Low-score words and image defects become a hard-spots layer, so you know where the page was difficult before you know what it says.",
     reads: `The page image and nothing else. On the specimen: ${specimen.ocr_words.length} words, ${hardSpots} hard spots — the RECEIVED stamp over the total is most of them.`,
-    proof: "The stamp region scored under 0.85 and was flagged before extraction; the total under it could not be grounded, and the verdict says so in words.",
+    figure: `${hardSpots} hard spots`,
+    proof: "flagged before extraction; the stamp region scored under 0.85, and the total under it could not be grounded — the verdict says so in words.",
   },
   {
     n: "02",
@@ -34,7 +35,8 @@ const STORY = [
     plate: <PlateGround />,
     does: "Each extracted value must be found among the OCR words on one reading line near its box. If it cannot be grounded, it cannot be auto-approved — however confident the model sounds. That one rule removes hallucinated totals from the approval path.",
     reads: "The extractor's value, the OCR words, their boxes. No free text.",
-    proof: `${groundedFields} of ${specimen.fields.length} fields on the specimen are grounded on the page; the ungrounded one is the stamped total, and it is marked for that reason.`,
+    figure: `${groundedFields} / ${specimen.fields.length} grounded`,
+    proof: "on the specimen; the ungrounded one is the stamped total, and it is marked for that reason.",
   },
   {
     n: "03",
@@ -42,7 +44,8 @@ const STORY = [
     plate: <PlateLedger />,
     does: "Line items are summed against the subtotal; subtotal plus tax is compared to the total; dates and currencies are parsed. Every check shows the numbers it used, so a reviewer argues with the evidence, not with a tick.",
     reads: "The extracted fields and the OCR text; the arithmetic is done in the open.",
-    proof: `${ledgerPassed} of ${specimen.ledger.length} checks passed on the specimen; the one that failed says why in words: the total could not be found on the page.`,
+    figure: `${ledgerPassed} / ${specimen.ledger.length} checks passed`,
+    proof: "on the specimen; the one that failed says why in words: the total could not be found on the page.",
   },
   {
     n: "04",
@@ -50,7 +53,8 @@ const STORY = [
     plate: <PlateCalibrate />,
     does: "Raw model probabilities are over-confident. Each field's score is temperature-scaled on held-out documents and reported with its calibration error; the alternatives the model weighed are listed with their probabilities.",
     reads: "Token log-probabilities from the decoder, the calibration split, nothing typed.",
-    proof: "Expected calibration error 0.003 over 1,145 held-out fields — the reliability diagram above is drawn from those bins.",
+    figure: "ECE 0.003",
+    proof: "over 1,145 held-out fields — the reliability diagram above is drawn from those bins.",
   },
   {
     n: "05",
@@ -58,22 +62,23 @@ const STORY = [
     plate: <PlateGuarantee />,
     does: "A conformal threshold turns calibrated confidence into a statistical guarantee on documents like yours: auto-approve N % of documents at no more than 1 % field error. The guarantee, its coverage and its assumption are printed next to every auto-approval.",
     reads: "The calibration split's required fields and whether each was right.",
-    proof: `Today the number is 0 % of documents at ≤ 1 % field error: on ${docs} held-out documents every required field that was answered cleared the bar (100 %), and every document had one required field the model would not answer. The guarantee is real; the product number is zero; both are on this page because both are true.`,
+    figure: "0 % of documents today",
+    proof: `at ≤ 1 % field error: on ${docs} held-out documents every required field that was answered cleared the bar (100 %), and every document had one required field the model would not answer. The guarantee is real; the product number is zero; both are on this page because both are true.`,
   },
 ];
 
 export default function HomePage() {
   return (
     <div className="mx-auto w-full max-w-[1200px] px-6">
-      <section className="grid items-center gap-12 py-16 md:min-h-[86vh] md:grid-cols-[1fr_1.1fr] md:py-10">
-        <div className="flex flex-col gap-7">
+      <section className="grid items-center gap-14 py-20 md:min-h-[92vh] md:grid-cols-[1fr_1fr] md:py-12">
+        <div className="flex max-w-[26ch] flex-col gap-8">
           <p className="micro">Sovereign document AI · runs on your hardware</p>
           <h1 className="text-step-3 font-medium leading-[1.02] tracking-tight text-ink">
-            Document extraction that shows its work — and knows when it doesn&apos;t know.
+            Extraction that shows its work — and knows when it doesn&apos;t.
           </h1>
-          <p className="max-w-[48ch] text-step-1 leading-snug text-ink-2">
-            For finance teams that cannot send an invoice to a cloud API. Calibrated confidence per
-            field, evidence for every value, and one honest automation number.
+          <p className="max-w-[40ch] text-step-0 leading-relaxed text-ink-2">
+            For finance teams that cannot send an invoice to a cloud API: calibrated confidence per
+            field, evidence for every value, one honest automation number.
           </p>
           <div className="flex items-center gap-6">
             <Link
@@ -83,11 +88,13 @@ export default function HomePage() {
               Start with your first document
             </Link>
             <Link href="/pricing" className="text-step-0 text-ink-2 hover:text-ink">
-              See pricing →
+              Pricing →
             </Link>
           </div>
         </div>
-        <Specimen />
+        <div className="md:max-w-[560px] md:justify-self-end">
+          <Specimen />
+        </div>
       </section>
 
       <section aria-label="Measured numbers" className="grid gap-8 border-y border-rule py-14 md:grid-cols-[1.6fr_1fr_1fr_1fr]">
@@ -129,8 +136,9 @@ export default function HomePage() {
                   <p>
                     <strong className="font-medium text-ink">What it reads from:</strong> {s.reads}
                   </p>
-                  <p className="border-l-2 border-ink-3 pl-4">
-                    <strong className="font-medium text-ink">How you know it worked:</strong> {s.proof}
+                  <p className="callout">
+                    <strong className="font-medium text-ink">How you know it worked:</strong>{" "}
+                    <span className="readout text-step-1 text-ink">{s.figure}</span> {s.proof}
                   </p>
                 </div>
               </div>

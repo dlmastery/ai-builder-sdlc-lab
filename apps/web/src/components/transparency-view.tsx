@@ -134,7 +134,7 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)]">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]">
       {/* --- the page --- */}
       <section className="flex flex-col gap-4">
         <div className="flex flex-wrap items-end justify-between gap-4">
@@ -196,23 +196,39 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
                   const conf = f.calibrated_confidence ?? 0;
                   const tone = toneFor(f, threshold);
                   const isSel = f.id === selected;
+                  // an ungrounded field is outlined, not filled: the page's own red ink (a stamp)
+                  // must stay distinguishable from the fault tint (design loop, P3 round 3)
+                  const outlineOnly = !f.grounded;
+                  const label = f.line_index === null ? pct(conf) : null;
+                  const fs = Math.max(10, page.width * 0.012);
                   return (
-                    <rect
-                      key={`${f.id}-${i}`}
-                      data-testid="field-box"
-                      data-tone={tone}
-                      className="arrive"
-                      data-layer="4"
-                      x={x0}
-                      y={y0}
-                      width={x1 - x0}
-                      height={y1 - y0}
-                      fill={TONE_VAR[tone]}
-                      fillOpacity={tone === "signal" ? Math.max(0.08, conf * 0.32) : 0.26}
-                      stroke={TONE_VAR[tone]}
-                      strokeWidth={isSel ? 3 : 1}
-                      strokeOpacity={isSel ? 1 : 0.7}
-                    />
+                    <g key={`${f.id}-${i}`} className="arrive" data-layer="4">
+                      <rect
+                        data-testid="field-box"
+                        data-tone={tone}
+                        x={x0}
+                        y={y0}
+                        width={x1 - x0}
+                        height={y1 - y0}
+                        fill={outlineOnly ? "none" : TONE_VAR[tone]}
+                        fillOpacity={tone === "signal" ? Math.max(0.08, conf * 0.32) : 0.26}
+                        stroke={TONE_VAR[tone]}
+                        strokeWidth={isSel ? 3 : outlineOnly ? 2 : 1}
+                        strokeDasharray={outlineOnly ? "6 4" : undefined}
+                        strokeOpacity={isSel ? 1 : 0.8}
+                      />
+                      {label ? (
+                        <text
+                          x={x1 + fs * 0.4}
+                          y={y0 + fs}
+                          fill={TONE_VAR[tone]}
+                          fontSize={fs}
+                          fontFamily="var(--font-mono)"
+                        >
+                          {outlineOnly ? "ungrounded" : label}
+                        </text>
+                      ) : null}
+                    </g>
                   );
                 }),
               )}
@@ -281,10 +297,20 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
               <tbody className="rule-y">
                 {lines.map((row, i) => (
                   <tr key={i} className="align-top">
-                    <td className="py-2 pr-3 text-ink">{row.description?.value}</td>
-                    <td className="readout py-2 pr-3 text-right text-ink-2">{row.quantity?.value}</td>
-                    <td className="readout py-2 pr-3 text-right text-ink-2">{row.unit_price?.value}</td>
-                    <td className="readout py-2 text-right text-ink">{row.amount?.value}</td>
+                    {(["description", "quantity", "unit_price", "amount"] as const).map((k) => {
+                      const f = row[k];
+                      const tone = f ? toneFor(f, threshold) : "signal";
+                      return (
+                        <td key={k} className={`py-2 ${k === "description" ? "pr-3 text-ink" : "readout pr-3 text-right text-ink-2"}`}>
+                          {f?.value ?? "—"}
+                          {f ? (
+                            <span className={`ml-2 readout text-step--1 ${TONE_TEXT[tone]}`}>
+                              {f.grounded ? pct(f.calibrated_confidence) : "ungrounded"}
+                            </span>
+                          ) : null}
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))}
               </tbody>
@@ -363,13 +389,13 @@ function Verdict({
   return (
     <section
       data-testid="verdict"
-      className={`arrive rounded-[var(--radius)] border p-5 ${ok ? "border-signal" : "border-caution"}`}
+      className={`arrive callout ${ok ? "" : "callout-caution"}`}
       data-layer="5"
     >
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="micro">Verdict</p>
-          <p className={`mt-2 text-step-1 font-medium ${ok ? "text-signal" : "text-caution"}`}>
+          <p className={`mt-2 text-step-1 font-medium ${ok ? "text-ink" : "text-caution"}`}>
             {decision.replaceAll("_", " ")}
           </p>
         </div>
@@ -379,12 +405,12 @@ function Verdict({
             data-testid="approve"
             disabled={busy}
             onClick={onApprove}
-            className="rounded-[var(--radius)] border border-signal px-3 py-2 text-step--1 text-signal hover:bg-signal hover:text-ground disabled:opacity-60"
+            className="rounded-[var(--radius)] border border-ink-2 px-3 py-2 text-step--1 text-ink hover:bg-ink hover:text-ground disabled:opacity-60"
           >
             {busy ? "…" : corrected > 0 ? `Approve with ${corrected} correction${corrected === 1 ? "" : "s"}` : "Approve as read"}
           </button>
         ) : (
-          <span className="text-step--1 text-signal">✓ reviewed{corrected > 0 ? ` · ${corrected} corrected` : ""}</span>
+          <span className="text-step--1 text-ink-2">✓ reviewed{corrected > 0 ? ` · ${corrected} corrected` : ""}</span>
         )}
       </div>
       <p className="mt-2 text-step--1 text-ink-2">

@@ -12,10 +12,12 @@ export const metadata = { title: "Inbox" };
 // queue's health — one number per state, each a filter — not a heading over empty space.
 
 // state carried by tint (bar.md M5): a tinted chip with the word inside, never colour alone
+// the signal colour is for confidence and evidence, never for a workflow state (DESIGN.md);
+// approval is a settled state and reads in ink, review in caution, failure in fault
 const CHIP: Record<string, string> = {
   needs_review: "chip-caution",
-  auto_approved: "chip-signal",
-  approved: "chip-signal",
+  auto_approved: "chip-ink",
+  approved: "chip-ink",
   failed: "chip-fault",
   processing: "chip-ink",
   uploaded: "chip-ink",
@@ -55,18 +57,19 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
                 : "Nothing needs you"
               : `${needsReview} need${needsReview === 1 ? "s" : ""} you`}
           </h1>
-          <p className="mt-3 text-step-0 text-ink-2">
-            {total} document{total === 1 ? "" : "s"} in the queue
-            {inFlight > 0 ? ` · ${inFlight} being read` : ""}
-            {next ? (
-              <>
-                {" · "}
-                <Link href={`/documents/${next.id}`} data-testid="review-next" className="text-ink underline decoration-ink-3 underline-offset-4 hover:decoration-ink">
-                  review next →
-                </Link>
-              </>
-            ) : null}
-          </p>
+          {next ? (
+            <p className="callout callout-caution mt-4 text-step-0">
+              <strong className="font-medium">Needs you:</strong> {total} document{total === 1 ? "" : "s"} in the queue
+              {inFlight > 0 ? `, ${inFlight} being read` : ""} ·{" "}
+              <Link href={`/documents/${next.id}`} data-testid="review-next" className="text-ink underline decoration-ink-3 underline-offset-4 hover:decoration-ink">
+                review next →
+              </Link>
+            </p>
+          ) : (
+            <p className="mt-4 text-step-0 text-ink-2">
+              {total} document{total === 1 ? "" : "s"} in the queue{inFlight > 0 ? `, ${inFlight} being read` : ""}
+            </p>
+          )}
         </div>
         <Uploader />
       </div>
@@ -78,8 +81,8 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
           className={`flex flex-col gap-1 border-t-2 bg-ground px-4 py-5 hover:bg-surface ${filter === null ? "border-ink bg-surface" : "border-transparent"}`}
         >
           <span className="micro">all</span>
-          <span className="readout text-step-2 leading-none text-ink">{total}</span>
-          <span className="text-step--1 text-ink-3">every document</span>
+          <span className="readout text-step-3 leading-none text-ink">{total}</span>
+          <span className="micro normal-case tracking-normal">every document</span>
         </Link>
         {STATES.map(([value, label, sub]) => (
           <Link
@@ -89,10 +92,10 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
             className={`flex flex-col gap-1 border-t-2 bg-ground px-4 py-5 hover:bg-surface ${filter === value ? "border-ink bg-surface" : "border-transparent"}`}
           >
             <span className="micro">{label}</span>
-            <span className={`readout text-step-2 leading-none ${value === "failed" && (counts[value] ?? 0) > 0 ? "text-fault" : (counts[value] ?? 0) > 0 ? "text-ink" : "text-ink-3"}`}>
+            <span className={`readout text-step-3 leading-none ${value === "failed" && (counts[value] ?? 0) > 0 ? "text-fault" : (counts[value] ?? 0) > 0 ? "text-ink" : "text-ink-3"}`}>
               {counts[value] ?? 0}
             </span>
-            <span className="text-step--1 text-ink-3">{sub}</span>
+            <span className="micro normal-case tracking-normal">{sub}</span>
           </Link>
         ))}
       </nav>
@@ -118,14 +121,14 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
                 <Thumb src={d.thumbnail_url} alt="" />
                 <span className="flex min-w-0 flex-col gap-1">
                   <span className="truncate text-step-0 text-ink">{d.original_filename}</span>
-                  <span className="truncate text-step--1 text-ink-3">
+                  <span className="micro truncate normal-case tracking-normal">
                     {d.vendor_name ?? "vendor not yet known"}
-                    {d.difficulty != null ? ` · difficulty ${Math.round(d.difficulty * 100)}%` : ""}
+                    {d.difficulty != null ? ` · predicted difficulty ${Math.round(d.difficulty * 100)}%` : ""}
                   </span>
                   {d.status === "approved" ? (
-                    <span className="text-step--1 text-ink-3">approved by a person{d.reasons.length ? ` · ${d.reasons.length} review reason${d.reasons.length === 1 ? "" : "s"} overridden` : ""}</span>
+                    <span className="micro normal-case tracking-normal">approved by a person{d.reasons.length ? ` · ${d.reasons.length} review reason${d.reasons.length === 1 ? "" : "s"} overridden` : ""}</span>
                   ) : d.reasons.length > 0 ? (
-                    <span className="flex flex-wrap gap-2 text-step--1">
+                    <span className="flex flex-wrap gap-2">
                       {d.reasons.slice(0, 3).map((r, i) => (
                         <span key={i} className="chip chip-fault">
                           {fieldLabel(String(r.field ?? ""))} · {String(r.why ?? "").replaceAll("_", " ")}
@@ -137,7 +140,7 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
                 </span>
                 <Grounded n={d.grounded_fields} of={d.field_count} />
                 <span className={`chip ${CHIP[d.status] ?? "chip-ink"}`}>{statusLabel(d.status)}</span>
-                <span className="text-step--1 text-ink-3 md:text-right">{relTime(d.created_at)}</span>
+                <span className="micro normal-case tracking-normal md:text-right">{relTime(d.created_at)}</span>
               </Link>
             </li>
           ))}
@@ -154,17 +157,17 @@ function Thumb({ src, alt }: { src: string | null; alt: string }) {
 }
 
 function Grounded({ n, of }: { n: number; of: number }) {
-  if (of === 0) return <span className="text-step--1 text-ink-3">not read yet</span>;
+  if (of === 0) return <span className="micro normal-case tracking-normal">not read yet</span>;
   const frac = n / of;
   return (
     <span className="flex flex-col gap-1" aria-label={`${n} of ${of} fields grounded on the page`}>
-      <span className="readout text-step--1 text-ink-2">
+      <span className="micro readout normal-case tracking-normal text-ink-2">
         {n}/{of} grounded
       </span>
       <span className="block h-[3px] w-full rounded-full bg-rule">
         <span
-          className="block h-[3px] rounded-full bg-ink-2"
-          style={{ width: `${Math.round(frac * 100)}%` }}
+          className="block h-[3px] rounded-full bg-signal"
+          style={{ width: `${Math.round(frac * 100)}%`, opacity: 0.35 + frac * 0.65 }}
         />
       </span>
     </span>
