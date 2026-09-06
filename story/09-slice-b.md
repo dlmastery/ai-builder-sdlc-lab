@@ -60,4 +60,16 @@ The API refused to start: `RecursionError` inside `ssl.SSLContext`. Not a double
 
 Spotting one page took 335 s. A 0.9B model on a 4090 should do that in seconds. A benchmark is running (with and without token-score capture); the answer decides whether the OCR specialist runs per document in the serve path or only in batch. The real OCR now exists as an **unpinned** `ModelVersion` row so pinning it is an audited operator action once it is fast enough.
 
+### 01:15 — The speed problem, solved by reading a config
+
+Isolation benchmark: prefill 1.5 s; decode with the KV cache **on** 12× faster than off; text-only decode fine. The published checkpoint's `generation_config` has `use_cache: false` — every decode step was recomputing the 2,027-token vision prompt. Steady state with the cache: 24.8 tokens/s, about 62 s per page. Not interactive, but the pipeline is asynchronous by design and the UI already has a "still reading" state, so the leader stays the OCR specialist inside the job; evaluation caps the OCR-dependent baseline split (D-026). The lesson for students: the first suspect for "the GPU is slow" is a flag, not the GPU.
+
+### 01:30 — Zero-shot Qwen3.5-2B, before any training
+
+One clean synthetic invoice, base model, no adapter: every header field correct — vendor, invoice number, date (in the layout's format, which the normaliser maps), subtotal, tax, total — with raw confidences between 0.95 and 0.999. Two things follow. The base model is strong enough that fine-tuning must earn its place on *degraded* scans, receipts (CORD) and line items, not on clean invoices. And those confidences are the over-confidence the calibrator exists to correct: a 0.999 on a field that is right 97 % of the time is a lie of 3 points, and the threshold would believe it.
+
+### 01:35 — Smoke train, end to end, in the background
+
+`ledgerlens train --profile smoke --baseline`: 24 synthetic documents → 6 LoRA steps on the 2B → evaluate 8 test documents → calibrate on the calibration split → fit the conformal threshold → train the difficulty model → evaluate the OCR + rules baseline with the real OCR on the same 8 documents. Every stage is a `Job` row; every output is a `ModelVersion`, `EvalReport`, `EvalScore` or artifact.
+
 *(continued below as the slice progresses)*

@@ -185,6 +185,14 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** package caches are disposable by definition and re-fill on demand; everything else is a judgement the machine's owner makes. This is recorded so students see the line an autonomous agent should not cross without being asked.
 - **Date:** 2026-09-06
 
+## D-026 · OCR specialist speed: KV cache on; PaddleOCR-VL runs as an asynchronous stage, evaluation caps OCR-dependent splits
+
+- **Measured (RTX 4090 Laptop, bf16, SDPA, transformers 5.16):** as published, 1.2 tok/s — the checkpoint's generation config has `use_cache: false`, so each decode step recomputed the ~2,000-token vision prompt. With the cache on: 24.8 tok/s steady state, ≈ 62 s for a full spotting pass on one invoice page (~1,500 output tokens). Prefill 1.5 s. Memory 2.4 GB.
+- **Decided:** force `use_cache=True` in the adapter; keep PaddleOCR-VL-1.6 as the OCR specialist (D-011) running inside the asynchronous `process_document` job — the product already shows a "still reading" state; cap the baseline's OCR-dependent evaluation to a bounded number of test documents per profile (smoke 8, demo 40) and record the cap in the report; the fine-tuned extractor's own evaluation needs no OCR (values are scored directly), so the training/eval loop is not gated on OCR speed.
+- **Alternatives:** the official `paddleocr` runtime (faster, Linux-first, another framework in the image); a classical detector/recogniser (PP-OCRv5 via ONNX, ~1 s/page) as a second "fast" OCR for the serve path; `torch.compile` with static cache (needs triton, unavailable on Windows here).
+- **Why:** the leader stays the leader where its quality matters; a second OCR engine would be a scope expansion without a test that demands it. The per-token cost is framework overhead, not the GPU — the production container (Linux, vLLM-capable) is the right place to fix that, and it is recorded as the first performance item for the maintain loop.
+- **Date:** 2026-09-06
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.

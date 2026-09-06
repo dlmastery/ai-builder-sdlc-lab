@@ -167,6 +167,9 @@ class PaddleOcrVL:
         dtype = torch.bfloat16 if device == "cuda" else torch.float32
         model: Any = AutoModelForImageTextToText.from_pretrained(MODEL_ID, dtype=dtype)
         self._model = model.to(device).eval()
+        # The published checkpoint's generation config disables the KV cache; without it every
+        # decode step recomputes the ~2k-token vision prompt (measured: 1.2 tok/s vs 10x+ with it).
+        self._model.generation_config.use_cache = True
         self._processor = AutoProcessor.from_pretrained(MODEL_ID)
 
     def spot(self, image: Image.Image) -> tuple[str, float]:
@@ -200,6 +203,7 @@ class PaddleOcrVL:
                 **inputs,
                 max_new_tokens=2048,
                 do_sample=False,
+                use_cache=True,
                 output_scores=True,
                 return_dict_in_generate=True,
             )
