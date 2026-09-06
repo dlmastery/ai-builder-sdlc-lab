@@ -175,7 +175,7 @@ def _predict_split(
     key = keys.report(mv.id, f"predictions-{split}.jsonl")
     if store.exists(key):
         return [json.loads(line) for line in store.get(key).decode("utf-8").splitlines() if line]
-    extractor = load_extractor(mv)
+    extractor = load_extractor(mv, beams=1)  # greedy: alternatives are not scored
     ocr_mv = _pinned(db, "ocr")
     needs_ocr = mv.kind == "baseline" or mv.name == "ocr-rules"
     records: list[dict[str, Any]] = []

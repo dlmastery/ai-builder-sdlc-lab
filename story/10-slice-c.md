@@ -42,6 +42,20 @@ The screenshot run signed in as the demo data lead, uploaded the specimen, corre
 
 **Screenshot run mechanics, for students.** Two failures were the test's fault, not the product's: re-uploading byte-identical bytes is correctly deduplicated to the *existing* document (so a screenshot run must nudge a pixel), and "first row visible" is satisfied by stale rows (so wait for the row with the new filename). Both are the kind of thing that looks like a bug and is not.
 
-## Verification (plan §2 step 7)
+## Verification (plan §2 step 7) — the real OCR meets the stamp
 
-Next, in this order: pin `paddleocr-vl-1.6` through the audited path and re-read the specimen so the stamp shows as real hard spots; run the demo-profile train on 400 documents to earn a real coverage number; run the overnight train as a job; run the e2e suites once more against the real pipeline; tag `overnight-1`.
+Pinned `paddleocr-vl-1.6` through the audited CLI path and uploaded a fresh specimen. Three things broke, in order, and each one taught something.
+
+1. **The upload hung.** With inline jobs the request ran the 90-second OCR synchronously and the web proxy dropped the socket. Inline mode was a test convenience masquerading as architecture; the dev stack now runs the production shape — API returning 202, a Celery worker on the `cpu,gpu` queues, the document page in its "still reading" state until the verdict row lands (D-027).
+2. **Every word was a hard spot.** The adapter had given all 41 words the same page-level score (0.848, just under the 0.85 floor). The token probabilities were already there; aligning them to output lines gives each element its own score. After the fix: 17 hard spots out of 40 words, clustered on the stamp and the faint labels — the layer finally says something.
+3. **Nothing multi-word was grounded.** Real OCR emits one word per box, so "Northwind Traders" is two words and the grounding check — which compared whole values to single words — failed on vendor name, address, descriptions and terms. Grounding now matches runs of consecutive words on one reading line, with five tests pinning the behaviour, including the negative case where the same words sit on different lines.
+
+`story/assets/slice-c/13-real-ocr.png` is the result: the stamp glows red, "1,177.20" is **ungrounded**, the ledger says "total could not be found on the page ✗", and the verdict lists two reasons for `total` — below threshold and ungrounded. The extractor was still the stub; the OCR alone changed the verdict. That is D-009's conjunction doing its job on a real page.
+
+*Developer:* "So the OCR is slow, the stub is dumb, and the product still made the right call."
+
+*Fable:* "The product made the right call *because* it did not trust either of them."
+
+## Still to run
+
+The demo-profile train (400 synthetic + CORD) to earn a real coverage number; the overnight train as a job; the e2e suites once more against the real pipeline; tag `overnight-1`.

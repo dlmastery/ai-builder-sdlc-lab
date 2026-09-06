@@ -47,7 +47,7 @@ class _RulesAdapter:
 
 
 class _QwenAdapter:
-    def __init__(self, mv: ModelVersion) -> None:
+    def __init__(self, mv: ModelVersion, beams: int | None = None) -> None:
         from ledgerlens_ml.extract.qwen import QwenConfig, QwenExtractor
 
         cfg = mv.config
@@ -59,7 +59,7 @@ class _QwenAdapter:
                 max_long_side=int(cfg.get("max_long_side", 1024)),
                 load_in_4bit=bool(cfg.get("load_in_4bit", False))
                 or os.environ.get("LOW_VRAM") == "1",
-                beams=int(cfg.get("beams", 3)),
+                beams=int(beams if beams is not None else cfg.get("beams", 3)),
             )
         )
         self.name = mv.name
@@ -94,17 +94,19 @@ def fetch_artifact_dir(mv: ModelVersion) -> Path:
 _QWEN_CACHE: dict[str, _QwenAdapter] = {}
 
 
-def load_extractor(mv: ModelVersion) -> Extractor:
+def load_extractor(mv: ModelVersion, *, beams: int | None = None) -> Extractor:
+    """`beams` overrides the version's alternative-candidate beam count (evaluation uses 1:
+    alternatives are a serving feature and triple the decode cost)."""
     if mv.name == "stub":
         return _StubAdapter()
     if mv.name == "ocr-rules" or mv.kind == "baseline":
         return _RulesAdapter()
     if mv.name.startswith("qwen"):
-        key = str(mv.id)
+        key = f"{mv.id}:{beams}"
         if key not in _QWEN_CACHE:
             if len(_QWEN_CACHE) >= 2:  # a loaded VLM is gigabytes; keep at most two resident
                 _QWEN_CACHE.pop(next(iter(_QWEN_CACHE)))
-            _QWEN_CACHE[key] = _QwenAdapter(mv)
+            _QWEN_CACHE[key] = _QwenAdapter(mv, beams=beams)
         return _QWEN_CACHE[key]
     raise KeyError(f"unknown extractor {mv.name!r}")
 

@@ -79,7 +79,9 @@ def cmd_train(a: argparse.Namespace) -> None:
     )
     print(json.dumps(res, indent=1))
     mv = res["model_version_id"]
-    limit = {"smoke": 8, "demo": 150, "overnight": None}[a.profile]
+    limit = {"smoke": 8, "demo": 60, "overnight": None}[a.profile]
+    # the baseline needs the OCR specialist per page (~1 min each on a laptop): keep it bounded
+    baseline_limit = {"smoke": 8, "demo": 12, "overnight": 40}[a.profile]
     print(
         json.dumps(
             _run("evaluate_model", {"model_version_id": mv, "split": "test", "limit": limit}),
@@ -102,7 +104,7 @@ def cmd_train(a: argparse.Namespace) -> None:
                         "model_version_id": b_id,
                         "dataset_id": dataset_id,
                         "split": "test",
-                        "limit": limit,
+                        "limit": baseline_limit,
                     },
                 ),
                 indent=1,

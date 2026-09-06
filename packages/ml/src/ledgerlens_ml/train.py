@@ -44,7 +44,7 @@ PROFILES: dict[str, TrainProfile] = {
     "smoke": TrainProfile(
         "smoke", max_steps=6, grad_accum=2, max_long_side=640, max_train_items=12
     ),
-    "demo": TrainProfile("demo", max_steps=400, grad_accum=8, max_long_side=1024, epochs=1.0),
+    "demo": TrainProfile("demo", max_steps=250, grad_accum=8, max_long_side=1024, epochs=1.0),
     "overnight": TrainProfile(
         "overnight", max_steps=6000, grad_accum=8, max_long_side=1280, epochs=3.0
     ),

@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 
 from ledgerlens_ml.schema import DATE_FIELDS, MONEY_FIELDS, normalize
-from ledgerlens_ml.types import Box, ExtractedField, OcrResult
+from ledgerlens_ml.types import Box, ExtractedField, OcrResult, OcrWord
 
 
 @dataclass
