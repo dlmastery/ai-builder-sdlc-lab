@@ -19,11 +19,18 @@ export default async function PricingPage() {
   const plans = await api<PlanOut[]>("/plans");
   return (
     <div className="mx-auto w-full max-w-[1200px] px-6 py-16">
-      <section className="max-w-[26ch]">
+      <section className="max-w-[44ch]">
         <p className="micro">Pricing · billing runs in test mode in this lab</p>
-        <h1 className="mt-4 text-step-3 font-medium leading-[1.02] tracking-tight">
+        <h1 className="mt-4 max-w-[26ch] text-step-3 font-medium leading-[1.02] tracking-tight">
           Pay for automation you can defend.
         </h1>
+        {/* the promise in the customer's words (positioning.md, D-047) */}
+        <p className="mt-6 text-step-0 leading-relaxed text-ink-2">
+          Every plan reads your invoices on your own machine and shows where every number came from.
+          Higher plans buy approval without a person under a stated error budget, learning from your
+          corrections vendor by vendor, and the right to keep every invoice inside your building.
+          Plans start free.
+        </p>
       </section>
 
       <section className="mt-16 flex flex-col gap-10 border-t border-rule pt-16">
@@ -37,20 +44,21 @@ export default async function PricingPage() {
           <div className="flex max-w-[66ch] flex-col gap-4 text-step-0 leading-relaxed text-ink-2">
             <p>
               <strong className="font-medium text-ink">What it does, in plain words.</strong> Every plan reads
-              your documents on your own hardware and shows its work: where each value was found,
-              how sure it is, and what it checked. Higher tiers buy the guarantee — auto-approval at
-              a stated error budget — per-vendor learning from your corrections, and the right to
-              keep documents inside your network.
+              your invoices and receipts on your own machine and shows its work: where each value was
+              found on the page, how sure it is, and what it checked. Higher plans buy the guarantee —
+              invoices approved without a person, at an error rate you set — learning from your
+              corrections vendor by vendor, and the right to keep every invoice inside your building.
             </p>
             <p>
-              <strong className="font-medium text-ink">What you need:</strong> one GPU with 16 GB of memory for
-              the specialist reader and the 2B extractor; a scanner or an inbox; someone who will
-              correct the first hundred documents.
+              <strong className="font-medium text-ink">What you need:</strong> one computer with a good
+              graphics card (16 GB of memory on it); a scanner or an email inbox the invoices arrive
+              in; and someone who will check the first hundred invoices, because that is how it learns
+              your vendors.
             </p>
             {/* the boxed artefact of the scaffold (bar.md M4): where the sample shows a prompt, ours
                 shows what every document comes with — the specimen's own ledger, from rows */}
             <div className="border border-rule p-4 font-mono text-step--1 leading-relaxed text-ink-2">
-              <p className="micro mb-2">What every document comes with · the specimen&apos;s ledger</p>
+              <p className="micro mb-2">What every invoice comes with · the checks on the real invoice from the home page</p>
               {ledgerLines().map(([text, passed]) => (
                 <p key={text} className="flex justify-between gap-4">
                   <span className="truncate">{text}</span>
@@ -65,12 +73,12 @@ export default async function PricingPage() {
             <p className="callout">
               <strong className="font-medium text-ink"><span aria-hidden className="mr-2">✓</span>How you know it worked:</strong>{" "}
               <span className="readout text-step-1 text-ink">
-                {m.field_f1 != null ? `${(m.field_f1 * 100).toFixed(1)} %` : "—"}
+                {m.field_f1 != null ? `${Math.round(m.field_f1 * 100)} of 100` : "—"}
               </span>{" "}
-              field-level accuracy on {m.documents ?? "—"} held-out documents,{" "}
-              {secondsPerPage != null ? `${secondsPerPage} s` : "—"} per page on one GPU, and today an honest
-              0 % auto-approved at ≤ 1 % field error — the number every plan is measured against, never
-              typed.
+              fields read correctly on {m.documents ?? "—"} invoices it had never seen, about{" "}
+              {secondsPerPage != null ? `${secondsPerPage} seconds` : "—"} per page on one machine — and today
+              an honest 0 of {m.documents ?? "—"} approved without a person at 1 % error, because it would not
+              guess a vendor it had never seen. Every plan is measured against these numbers; none is typed.
             </p>
           </div>
         </div>
@@ -93,17 +101,18 @@ export default async function PricingPage() {
           <div className="flex max-w-[66ch] flex-col gap-4 text-step-0 leading-relaxed text-ink-2">
             <p>
               <strong className="font-medium text-ink">What it does, in plain words.</strong> The plans differ in
-              how many documents are included, who may sit at the review queue, and whether the
-              guarantee, the per-vendor fine-tunes and on-premise deployment are switched on. The
-              transparency view is in every plan; there is no tier where the model hides its work.
+              how many invoices a month are included, how many people can sit at the review queue,
+              and whether approval without a person, learning from your corrections, and running
+              inside your own building are switched on. Seeing where every number came from is in
+              every plan; there is no plan where it hides its work.
             </p>
             <p>
-              <strong className="font-medium text-ink">What you need:</strong> an estimate of documents per month.
-              Overage is per document, so a plan is a floor, not a ceiling.
+              <strong className="font-medium text-ink">What you need:</strong> a rough count of invoices a month.
+              Going over is charged per invoice, so a plan is a floor, not a ceiling.
             </p>
             {/* the boxed artefact: the allowance arithmetic, each line from a measured number */}
             <div className="border border-rule p-4 font-mono text-step--1 leading-relaxed text-ink-2">
-              <p className="micro mb-2">The allowance, in GPU-hours · {secondsPerPage ?? "—"} s per page measured</p>
+              <p className="micro mb-2">How long each plan&apos;s invoices keep one machine busy · at {secondsPerPage ?? "—"} s per page, measured</p>
               {plans.map((p) => (
                 <p key={p.code} className="flex justify-between gap-4">
                   <span className="truncate">
@@ -121,14 +130,15 @@ export default async function PricingPage() {
               <strong className="font-medium text-ink"><span aria-hidden className="mr-2">✓</span>How you know it worked:</strong>{" "}
               <span className="readout text-step-1 text-ink">
                 {secondsPerPage != null && plans[0]
-                  ? `${Math.round((plans[0].included_documents * secondsPerPage) / 3600 * 10) / 10} GPU-hours`
+                  ? `${Math.round((plans[0].included_documents * secondsPerPage) / 3600 * 10) / 10} hours`
                   : "—"}
               </span>{" "}
-              is what the Starter allowance costs at today&apos;s measured {secondsPerPage ?? "—"} s per page
+              of one machine&apos;s time is what the Starter plan&apos;s invoices take at today&apos;s measured{" "}
+              {secondsPerPage ?? "—"} seconds per page
               {secondsPerPage != null && plans[2]
-                ? `; the Sovereign allowance is ${Math.round((plans[2].included_documents * secondsPerPage) / 3600)} GPU-hours a month`
+                ? `; the Sovereign plan's take ${Math.round((plans[2].included_documents * secondsPerPage) / 3600)} hours a month`
                 : ""}
-              . The numbers on this page come from the same rows as the product.
+              . The numbers on this page come from the same records as the product.
             </p>
           </div>
         </div>

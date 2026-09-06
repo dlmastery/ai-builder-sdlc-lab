@@ -17,7 +17,12 @@ PLANS: list[dict[str, object]] = [
         "monthly_price_cents": 0,
         "included_documents": 100,
         "per_document_cents": 12,
-        "features": ["Transparency view", "Review queue", "1 seat"],
+        # plan features in the customer's words (positioning.md, D-047)
+        "features": [
+            "See where every number came from",
+            "A queue of what needs a person",
+            "1 seat",
+        ],
     },
     {
         "code": "team",
@@ -27,8 +32,8 @@ PLANS: list[dict[str, object]] = [
         "per_document_cents": 6,
         "features": [
             "Everything in Starter",
-            "Calibrated auto-approval with error budget",
-            "Vendor learning curves",
+            "Approval without a person, at an error rate you set",
+            "Accuracy per vendor, and how it improves",
             "10 seats",
         ],
     },
@@ -40,8 +45,8 @@ PLANS: list[dict[str, object]] = [
         "per_document_cents": 3,
         "features": [
             "Everything in Team",
-            "Runs on your hardware; documents never leave your network",
-            "Private fine-tunes from your corrections",
+            "Runs in your building; no invoice leaves it",
+            "Learns your vendors from your own corrections",
             "Unlimited seats",
         ],
     },
@@ -56,10 +61,18 @@ STUB_VERSIONS: list[dict[str, object]] = [
 
 
 def ensure_plans(db: DbSession) -> None:
-    existing = {p.code for p in db.scalars(select(Plan))}
+    existing = {p.code: p for p in db.scalars(select(Plan))}
     for spec in PLANS:
-        if spec["code"] not in existing:
+        plan = existing.get(str(spec["code"]))
+        if plan is None:
             db.add(Plan(**spec))
+        else:
+            # copy is versioned here, not in the database: the words a plan shows follow the
+            # code (D-047); prices and allowances stay whatever the row says
+            plan.name = str(spec["name"])
+            features = spec["features"]
+            assert isinstance(features, list)
+            plan.features = list(features)
     db.flush()
 
 
