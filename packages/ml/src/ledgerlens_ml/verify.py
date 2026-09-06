@@ -67,14 +67,24 @@ def ground(fields: list[ExtractedField], ocr: OcrResult) -> list[VerifierOutcome
     """A field is grounded when its normalised value matches a run of consecutive OCR words on
     one reading line near its box (D-014). Real OCR emits one word per box, so multi-word values
     must match spans, not single words. When the extractor gave no box, the matching span lends
-    its boxes."""
-    outcomes: list[VerifierOutcome] = []
+    its boxes.
+
+    One field, one span. A value can match in several places — a quantity "1" is in "1 Harbour
+    St" and, through normalisation, in any span that contains a 1 — so the candidates are ranked:
+    the fewest words first (the tightest evidence), then the reading line the field's own line
+    item was found on, then reading order (the extended amount takes the last money on its
+    line, the columns before it the first). Design loop P3 round 8 (D-044)."""
     lines = _lines(ocr)
-    for f in fields:
+    # reading lines already claimed by each line item — its description is grounded first
+    item_lines: dict[int, set[int]] = {}
+    order = sorted(range(len(fields)), key=lambda i: 0 if fields[i].name == "description" else 1)
+    outcomes: list[VerifierOutcome | None] = [None] * len(fields)
+    for i in order:
+        f = fields[i]
         target = normalize(f.name, f.value)
-        matched: list[Box] = []
+        candidates: list[tuple[tuple[int, int, float], int, list[Box]]] = []
         if target is not None:
-            for line in lines:
+            for li, line in enumerate(lines):
                 n = len(line)
                 for start in range(n):
                     for length in range(1, min(MAX_SPAN, n - start) + 1):
@@ -85,20 +95,28 @@ def ground(fields: list[ExtractedField], ocr: OcrResult) -> list[VerifierOutcome
                         span_boxes = [w.box for w in span]
                         if f.boxes and not any(_overlaps(_union(span_boxes), b) for b in f.boxes):
                             continue
-                        matched.extend(span_boxes)
+                        on_own_item = f.line_index is not None and li in item_lines.get(
+                            f.line_index, set()
+                        )
+                        x0 = span_boxes[0].x0
+                        rank = (length, 0 if on_own_item else 1, -x0 if f.name == "amount" else x0)
+                        candidates.append((rank, li, span_boxes))
                         break
+        matched: list[Box] = []
+        if candidates:
+            _, li, matched = min(candidates, key=lambda c: c[0])
+            if f.line_index is not None:
+                item_lines.setdefault(f.line_index, set()).add(li)
         if matched and not f.boxes:
             f.boxes = matched
-        outcomes.append(
-            VerifierOutcome(
-                rule="grounding",
-                passed=bool(matched),
-                field_name=f.name,
-                line_index=f.line_index,
-                detail={"matched_words": len(matched), "normalized": target},
-            )
+        outcomes[i] = VerifierOutcome(
+            rule="grounding",
+            passed=bool(matched),
+            field_name=f.name,
+            line_index=f.line_index,
+            detail={"matched_words": len(matched), "normalized": target},
         )
-    return outcomes
+    return [o for o in outcomes if o is not None]
 
 
 def _money(fields: list[ExtractedField], name: str) -> Decimal | None:

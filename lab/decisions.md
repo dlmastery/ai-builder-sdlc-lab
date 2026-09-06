@@ -320,6 +320,15 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** rule 1 — the AI Builder sets the order of work; and a design pass with a dev server, a headless browser and three critic subagents competes with the trainer for the same commit budget that has killed six runs.
 - **Date:** 2026-09-06
 
+## D-044 · One field, one span — grounding picks the tightest match, not every match
+
+- **Context:** the round-8 system critic on the transparency view saw "large tan rectangles lumping several fields into one box". The cause was not styling: `ground()` kept *every* OCR span whose normalised text equalled the value, and for a quantity of `1` that is every span on the page containing a 1 — "Calibration service, quarterly 1" (four words), the "1" of "1 Harbour St" — eleven boxes for one field. Money columns had the same defect in a milder form: a unit price equal to its extended amount matched both columns.
+- **Decided:** a field takes exactly one span. Candidates are ranked by span length (fewest words — the tightest evidence), then by whether the span lies on a reading line already claimed by the field's own line item (descriptions are grounded first and claim their line), then by reading order — the extended amount takes the last money on its line, every other field the first. Existing rows are records of what the old verifier did; the specimen document was re-read through the API rather than patched, so its rows come from the shipped code.
+- **Alternatives:** union-box in the UI (hides the defect); restricting numeric matches to whole words (fixes the quantity but not the equal-money case); a similarity score per candidate (a number nobody can check by looking).
+- **Evidence:** `tests/ml/test_verify.py` — three tests red before the change, green after; the re-read specimen shows one box per field on every line item (`story/assets/design/document-round9.png`).
+- **Why:** rule 19 — every mark on the page must be evidence, and eleven boxes for a `1` is noise dressed as evidence. The design loop's critics judge renders, and a render is where a grounding bug becomes visible.
+- **Date:** 2026-09-06
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.

@@ -35,20 +35,36 @@ const TONE_TEXT: Record<Tone, string> = {
   fault: "text-fault",
 };
 
-const HEADER_ORDER = [
-  "vendor_name",
-  "invoice_number",
-  "issue_date",
-  "due_date",
-  "currency",
-  "subtotal",
-  "tax",
-  "total",
-  "payment_terms",
-  "vendor_address",
+// the readouts in three groups with room between them — who, when, how much — instead of one
+// spreadsheet of hairline rows (design loop P3 round 8)
+const HEADER_GROUPS: Array<{ label: string; names: string[] }> = [
+  { label: "Who", names: ["vendor_name", "vendor_address", "invoice_number"] },
+  { label: "When", names: ["issue_date", "due_date", "payment_terms"] },
+  { label: "How much", names: ["currency", "subtotal", "tax", "total"] },
 ];
+const HEADER_ORDER = HEADER_GROUPS.flatMap((g) => g.names);
 
 const HARD_SPOT_SCORE = 0.85;
+
+/** Merge boxes that share a reading line (vertical overlap) into one span each; boxes on other
+ *  lines stay separate. Returns [x0, y0, x1, y1] spans, top to bottom. */
+export function lineSpans(boxes: number[][]): Array<[number, number, number, number]> {
+  const sorted = boxes.map((b) => [b[1], b[2], b[3], b[4]] as [number, number, number, number]).sort((a, b) => a[1] - b[1]);
+  const out: Array<[number, number, number, number]> = [];
+  for (const b of sorted) {
+    const last = out[out.length - 1];
+    const overlap = last ? Math.min(last[3], b[3]) - Math.max(last[1], b[1]) : 0;
+    if (last && overlap > 0.5 * Math.min(last[3] - last[1], b[3] - b[1])) {
+      last[0] = Math.min(last[0], b[0]);
+      last[1] = Math.min(last[1], b[1]);
+      last[2] = Math.max(last[2], b[2]);
+      last[3] = Math.max(last[3], b[3]);
+    } else {
+      out.push([...b]);
+    }
+  }
+  return out;
+}
 
 type Layer = "fields" | "words" | "hard";
 
@@ -208,12 +224,10 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
               ex.fields
                 .filter((f) => f.boxes.length > 0)
                 .map((f) => {
-                  // one box per field spanning the words it was grounded on: per-word boxes fuse
-                  // into blobs at line-item density (P3 round 8)
-                  const xs0 = f.boxes.map((b) => b[1]), ys0 = f.boxes.map((b) => b[2]);
-                  const xs1 = f.boxes.map((b) => b[3]), ys1 = f.boxes.map((b) => b[4]);
-                  const x0 = Math.min(...xs0), y0 = Math.min(...ys0);
-                  const x1 = Math.max(...xs1), y1 = Math.max(...ys1);
+                  // one box per reading line: a field's boxes may sit on different lines (every
+                  // matching occurrence is kept), so they are merged only where they overlap
+                  // vertically; per-word boxes fused into blobs at line-item density (P3 round 9)
+                  const spans = lineSpans(f.boxes);
                   const conf = f.calibrated_confidence ?? 0;
                   const tone = toneFor(f, threshold);
                   const isSel = f.id === selected;
@@ -223,21 +237,24 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
                   const fs = Math.max(10, page.width * 0.012);
                   return (
                     <g key={f.id} className="arrive" data-layer="4">
-                      <rect
-                        data-testid="field-box"
-                        data-tone={tone}
-                        x={x0}
-                        y={y0}
-                        width={x1 - x0}
-                        height={y1 - y0}
-                        fill={TONE_VAR[tone]}
-                        fillOpacity={tone === "signal" ? Math.max(0.08, conf * 0.32) : 0.22}
-                        stroke={TONE_VAR[tone]}
-                        strokeWidth={isSel ? 3 : 1}
-                        strokeOpacity={isSel ? 1 : 0.8}
-                      />
-                      {label ? (
-                        <text x={x1 + fs * 0.5} y={y0 + fs} fill={TONE_VAR[tone]} fontSize={fs} fontFamily="var(--font-mono)">
+                      {spans.map(([x0, y0, x1, y1], i) => (
+                        <rect
+                          key={i}
+                          data-testid="field-box"
+                          data-tone={tone}
+                          x={x0}
+                          y={y0}
+                          width={x1 - x0}
+                          height={y1 - y0}
+                          fill={TONE_VAR[tone]}
+                          fillOpacity={tone === "signal" ? Math.max(0.08, conf * 0.32) : 0.22}
+                          stroke={TONE_VAR[tone]}
+                          strokeWidth={isSel ? 3 : 1}
+                          strokeOpacity={isSel ? 1 : 0.8}
+                        />
+                      ))}
+                      {label && spans[0] ? (
+                        <text x={spans[0][2] + fs * 0.5} y={spans[0][1] + fs} fill={TONE_VAR[tone]} fontSize={fs} fontFamily="var(--font-mono)">
                           {label}
                         </text>
                       ) : null}
@@ -271,8 +288,11 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
 
         <section className="flex flex-col gap-2">
           <p className="micro">Fields · {ex.model_version.kind} {ex.model_version.name}</p>
+          {HEADER_GROUPS.map((g) => (
+          <div key={g.label} className="mt-4 flex flex-col gap-1 first:mt-0">
+          <p className="micro text-ink-3/80">{g.label}</p>
           <ul className="rule-y border-t border-rule">
-            {missingRequired.map((n) => (
+            {missingRequired.filter((n) => g.names.includes(n)).map((n) => (
               <li key={`missing-${n}`} data-testid={`readout-${n}`} className="grid grid-cols-[1fr_auto] items-baseline gap-3 py-3">
                 {editing === `add:${n}` ? (
                   <form
@@ -322,7 +342,7 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
                 </span>
               </li>
             ))}
-            {header.map((f) => (
+            {header.filter((f) => g.names.includes(f.name)).map((f) => (
               <Readout
                 key={f.id}
                 field={f}
@@ -343,6 +363,8 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
               />
             ))}
           </ul>
+          </div>
+          ))}
         </section>
 
         {lines.length > 0 ? (
@@ -524,7 +546,7 @@ function Readout({
   const tone = toneFor(field, threshold);
   const wasCorrected = field.corrections.length > 0;
   return (
-    <li className={selected ? "bg-surface" : ""}>
+    <li className={`group ${selected ? "bg-surface" : ""}`}>
       <div className="grid grid-cols-[1fr_auto] items-baseline gap-3 py-3">
         {editing ? (
           <form
@@ -567,7 +589,15 @@ function Readout({
           </span>
           {field.stability != null ? <StabilityRing value={field.stability} /> : null}
           {!editing ? (
-            <button type="button" onClick={onEdit} data-testid={`correct-${field.name}`} className="text-step--1 text-ink-3 hover:text-ink" aria-label={`Correct ${fieldLabel(field.name)}`}>
+            // the control appears for the row under the pointer, the focused row and the selected
+            // one — not on every row at once (design loop P3 round 8)
+            <button
+              type="button"
+              onClick={onEdit}
+              data-testid={`correct-${field.name}`}
+              className={`text-step--1 text-ink-3 transition-opacity hover:text-ink group-hover:opacity-100 group-focus-within:opacity-100 ${selected ? "opacity-100" : "opacity-0"}`}
+              aria-label={`Correct ${fieldLabel(field.name)}`}
+            >
               edit
             </button>
           ) : null}
