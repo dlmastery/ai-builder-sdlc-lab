@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import specimen from "@/specimen/northwind.json";
+import { reasonChip } from "@/lib/format";
 
 // The home-page specimen is the real thing: a document read by the pinned extractor, exported
 // from rows by scripts/export_specimen.py (fields, boxes, calibrated confidence, OCR words,
@@ -120,7 +121,7 @@ export function Specimen() {
           ))}
           <span className="text-ink-2">
             verdict · {specimen.verdict.decision?.replaceAll("_", " ")}
-            {reasons.length ? ` · ${reasons.map((r) => `${r.field ?? ""} ${String(r.why ?? "").replaceAll("_", " ")}`).join(", ")}` : ""}
+            {reasons.length ? ` · ${reasons.map((r) => reasonChip(r.field ?? "", String(r.why ?? ""))).join(" · ")}` : ""}
           </span>
           <span className={specimen.verdict.decision === "auto_approved" ? "text-ink-2" : "text-fault"}>
             {specimen.verdict.decision === "auto_approved" ? "✓" : "review"}
