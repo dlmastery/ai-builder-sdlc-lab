@@ -258,6 +258,19 @@ A fresh-context agent walked the running app as a first-time customer — deskto
 
 *Fixed, one at a time, each re-run against the step that found it:* the sign-in button is disabled until the form has hydrated and the form posts, never gets — a pre-hydration click can no longer put a password in a URL; the reveal degrades to visible (a section that is never scrolled to still appears after two seconds, and reduced motion shows everything at once); the title is the invoice number alone, the vendor in the eyebrow above it; the ledger marks a failed check "overridden by a person" in ink once the document is approved; a queue row says "same file as an earlier upload" when its bytes match an older document (the API compares the stored hash — a test written red first); the phone layout: the header wraps and the document page stacks, so nothing sits outside the viewport. Sign-in validation is now the app's own sentence, not the browser's tooltip.
 
+*The re-run, measured (a Playwright script replaying the failing steps; `story/assets/customer-test/fix-*.png`):*
+
+| Step that failed | Before | After |
+|---|---|---|
+| Click Sign in before hydration | native GET, password in the URL | button disabled until hydrated; URL unchanged; no `password=` |
+| Phone document page width | 1,265 px of controls off-screen | page 390 px wide; Approve at x = 244 |
+| Phone inbox and pricing width | horizontal scroll | 390 px (pricing needed a second pass — a display-size price had set its column's minimum) |
+| Home captured without scrolling | story sections hidden | 0 hidden sections after 2 s |
+| Ledger after approval | red ✗ on overridden checks | 6 rows "· overridden by a person" in ink, 0 red |
+| Same page, different file | two identical rows | the newer row says "same file as an earlier upload" — migration 0002 adds the page hash, 19 existing pages back-filled locally |
+
+One more thing the re-run found that the customer had not: the verdict panel arrived 720 ms after the page — a phone capture caught it blank. The evidence layers' entrance now resolves inside 400 ms, which is what bar.md's M7 asked for all along.
+
 *CI, twice red (rounds 12 and 13):* the slice-C browser test found the evidence-layer toggle by its label — `○ fields` — and round 12 had renamed the label to "where each value was found" for the brief critic. The behaviour under test (the layer toggles off; the boxes disappear) had not changed; the test was coupled to copy. Under rule 8 that is a test flagged as wrong, not edited to pass: the toggle now carries a stable `data-testid` and the test reads it by that. Recorded here because a green run after a red one must say what the red was.
 
 Round-1 critics were three `sonnet` subagents per piece with fresh context — each saw only the render and its brief (the goal; `DESIGN.md`; `bar.md` plus the reference PDF), never the code. Their verdicts were binary and their gaps were specific enough to act on in one pass, which is the argument for the method: the builder had looked at the same render and seen nothing wrong with it.
