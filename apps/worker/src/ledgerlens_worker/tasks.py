@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import uuid
 
+from celery import Task
+
 from ledgerlens_core import jobs
 from ledgerlens_core.celery_app import celery_app
 from ledgerlens_ml import pipeline
@@ -11,6 +13,6 @@ from ledgerlens_ml import pipeline
 jobs.handler("process_document")(pipeline.process_document)
 
 
-@celery_app.task(name="jobs.run", bind=True, max_retries=3, default_retry_delay=15)
-def run_job_task(self, job_id: str) -> None:  # type: ignore[no-untyped-def]
+@celery_app.task(name="jobs.run", bind=True, max_retries=3, default_retry_delay=15)  # type: ignore[untyped-decorator]
+def run_job_task(self: Task, job_id: str) -> None:
     jobs.run_job(uuid.UUID(job_id))

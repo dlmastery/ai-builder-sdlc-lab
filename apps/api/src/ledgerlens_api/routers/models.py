@@ -31,21 +31,23 @@ def production(
         m.kind: model_version_out(m)
         for m in db.scalars(select(ModelVersion).where(ModelVersion.pinned.is_(True)))
     }
-    doc_counts = dict(
-        db.execute(
+    doc_counts: dict[str, int] = {
+        str(status): int(n)
+        for status, n in db.execute(
             select(Document.status, func.count())
             .where(Document.tenant_id == principal.tenant_id)
             .group_by(Document.status)
-        ).all()
-    )
+        )
+    }
     doc_counts["total"] = sum(doc_counts.values())
-    job_counts = dict(
-        db.execute(
+    job_counts: dict[str, int] = {
+        str(status): int(n)
+        for status, n in db.execute(
             select(Job.status, func.count())
             .where(Job.tenant_id == principal.tenant_id)
             .group_by(Job.status)
-        ).all()
-    )
+        )
+    }
     open_signals = db.scalar(select(func.count()).where(Signal.status == "open")) or 0
     return ProductionOut(
         pinned=pinned,

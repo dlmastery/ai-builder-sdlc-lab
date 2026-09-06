@@ -32,6 +32,11 @@ Type and space step by φ ≈ 1.618 so hierarchy is proportional rather than arb
 
 Spacing uses the same ladder (`--space-*`), rounded to whole pixels: 4 · 6 · 10 · 16 · 26 · 42 · 68 · 110.
 
+*Correction after the first critic pass (Chapter 08):* the ladder below 16 px produces text that
+is too small to read (`--step--2` is 6 px). Micro labels use `--step--1` with an 11.5 px floor, and
+tertiary ink was lightened to `#7a8591` for 4.6:1 contrast. The ratio still governs; legibility wins
+where they conflict.
+
 ## Colour
 
 - Ground: `#0B0D10` (matte, not pure black); raised surface: `#12151A`; rule: `#1F242C`.

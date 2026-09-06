@@ -59,7 +59,7 @@ def ensure_plans(db: DbSession) -> None:
     existing = {p.code for p in db.scalars(select(Plan))}
     for spec in PLANS:
         if spec["code"] not in existing:
-            db.add(Plan(**spec))  # type: ignore[arg-type]
+            db.add(Plan(**spec))
     db.flush()
 
 
@@ -71,7 +71,7 @@ def ensure_stub_model_versions(db: DbSession) -> None:
             )
         )
         if pinned is None:
-            db.add(ModelVersion(pinned=True, metrics={}, **spec))  # type: ignore[arg-type]
+            db.add(ModelVersion(pinned=True, metrics={}, **spec))
     db.flush()
 
 

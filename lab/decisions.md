@@ -143,6 +143,20 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** the adopted techniques are about *judgement applied early and repeatedly*; that is the AI Builder posture. The rejected ones would trade the taste bet for speed.
 - **Date:** 2026-09-05
 
+## D-020 · Colour carries approval semantics only: red = blocks approval, amber = low confidence that cannot block, green = clear
+
+- **Decided:** in the transparency view, a field reads *fault* (red) only if it is ungrounded or is a required-for-approval field below threshold; a non-required field below threshold reads *caution* (amber); everything else reads *signal*. The rule mirrors `REQUIRED_FOR_APPROVAL` in `ledgerlens_ml.schema` and is asserted by the e2e suite (exactly one fault box on the specimen).
+- **Alternatives:** tint every field by threshold (the first implementation); no colour, numbers only.
+- **Why:** the first critic pass found six red fields on a page whose verdict listed one reason. Colour that disagrees with the verdict is a lie with good intentions. Numbers always sit beside the colour (DESIGN.md), so the amber tier adds information without adding noise.
+- **Date:** 2026-09-05
+
+## D-021 · Web tier: BFF rewrites, server-side fetch with forwarded cookie, single retry on idempotent transport errors
+
+- **Decided:** browser → same-origin `/api/*` → API (rewrite); server components → `API_URL` with the session cookie forwarded; GET/HEAD retry once on a transport-level failure (a reused keep-alive socket the API already closed), nothing else retries.
+- **Alternatives:** cross-origin calls with CORS credentials; a Next route-handler proxy per endpoint; no retry.
+- **Why:** same-origin keeps cookies and CSRF simple and is what a reverse proxy does in production. The retry exists because a Playwright run hit "fetch failed: other side closed" once on a healthy API; the failure is a transport race, idempotent by definition, and a single retry is the honest fix rather than a re-run.
+- **Date:** 2026-09-05
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.

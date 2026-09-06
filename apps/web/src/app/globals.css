@@ -1,26 +1,131 @@
 @import "tailwindcss";
 
+/* Design tokens — see DESIGN.md. Direction B · Instrument. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --phi: 1.618;
+  --step--2: 0.382rem;
+  --step--1: 0.618rem;
+  --step-0: 1rem;
+  --step-1: 1.618rem;
+  --step-2: 2.618rem;
+  --step-3: 4.236rem;
+  --step-4: 6.854rem;
+
+  --space-1: 4px;
+  --space-2: 6px;
+  --space-3: 10px;
+  --space-4: 16px;
+  --space-5: 26px;
+  --space-6: 42px;
+  --space-7: 68px;
+  --space-8: 110px;
+
+  --ground: #0b0d10;
+  --surface: #12151a;
+  --rule: #1f242c;
+  --ink: #e6e8eb;
+  --ink-2: #9aa3ad;
+  --ink-3: #7a8591; /* 4.6:1 on --ground; the φ ladder's smallest text needs it */
+  --signal: #7cf2c4;
+  --fault: #ff6b6b;
+  --caution: #f2c879;
+
+  --radius: 3px;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, "SF Mono", Menlo, monospace;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-ground: var(--ground);
+  --color-surface: var(--surface);
+  --color-rule: var(--rule);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-signal: var(--signal);
+  --color-fault: var(--fault);
+  --color-caution: var(--caution);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --text-step--2: var(--step--2);
+  --text-step--1: var(--step--1);
+  --text-step-0: var(--step-0);
+  --text-step-1: var(--step-1);
+  --text-step-2: var(--step-2);
+  --text-step-3: var(--step-3);
+  --text-step-4: var(--step-4);
+  --spacing-1: var(--space-1);
+  --spacing-2: var(--space-2);
+  --spacing-3: var(--space-3);
+  --spacing-4: var(--space-4);
+  --spacing-5: var(--space-5);
+  --spacing-6: var(--space-6);
+  --spacing-7: var(--space-7);
+  --spacing-8: var(--space-8);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: dark;
+  background: var(--ground);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "tnum", "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.micro {
+  font-size: max(var(--step--1), 0.72rem); /* the ladder goes below legibility; floor at 11.5px */
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.readout {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.rule-y > * + * {
+  border-top: 1px solid var(--rule);
+}
+
+/* One reveal per screen: layers arrive in the order the pipeline produced them. */
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.arrive {
+  animation: arrive 180ms ease-out both;
+}
+.arrive[data-layer="1"] { animation-delay: 0ms; }
+.arrive[data-layer="2"] { animation-delay: 180ms; }
+.arrive[data-layer="3"] { animation-delay: 360ms; }
+.arrive[data-layer="4"] { animation-delay: 540ms; }
+.arrive[data-layer="5"] { animation-delay: 720ms; }
+.arrive[data-layer="6"] { animation-delay: 900ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .arrive {
+    animation: none;
+  }
+}
+
+:focus-visible {
+  outline: 1px solid var(--signal);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--signal) 30%, transparent);
 }

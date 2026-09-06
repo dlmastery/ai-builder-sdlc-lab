@@ -6,6 +6,8 @@ API and UI are exercised end to end before any weight file exists (decision D-01
 
 from __future__ import annotations
 
+from typing import TypedDict
+
 from ledgerlens_ml.types import (
     Box,
     Candidate,
@@ -15,8 +17,19 @@ from ledgerlens_ml.types import (
     OcrWord,
 )
 
+
+class _Spec(TypedDict, total=False):
+    name: str
+    value: str
+    conf: float
+    box: tuple[float, float, float, float]  # fractions of page width/height
+    alts: list[tuple[str, float]]
+    line: int
+
+
 # Fractions of page width/height so the fixture fits any page size.
-_FIXTURE: list[dict[str, object]] = [
+# Positions match scripts/make_specimen.py.
+_FIXTURE: list[_Spec] = [
     {
         "name": "vendor_name",
         "value": "Northwind Traders",
@@ -101,18 +114,17 @@ class StubExtractor:
         width, height = page_sizes[1]
         fields: list[ExtractedField] = []
         for spec in _FIXTURE:
-            conf = float(spec["conf"])  # type: ignore[arg-type]
-            alternatives = [Candidate(str(spec["value"]), conf)]
-            for alt_value, alt_p in spec.get("alts", []):  # type: ignore[union-attr]
-                alternatives.append(Candidate(alt_value, float(alt_p)))
+            conf = spec["conf"]
+            alternatives = [Candidate(spec["value"], conf)]
+            alternatives += [Candidate(v, p) for v, p in spec.get("alts", [])]
             fields.append(
                 ExtractedField(
-                    name=str(spec["name"]),
-                    value=str(spec["value"]),
+                    name=spec["name"],
+                    value=spec["value"],
                     raw_confidence=conf,
-                    boxes=[_box(1, spec["box"], width, height)],  # type: ignore[arg-type]
+                    boxes=[_box(1, spec["box"], width, height)],
                     alternatives=alternatives,
-                    line_index=spec.get("line"),  # type: ignore[arg-type]
+                    line_index=spec.get("line"),
                 )
             )
         return ExtractionResult(fields=fields, raw_output={"stub": True}, latency_ms=3)
@@ -126,7 +138,6 @@ class StubOcr:
     def run(self, page_sizes: dict[int, tuple[int, int]]) -> OcrResult:
         width, height = page_sizes[1]
         words = [
-            OcrWord(str(spec["value"]), _box(1, spec["box"], width, height), 0.99)  # type: ignore[arg-type]
-            for spec in _FIXTURE
+            OcrWord(spec["value"], _box(1, spec["box"], width, height), 0.99) for spec in _FIXTURE
         ]
         return OcrResult(words=words, page_sizes=page_sizes)

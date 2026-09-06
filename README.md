@@ -22,6 +22,23 @@ The AI Builder does not write code, columns, layer widths, or CSS. The AI Builde
 
 Every gate is a git tag (`gate-1-intent`, `gate-2-spec`, `gate-3-loop-graph`, `gate-4-plan`, `slice-a`, `slice-b`, `slice-c`, …). `git checkout gate-2-spec` shows you exactly what existed the moment the spec was accepted — and nothing more.
 
+## Running the product
+
+```
+cp .env.example .env               # set SECRET_KEY (openssl rand -hex 32)
+make up                            # full stack: postgres, redis, minio, api, workers, web
+make seed                          # demo tenant + three roles (see output for passwords)
+open http://localhost:3000
+```
+
+For development on one machine: `make infra`, `make migrate`, `make seed`, then run the API
+(`JOBS_INLINE=1 uv run uvicorn ledgerlens_api.main:app --port 8000`) and the web app
+(`cd apps/web && pnpm dev`). Tests: `make test` (Python, needs `make infra`) and `make test-ui`
+(Playwright, needs the API and web running).
+
+Behind a corporate TLS proxy on Windows: `UV_NATIVE_TLS=1` for `uv`, and `truststore` for Python
+scripts that fetch.
+
 ## What this lab is *not*
 
 It is not Spec Kit, BMAD, Kiro/EARS, or any "write a design novel before the agent may think" method. Those were harnesses for weaker models. Here the spec is short, policy lives in deterministic checks, and the SDLC is a **git-triggered loop drawn as a directed graph**, not a waterfall with extra Markdown.
