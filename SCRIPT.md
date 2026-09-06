@@ -224,6 +224,16 @@ Then the product on the real model: adapter, calibrator, threshold and difficult
 
 ---
 
+## Beat 16 — "I am really not able to make sense of anything useful out of it"
+
+**AI Builder:** *"Critic the home page and website — I am really not able to make sense of anything useful out of it."* Then: *"Fix it."* Then a founder framework, fourteen skills from Customer Development: *"I sent you also skills for the same."*
+
+**Fable:** You were right, and my critics could not have told me: I had written their goal, in my words, so they judged a builder's page by a builder's standard. The headline said "extraction" and never said of what. The first number a visitor saw was "0 %" beside "F1". Five sections were titled for what the machine does. Your framework asks the question the site had never been asked — who is this for and what is their pain — so that is where the fix starts: a positioning page in the clerk's words, then the site from it. "Invoices in. Numbers you can trust out." Every section titled for what the reader gets. Every number a sentence: "95 of every 100 fields", "0 of 60 today, and here is why." A grep over the finished page for every pipeline noun: none left. The procedure is a skill now, so the next product's site is written from the customer's side first (D-047).
+
+> *notice:* the most consequential steer of the day is the one the loop had certified as done. The AI Builder judged as the customer, not as the builder — which is the one critic the agent cannot spawn — and supplied the framework rather than the copy.
+
+---
+
 ## What an AI Builder does, in one table
 
 | Turn | Judgement | Words used |
@@ -232,7 +242,7 @@ Then the product on the real model: adapter, calibrator, threshold and difficult
 | Answer the grilling | done-as-a-number, who challenges, what never happens, hardware, freshness, scope | six answers |
 | Four gates | accept / accept + one steer / accept / accept + one design pick | ~30 words |
 | Three slices | look at the running product; reject a question, not the work | one correction |
-| Steers | a design video; "are you still cataloguing?"; "ML 101"; a sample PDF; "tonight, not now" | five lines and one file |
+| Steers | a design video; "are you still cataloguing?"; "ML 101"; a sample PDF; "tonight, not now"; "I cannot make sense of it" + a founder framework | six lines and two files |
 | Close | "checkpoint" · "done — happy with loss" | two lines |
 
 Everything else — forty-six decisions, twelve chapters, a hundred-some tests, seven training attempts, fourteen design rounds, one customer test, one product — was the agent's.

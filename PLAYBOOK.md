@@ -119,8 +119,10 @@ This is everything the AI Builder typed across the lab, unedited (typos kept: th
 | 40 | `you update all cluade.md and other md files with all the steering i gave so ai builder can take advantage of all these` | `CLAUDE.md` rewritten with every steer at the 20-line cap; README, PLAYBOOK, SCRIPT, skills updated. |
 | 41 | `the finetuning futher can happen this night - not now. for now lets focus on completing the app fully and amazing dazzling way` | D-043: training paused (attempt six had exited at step 9); the day to the app — the design loop to its end, then the customer test. |
 | 42 | `lets restart chrome ?` · `i restarted chrome` · `i just stop chrome. please restart` | The browser's memory returned to the commit budget; the demo tab reopened by the agent. |
+| 43 | `what is the status` | The loop's close, the tally, what was pending — one screen. |
+| 44 | `critic the home page and website - i am really not able to make sense of anything useful out of it.` · `fix it` · `i sent you also skills for the same` | D-047: with every critic passing, the AI Builder could not tell what the product was for — the critics had judged a builder's page by a builder's goal. Their founder framework (Customer Development: positioning, discovery, narrative) became `apps/web/design/positioning.md`, the site was rewritten from it in the customer's words, and the procedure is the `positioning-the-product` skill. |
 
-Forty-two messages; four of them are the word "accept", and the longest ones are taste and standards, never how. That ratio is the lab.
+Forty-four messages; four of them are the word "accept", and the longest ones are taste and standards, never how. That ratio is the lab.
 
 ## 8. When the loop is closed
 
