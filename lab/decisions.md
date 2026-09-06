@@ -193,6 +193,13 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** the leader stays the leader where its quality matters; a second OCR engine would be a scope expansion without a test that demands it. The per-token cost is framework overhead, not the GPU — the production container (Linux, vLLM-capable) is the right place to fix that, and it is recorded as the first performance item for the maintain loop.
 - **Date:** 2026-09-06
 
+## D-027 · Inline jobs are for tests only; any real model runs behind the queue
+
+- **Context:** with `JOBS_INLINE=1` the upload request ran the whole pipeline synchronously. With the stub that took milliseconds; with PaddleOCR-VL pinned it took ~90 s and the web tier's proxy dropped the socket ("socket hang up"). The verification run failed for the right reason.
+- **Decided:** the dev stack now runs the production shape whenever a real model is pinned — API with `JOBS_INLINE=0` returning 202, a native Celery worker consuming `cpu,gpu` (`--pool=solo` on Windows), the document page showing its "still reading" state until the verdict row exists. Inline mode stays for the test suite and for the stub-only demo.
+- **Why:** the spec's non-functionals (stateless API, queue-backed workers) were written for exactly this; a convenience flag was quietly bypassing them. The failure surfaced the moment a real component arrived, which is what Slice A's stub-through-real-plumbing design was for (D-013).
+- **Date:** 2026-09-06
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.

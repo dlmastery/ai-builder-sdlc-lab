@@ -27,9 +27,16 @@ test("the real OCR specialist turns the stamp into hard spots", async ({ page })
   const name = `northwind-real-ocr-${Date.now().toString(36)}.png`;
   await page.setInputFiles('input[type="file"]', { name, mimeType: "image/png", buffer: PNG.sync.write(png) });
   const row = page.getByTestId("document-row").filter({ hasText: name });
-  await expect(row).toBeVisible({ timeout: 360_000 });
+  await expect(row).toBeVisible({ timeout: 60_000 });
   await row.click();
-  await expect(page.getByTestId("verdict")).toBeVisible({ timeout: 60_000 });
+  // The worker reads the page asynchronously (the API returned 202); poll until the verdict lands.
+  const started = Date.now();
+  while (!(await page.getByTestId("verdict").count())) {
+    if (Date.now() - started > 360_000) throw new Error("verdict did not arrive within 6 minutes");
+    await page.waitForTimeout(10_000);
+    await page.reload();
+  }
+  await expect(page.getByTestId("verdict")).toBeVisible();
 
   // real OCR: words exist, and the stamp region yields low-score words
   await page.getByRole("button", { name: /OCR words/ }).click();

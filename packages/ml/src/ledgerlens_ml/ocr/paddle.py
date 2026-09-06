@@ -132,6 +132,38 @@ def parse_spotting(
     return out
 
 
+def line_scores(text: str, pieces: list[tuple[str, float]]) -> list[float]:
+    """Mean token probability per output line. `pieces` are (decoded token text, probability)
+    in generation order and concatenate to `text`. A token that spans a newline contributes to
+    both lines. Lines with no token (should not happen) get 0.5."""
+    lines = text.split("\n")
+    sums = [0.0] * len(lines)
+    counts = [0] * len(lines)
+    cursor = 0
+    line_idx = 0
+    line_start = 0
+    for piece, prob in pieces:
+        start, end = cursor, cursor + len(piece)
+        cursor = end
+        if piece.strip("\n") == "":
+            continue  # a bare newline token ends a line; it is not evidence about its text
+        # advance to the line containing `start`
+        while line_idx < len(lines) - 1 and start >= line_start + len(lines[line_idx]) + 1:
+            line_start += len(lines[line_idx]) + 1
+            line_idx += 1
+        i = line_idx
+        s = line_start
+        while True:
+            sums[i] += prob
+            counts[i] += 1
+            line_end = s + len(lines[i])
+            if end <= line_end + 1 or i >= len(lines) - 1:
+                break
+            s = line_end + 1
+            i += 1
+    return [sums[i] / counts[i] if counts[i] else 0.5 for i in range(len(lines))]
+
+
 def split_into_words(
     elements: list[tuple[str, tuple[float, float, float, float]]], score: float
 ) -> list[OcrWord]:
@@ -156,6 +188,7 @@ class PaddleOcrVL:
     def __init__(self) -> None:
         self._model: Any = None
         self._processor: Any = None
+        self._last_line_scores: list[float] = []
 
     def _load(self) -> None:
         if self._model is not None:
@@ -208,12 +241,14 @@ class PaddleOcrVL:
                 return_dict_in_generate=True,
             )
         seq = gen.sequences[0][inputs["input_ids"].shape[-1] :]
-        text = self._processor.decode(seq, skip_special_tokens=False)
-        probs: list[float] = []
-        for step, tok in zip(gen.scores, seq, strict=False):
-            lp = torch.log_softmax(step[0].float(), dim=-1)[tok].item()
-            probs.append(math.exp(lp))
-        mean_p = sum(probs) / len(probs) if probs else 0.5
+        tok = self._processor.tokenizer
+        pieces: list[tuple[str, float]] = []
+        for step, t in zip(gen.scores, seq, strict=False):
+            lp = torch.log_softmax(step[0].float(), dim=-1)[t].item()
+            pieces.append((tok.decode([int(t)], skip_special_tokens=False), math.exp(lp)))
+        text = "".join(p for p, _ in pieces)
+        self._last_line_scores = line_scores(text, pieces)
+        mean_p = sum(p for _, p in pieces) / len(pieces) if pieces else 0.5
         return text, float(min(max(mean_p, 0.5), 0.999))
 
     def run_images(self, images: list[Image.Image]) -> OcrResult:
@@ -227,16 +262,37 @@ class PaddleOcrVL:
             scale = MIN_LONG_SIDE / long_side if long_side < MIN_LONG_SIDE else 1.0
             seen_w, seen_h = int(image.width * scale), int(image.height * scale)
             elements = parse_spotting(text, seen_w, seen_h)
-            for w in split_into_words(elements, score):
-                b = w.box
-                words.append(
-                    OcrWord(
-                        w.text,
-                        Box(i, b.x0 / scale, b.y0 / scale, b.x1 / scale, b.y1 / scale),
-                        w.score,
+            per_element = _element_scores(text, self._last_line_scores, score)
+            for idx, el in enumerate(elements):
+                el_score = per_element[idx] if idx < len(per_element) else score
+                for w in split_into_words([el], el_score):
+                    b = w.box
+                    words.append(
+                        OcrWord(
+                            w.text,
+                            Box(i, b.x0 / scale, b.y0 / scale, b.x1 / scale, b.y1 / scale),
+                            w.score,
+                        )
                     )
-                )
         return OcrResult(words=words, page_sizes=sizes)
+
+
+def _element_scores(text: str, per_line: list[float], fallback: float) -> list[float]:
+    """Scores for the lines that `parse_spotting` will turn into elements, in order: only lines
+    that carry the LOC-token format count (blank or malformed lines are skipped by the parser)."""
+    out: list[float] = []
+    lines = text.strip().split("\n")
+    # `per_line` was computed on the unstripped text; align by matching from the end
+    offset = len(text.split("\n")) - len(lines)
+    for j, line in enumerate(lines):
+        if not line.strip():
+            continue
+        if _LOC_LINE_RE.match(line.strip()):
+            idx = j + max(offset, 0)
+            out.append(
+                float(min(max(per_line[idx], 0.01), 0.999)) if idx < len(per_line) else fallback
+            )
+    return out
 
 
 @lru_cache(maxsize=1)

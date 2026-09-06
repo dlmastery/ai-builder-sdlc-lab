@@ -33,19 +33,60 @@ def _overlaps(a: Box, b: Box, *, slack: float = 8.0) -> bool:
     )
 
 
+MAX_SPAN = 8
+
+
+def _lines(ocr: OcrResult) -> list[list[OcrWord]]:
+    """Group words into reading lines: same page, vertical centres within 0.6 × word height."""
+    ordered = sorted(ocr.words, key=lambda w: (w.box.page, (w.box.y0 + w.box.y1) / 2, w.box.x0))
+    lines: list[list[OcrWord]] = []
+    for w in ordered:
+        cy = (w.box.y0 + w.box.y1) / 2
+        h = max(w.box.y1 - w.box.y0, 1.0)
+        if lines:
+            last = lines[-1]
+            ly = sum((x.box.y0 + x.box.y1) / 2 for x in last) / len(last)
+            if last[0].box.page == w.box.page and abs(cy - ly) <= 0.6 * h:
+                last.append(w)
+                continue
+        lines.append([w])
+    return [sorted(line, key=lambda w: w.box.x0) for line in lines]
+
+
+def _union(boxes: list[Box]) -> Box:
+    return Box(
+        boxes[0].page,
+        min(b.x0 for b in boxes),
+        min(b.y0 for b in boxes),
+        max(b.x1 for b in boxes),
+        max(b.y1 for b in boxes),
+    )
+
+
 def ground(fields: list[ExtractedField], ocr: OcrResult) -> list[VerifierOutcome]:
-    """A field is grounded when its normalised value matches OCR words near its box (D-014).
-    When the extractor gave no box, any matching OCR word grounds it and lends its box."""
+    """A field is grounded when its normalised value matches a run of consecutive OCR words on
+    one reading line near its box (D-014). Real OCR emits one word per box, so multi-word values
+    must match spans, not single words. When the extractor gave no box, the matching span lends
+    its boxes."""
     outcomes: list[VerifierOutcome] = []
+    lines = _lines(ocr)
     for f in fields:
         target = normalize(f.name, f.value)
         matched: list[Box] = []
         if target is not None:
-            for word in ocr.words:
-                if normalize(f.name, word.text) != target:
-                    continue
-                if not f.boxes or any(_overlaps(word.box, b) for b in f.boxes):
-                    matched.append(word.box)
+            for line in lines:
+                n = len(line)
+                for start in range(n):
+                    for length in range(1, min(MAX_SPAN, n - start) + 1):
+                        span = line[start : start + length]
+                        joined = " ".join(w.text for w in span)
+                        if normalize(f.name, joined) != target:
+                            continue
+                        span_boxes = [w.box for w in span]
+                        if f.boxes and not any(_overlaps(_union(span_boxes), b) for b in f.boxes):
+                            continue
+                        matched.extend(span_boxes)
+                        break
         if matched and not f.boxes:
             f.boxes = matched
         outcomes.append(
