@@ -53,7 +53,9 @@ test("the evidence layers can be toggled and the pricing checkout completes in f
   await upload(page, "northwind-00417.png");
   await page.getByTestId("document-row").first().click();
   await expect(page.getByTestId("field-box").first()).toBeVisible();
-  await page.getByRole("button", { name: /^○ fields|^● fields/ }).click();
+  // the toggle by its id, not its label — the label is copy the design loop rewrites
+  // ("where each value was found", round 12); the behaviour under test is the layer toggling
+  await page.getByTestId("layer-fields").click();
   await expect(page.getByTestId("field-box")).toHaveCount(0);
 
   await page.goto("/pricing");

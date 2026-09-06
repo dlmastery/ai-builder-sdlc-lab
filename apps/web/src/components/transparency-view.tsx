@@ -186,9 +186,9 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
             <p className="mt-1 truncate font-mono text-step--1 text-ink-3">{doc.original_filename}</p>
           </div>
           <div className="micro flex items-center gap-4" role="group" aria-label="Evidence layers">
-            <LayerToggle on={layers.has("hard")} onClick={() => toggle("hard")} label={`words it struggled with · ${hardWords.length}`} disabled={words.length === 0} />
-            <LayerToggle on={layers.has("words")} onClick={() => toggle("words")} label={`every word it read · ${words.length}`} disabled={words.length === 0} />
-            <LayerToggle on={layers.has("fields")} onClick={() => toggle("fields")} label="where each value was found" />
+            <LayerToggle id="hard" on={layers.has("hard")} onClick={() => toggle("hard")} label={`words it struggled with · ${hardWords.length}`} disabled={words.length === 0} />
+            <LayerToggle id="words" on={layers.has("words")} onClick={() => toggle("words")} label={`every word it read · ${words.length}`} disabled={words.length === 0} />
+            <LayerToggle id="fields" on={layers.has("fields")} onClick={() => toggle("fields")} label="where each value was found" />
           </div>
         </div>
         {/* the page is the plate (bar.md M1): a drafting-sheet frame with corner marks and a caption
@@ -443,10 +443,11 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
   );
 }
 
-function LayerToggle({ on, onClick, label, disabled }: { on: boolean; onClick: () => void; label: string; disabled?: boolean }) {
+function LayerToggle({ id, on, onClick, label, disabled }: { id: Layer; on: boolean; onClick: () => void; label: string; disabled?: boolean }) {
   return (
     <button
       type="button"
+      data-testid={`layer-${id}`}
       aria-pressed={on}
       disabled={disabled}
       onClick={onClick}
