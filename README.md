@@ -14,6 +14,8 @@ This repository is both the **product** (a full-stack ML web application) and th
 
 The AI Builder does not write code, columns, layer widths, or CSS. The AI Builder decides **what** is worth shipping, names **what must not be violated**, judges **taste** against slop, and closes the loop when production signals arrive. Everything else is the agent's job.
 
+**Want to run this lab with your own product?** Read [PLAYBOOK.md](PLAYBOOK.md): the script gate by gate (with what this run's AI Builder actually said), what the agent owes you every turn, how to recognise elite artifacts, and what to read before the first training job on a laptop.
+
 ## The story, chapter by chapter
 
 | Chapter | What happens | Tag |
@@ -107,4 +109,6 @@ disk or set an explicit page file (System → Advanced → Performance → Virtu
 
 It is not Spec Kit, BMAD, Kiro/EARS, or any "write a design novel before the agent may think" method. Those were harnesses for weaker models. Here the spec is short, policy lives in deterministic checks, and the SDLC is a **git-triggered loop drawn as a directed graph**, not a waterfall with extra Markdown.
 
-Source brief: `story/00-premise.md`.
+Source brief, verbatim as the AI Builder supplied it: [`story/brief/Next-Gen-SDD-for-frontier-AI.md`](story/brief/Next-Gen-SDD-for-frontier-AI.md) (original filename "Next Gen SDD for frontier AI.md"); the premise chapter written from it: `story/00-premise.md`.
+
+Final state of the product on the delivered model, screenshots taken at `loop-closed`: `story/assets/final/` (inbox, models & runs, model detail with the per-field table and model card, production, vendors).
