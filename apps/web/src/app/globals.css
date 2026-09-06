@@ -137,12 +137,14 @@ body {
 .arrive {
   animation: arrive 180ms ease-out both;
 }
+/* the whole sequence resolves inside 400 ms (bar.md M7); 720 ms on the verdict left a phone
+   capture with a blank panel (customer test re-run) */
 .arrive[data-layer="1"] { animation-delay: 0ms; }
-.arrive[data-layer="2"] { animation-delay: 180ms; }
-.arrive[data-layer="3"] { animation-delay: 360ms; }
-.arrive[data-layer="4"] { animation-delay: 540ms; }
-.arrive[data-layer="5"] { animation-delay: 720ms; }
-.arrive[data-layer="6"] { animation-delay: 900ms; }
+.arrive[data-layer="2"] { animation-delay: 40ms; }
+.arrive[data-layer="3"] { animation-delay: 80ms; }
+.arrive[data-layer="4"] { animation-delay: 120ms; }
+.arrive[data-layer="5"] { animation-delay: 160ms; }
+.arrive[data-layer="6"] { animation-delay: 200ms; }
 
 /* Section entrance on scroll (bar.md mechanism 7): the plate first, then the scaffold; one
    direction; under 400 ms; nothing loops. */

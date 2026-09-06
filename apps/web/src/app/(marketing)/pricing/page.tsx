@@ -132,15 +132,17 @@ export default async function PricingPage() {
             </p>
           </div>
         </div>
-        <div className="grid gap-px bg-rule md:grid-cols-3">
+        {/* minmax(0, …): a display-size price must not set the column's minimum width — on a
+            phone it pushed the page 6 px wider than the viewport (customer test re-run) */}
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-px bg-rule md:grid-cols-[repeat(3,minmax(0,1fr))]">
           {plans.map((p) => (
-            <article key={p.code} data-testid="plan-card" className="flex flex-col gap-6 bg-ground pr-4 pt-6 md:pl-5 md:first:pl-0">
+            <article key={p.code} data-testid="plan-card" className="flex min-w-0 flex-col gap-6 bg-ground pr-4 pt-6 md:pl-5 md:first:pl-0">
               <div>
                 <h3 className="micro">{p.name}</h3>
                 {/* the price is the display numeral of this page — the hero step, so the page
                     keeps three sizes: display, section title, body (design loop P4 round 8);
                     the column padding is the ladder's 26 px, not 110, so the numeral fits */}
-                <p className="readout mt-3 text-step-3 font-medium leading-none tracking-tighter text-ink">
+                <p className="readout mt-3 text-step-2 font-medium leading-none tracking-tighter text-ink md:text-step-3">
                   {moneyFromCents(p.monthly_price_cents)}
                 </p>
                 <p className="micro mt-2 normal-case tracking-normal">
