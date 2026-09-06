@@ -10,7 +10,10 @@ export function ledgerLines(): Array<[string, boolean]> {
     const d = (r.detail ?? {}) as Record<string, string>;
     if (r.rule === "arithmetic.line_items") out.push([`The line items add up to ${d.sum_of_line_items} · the subtotal reads ${d.subtotal}`, r.passed]);
     else if (r.rule === "arithmetic.total") out.push([`Subtotal ${d.subtotal} plus tax ${d.tax ?? "0"} makes ${d.expected_total} · the total reads ${d.total}`, r.passed]);
-    else if (r.rule === "grounding" && !r.passed) out.push([`${(r.field ?? "field").replaceAll("_", " ")}: read, but the page could not confirm it`, false]);
+    else if (r.rule === "grounding" && !r.passed) {
+      const value = specimen.fields.find((f) => f.name === r.field && f.line_index === null)?.value;
+      out.push([`${(r.field ?? "field").replaceAll("_", " ")}: read as ${value ?? "—"}, but the page could not confirm it`, false]);
+    }
   }
   out.push([`${rows.filter((r) => r.rule === "grounding" && r.passed).length} values found on the page where the model said they were`, true]);
   return out;

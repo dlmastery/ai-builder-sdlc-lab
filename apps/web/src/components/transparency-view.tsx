@@ -745,8 +745,13 @@ function describe(r: VerifierResultOut, byId: Map<string, FieldOut>): string {
       return `${fieldLabel(name)} is a well-formed date`;
     case "format.money":
       return `${fieldLabel(name)} is a well-formed amount`;
-    case "grounding":
-      return `${fieldLabel(name)}: read, but the page could not confirm it`;
+    case "grounding": {
+      // the one failed check carries its number too (brief critic, round 15)
+      const value = r.field_id ? byId.get(r.field_id)?.value : null;
+      return value
+        ? `${fieldLabel(name)}: read as ${value}, but the page could not confirm it — nothing on the page matched where the model looked`
+        : `${fieldLabel(name)}: read, but the page could not confirm it`;
+    }
     default:
       return r.rule;
   }
