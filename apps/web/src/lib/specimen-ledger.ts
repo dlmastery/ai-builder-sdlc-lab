@@ -12,6 +12,6 @@ export function ledgerLines(): Array<[string, boolean]> {
     else if (r.rule === "arithmetic.total") out.push([`${d.subtotal} + ${d.tax ?? "0"} = ${d.expected_total} · total reads ${d.total}`, r.passed]);
     else if (r.rule === "grounding" && !r.passed) out.push([`${(r.field ?? "field").replaceAll("_", " ")}: read, but the page could not confirm it`, false]);
   }
-  out.push([`${rows.filter((r) => r.rule === "grounding" && r.passed).length} fields grounded on the page`, true]);
+  out.push([`${rows.filter((r) => r.rule === "grounding" && r.passed).length} values found on the page where the model said they were`, true]);
   return out;
 }

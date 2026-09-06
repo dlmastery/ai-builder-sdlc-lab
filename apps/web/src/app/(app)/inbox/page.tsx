@@ -177,9 +177,9 @@ function Grounded({ n, of }: { n: number; of: number }) {
   if (of === 0) return <span className="micro normal-case tracking-normal">not read yet</span>;
   const frac = n / of;
   return (
-    <span className="flex flex-col gap-1" aria-label={`${n} of ${of} fields grounded on the page`}>
+    <span className="flex flex-col gap-1" aria-label={`${n} of ${of} values found on the page`}>
       <span className="micro readout normal-case tracking-normal text-ink-2">
-        {n}/{of} grounded
+        {n}/{of} found on the page
       </span>
       <span className="block h-[3px] w-full rounded-full bg-rule">
         <span

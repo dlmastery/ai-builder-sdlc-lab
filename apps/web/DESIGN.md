@@ -48,6 +48,8 @@ where they conflict.
 
 Colour never carries a meaning alone — a number or a label always sits beside it.
 
+*Callouts (design loop, rounds 10–13):* a callout is a tinted panel with one glyph and a bold lead-in ("Honest limit.", "How you know it worked:", "Needs you:"). Its tint follows the number it carries: fault when the number is a failure (a 0.0 % field), caution when it is near a threshold, neutral ink when it carries no number — so the same pattern reads three ways on purpose. The verdict "needs review" is a state, not a fault: neutral panel, red reasons.
+
 ## Typography
 
 - One family: **Inter** (variable) with `font-feature-settings: "tnum", "ss01"` everywhere a

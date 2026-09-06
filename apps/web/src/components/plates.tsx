@@ -213,8 +213,8 @@ export function PlateLedger() {
     ["850.00 + 240.00", "= 1,090.00 · subtotal", true],
     ["1,090.00 + 87.20", "= 1,177.20 · total", true],
     ["total on the page", "not found under the stamp", false],
-    ["16 fields", "grounded on the page", true],
-    ["9 dates and amounts", "parse cleanly", true],
+    ["16 values", "found on the page where the model said", true],
+    ["9 dates and amounts", "are well-formed", true],
   ];
   return (
     <Plate title="What it checked">

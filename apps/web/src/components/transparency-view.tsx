@@ -705,8 +705,8 @@ function Ledger({
         {failed.map((r, i) => (
           <Row key={`f${i}`} text={describe(r, byId)} passed={false} />
         ))}
-        <Row text={`${groundedOk} fields grounded on the page`} passed />
-        <Row text={`${formatOk} dates and amounts parse cleanly`} passed />
+        <Row text={`${groundedOk} values found on the page where the model said they were`} passed />
+        <Row text={`${formatOk} dates and amounts are well-formed`} passed />
       </ul>
     </section>
   );
