@@ -15,6 +15,7 @@ dependencies = [
   "prometheus-client>=0.21",
   "redis>=5.2",
   "celery>=5.4",
+  "truststore>=0.10",
 ]
 
 [build-system]

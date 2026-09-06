@@ -21,9 +21,14 @@ from ledgerlens_ml.types import Box, OcrResult, OcrWord
 
 MODEL_ID = "PaddlePaddle/PaddleOCR-VL-1.6"
 MAX_PIXELS = 2048 * 28 * 28
+MIN_PIXELS = 32 * 28 * 28  # transformers 5.16 requires both edges in `size`
 MIN_LONG_SIDE = 1500  # spotting wants ≥1500 px on the long side
 
 _COORD_RE = re.compile(r"(-?\d+(?:\.\d+)?)")
+# Recorded 2026-09-06 from PaddleOCR-VL-1.6 "Spotting:" on the specimen: one element per line,
+# text followed by eight <|LOC_n|> tokens (a 4-point polygon in thousandths of the image).
+_LOC_LINE_RE = re.compile(r"^(?P<text>.*?)(?P<locs>(?:<\|LOC_\d+\|>){8})\s*(?:</s>)?$")
+_LOC_RE = re.compile(r"<\|LOC_(\d+)\|>")
 
 
 def parse_spotting(
@@ -87,6 +92,21 @@ def parse_spotting(
     for line in stripped.splitlines():
         line = line.strip()
         if not line:
+            continue
+        m = _LOC_LINE_RE.match(line)
+        if m:
+            nums = [float(v) for v in _LOC_RE.findall(m.group("locs"))]
+            # LOC tokens are always thousandths, regardless of image size
+            xs, ys = nums[0::2], nums[1::2]
+            b = (
+                min(xs) / 1000 * width,
+                min(ys) / 1000 * height,
+                max(xs) / 1000 * width,
+                max(ys) / 1000 * height,
+            )
+            t = m.group("text").strip()
+            if t and b[2] > b[0] and b[3] > b[1]:
+                out.append((t, b))
             continue
         m = re.search(r"<\|box_start\|>(.*?)<\|box_end\|>(.*)", line)
         if m:
@@ -173,7 +193,7 @@ class PaddleOcrVL:
             tokenize=True,
             return_dict=True,
             return_tensors="pt",
-            images_kwargs={"size": {"longest_edge": MAX_PIXELS}},
+            images_kwargs={"size": {"shortest_edge": MIN_PIXELS, "longest_edge": MAX_PIXELS}},
         ).to(self._model.device)
         with torch.no_grad():
             gen = self._model.generate(

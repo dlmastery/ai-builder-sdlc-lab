@@ -141,6 +141,9 @@ def cmd_pin(a: argparse.Namespace) -> None:
 
 def main(argv: list[str] | None = None) -> None:
     os.environ.setdefault("JOBS_INLINE", "1")
+    from ledgerlens_core.tls import maybe_inject_native_tls
+
+    maybe_inject_native_tls()
     ap = argparse.ArgumentParser(prog="ledgerlens")
     sub = ap.add_subparsers(dest="cmd", required=True)
     d = sub.add_parser("dataset")

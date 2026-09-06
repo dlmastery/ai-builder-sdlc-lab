@@ -46,4 +46,18 @@ It was not, well enough: two hours of Slice B with no commit and no chapter — 
 
 Lint, format, `mypy --strict`, 64 tests green. Committed and pushed. Next: run the real OCR on the specimen to discover the spotting format, then the smoke train on the GPU.
 
+### 00:35 — First contact with the real OCR model
+
+Downloaded `PaddlePaddle/PaddleOCR-VL-1.6` (3½ minutes; the corporate TLS chain needed the OS certificate store, now an opt-in `LEDGERLENS_NATIVE_TLS=1`). First run failed inside transformers 5.16's image processor: `size` must carry both `shortest_edge` and `longest_edge` — the model card's example passes only one. Fixed. Second run: **the model's spotting output matched none of the three formats the parser guessed.** The real serialisation is one element per line, text followed by eight `<|LOC_n|>` tokens — a four-point polygon in thousandths of the image. The recording became the test fixture (`tests/ml/fixtures/paddleocr_vl_spotting_specimen.txt`); the parser was rewritten against it; 5 tests green.
+
+*What the recording showed:* the specimen's red "RECEIVED" stamp did exactly what it was drawn to do. The model read "RTE20" and "EIVED" across the total and never produced "1,177.20". In the pipeline that field will be **ungrounded**, and an ungrounded required field cannot auto-approve (D-009). The hard spot is not a story device; it is the first real failure the product will show.
+
+### 00:45 — A recursion in the TLS layer, and why order matters
+
+The API refused to start: `RecursionError` inside `ssl.SSLContext`. Not a double injection (an idempotency guard was already in place) — an *ordering* problem: boto3/urllib3 capture the SSL context class at import; injecting the OS trust store afterwards makes the two classes chase each other. Reproduced in two one-liners (inject after boto3: recursion; before: fine). Fix: inject at `ledgerlens_core` package import, before any library can capture the class. Recorded here because it is the kind of bug students will hit and blame on the wrong thing.
+
+### 00:55 — Speed problem, not yet solved
+
+Spotting one page took 335 s. A 0.9B model on a 4090 should do that in seconds. A benchmark is running (with and without token-score capture); the answer decides whether the OCR specialist runs per document in the serve path or only in batch. The real OCR now exists as an **unpinned** `ModelVersion` row so pinning it is an audited operator action once it is fast enough.
+
 *(continued below as the slice progresses)*

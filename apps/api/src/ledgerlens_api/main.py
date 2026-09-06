@@ -49,6 +49,9 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 
 def create_app() -> FastAPI:
+    from ledgerlens_core.tls import maybe_inject_native_tls
+
+    maybe_inject_native_tls()
     settings = get_settings()
     _configure_logging(settings.log_level)
     app = FastAPI(title="Ledgerlens API", version="0.1.0", lifespan=_lifespan)

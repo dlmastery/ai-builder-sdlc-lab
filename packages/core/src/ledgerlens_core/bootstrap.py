@@ -63,6 +63,17 @@ def ensure_plans(db: DbSession) -> None:
     db.flush()
 
 
+REAL_OCR = {
+    "kind": "ocr",
+    "name": "paddleocr-vl-1.6",
+    "config": {
+        "model_id": "PaddlePaddle/PaddleOCR-VL-1.6",
+        "task": "Spotting:",
+        "verified": "2026-09-05 · #1 open model on OmniDocBench v1.6 (D-011)",
+    },
+}
+
+
 def ensure_stub_model_versions(db: DbSession) -> None:
     for spec in STUB_VERSIONS:
         pinned = db.scalar(
@@ -72,6 +83,11 @@ def ensure_stub_model_versions(db: DbSession) -> None:
         )
         if pinned is None:
             db.add(ModelVersion(pinned=True, metrics={}, **spec))
+    # The real OCR specialist exists as an unpinned row from day one; pinning it is the
+    # operator's audited choice once the GPU worker is available.
+    existing = db.scalar(select(ModelVersion).where(ModelVersion.name == REAL_OCR["name"]))
+    if existing is None:
+        db.add(ModelVersion(pinned=False, metrics={}, **REAL_OCR))
     db.flush()
 
 
