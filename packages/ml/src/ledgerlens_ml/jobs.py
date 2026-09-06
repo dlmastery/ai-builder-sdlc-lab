@@ -227,7 +227,9 @@ def _model_card(mv: ModelVersion, stats: dict[str, Any]) -> str:
             "(D-009).",
             "",
             "## Evaluation",
-            "See the evaluation report attached to this version once the evaluate job has run.",
+            "Held-out numbers are on this version's page (field F1, per field, per vendor, sample "
+            "errors) as soon as an evaluate job has written them; the card itself is written at the "
+            "end of training and never edited.",
             "",
             "## Data",
             "Synthetic invoices (generated, perfect labels) and CORD v2 (CC BY 4.0). No real PII.",
