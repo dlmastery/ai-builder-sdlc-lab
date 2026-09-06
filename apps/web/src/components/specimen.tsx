@@ -123,7 +123,7 @@ export function Specimen() {
             <LedgerLine key={i} text={text} passed={passed} />
           ))}
           <span className="text-ink-2">
-            verdict · {specimen.verdict.decision?.replaceAll("_", " ")}
+            decision · {specimen.verdict.decision === "needs_review" ? "a person decides" : specimen.verdict.decision?.replaceAll("_", " ")}
             {reasons.length ? ` · ${reasons.map((r) => reasonChip(r.field ?? "", String(r.why ?? ""))).join(" · ")}` : ""}
           </span>
           <span className={specimen.verdict.decision === "auto_approved" ? "text-ink-2" : "text-fault"}>

@@ -323,9 +323,9 @@ export function PlateGuarantee() {
       </g>
       <path d={d} fill="none" stroke={ACCENT} strokeWidth="2.5" />
       <line x1={px(0.08)} y1={y0} x2={px(0.08)} y2={y0 - h} stroke={INK} strokeDasharray="5 5" strokeWidth="1.2" />
-      <text x={px(0.08) + 8} y={y0 - h + 18} fill={INK} fontSize="13" style={MONO}>target error 1 %</text>
+      <text x={px(0.08) + 8} y={y0 - h + 18} fill={INK} fontSize="13" style={MONO}>1 error in 100 allowed</text>
       <text x={x0 + w / 2} y={y0 + 44} textAnchor="middle" fill={INK3} fontSize="13" style={MONO}>errors you allow, per 100 fields</text>
-      <text x={x0 - 18} y={y0 - h / 2} textAnchor="middle" fill={INK3} fontSize="13" transform={`rotate(-90 ${x0 - 18} ${y0 - h / 2})`} style={MONO}>fields auto-approved</text>
+      <text x={x0 - 18} y={y0 - h / 2} textAnchor="middle" fill={INK3} fontSize="13" transform={`rotate(-90 ${x0 - 18} ${y0 - h / 2})`} style={MONO}>approved without a person</text>
       <g style={MONO}>
         <text x={640} y={150} fill={INK3} fontSize="12" letterSpacing="0.14em">FIELDS · 1 %</text>
         <text x={640} y={182} fill="var(--ink)" fontSize="28" style={{ fontFamily: "var(--font-sans)" }}>100 %</text>

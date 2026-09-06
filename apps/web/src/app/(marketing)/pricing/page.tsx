@@ -20,7 +20,7 @@ export default async function PricingPage() {
   return (
     <div className="mx-auto w-full max-w-[1200px] px-6 py-16">
       <section className="max-w-[44ch]">
-        <p className="micro">Pricing · billing runs in test mode in this lab</p>
+        <p className="micro">Pricing · in this preview no card is ever charged</p>
         <h1 className="mt-4 max-w-[26ch] text-step-3 font-medium leading-[1.02] tracking-tight">
           Pay for automation you can defend.
         </h1>
@@ -51,9 +51,9 @@ export default async function PricingPage() {
             </p>
             <p>
               <strong className="font-medium text-ink">What you need:</strong> one computer with a good
-              graphics card (16 GB of memory on it); a scanner or an email inbox the invoices arrive
-              in; and someone who will check the first hundred invoices, because that is how it learns
-              your vendors.
+              graphics card — we tell you which, and a single one is enough; a scanner or an email
+              inbox the invoices arrive in; and someone who will check the first hundred invoices,
+              because that is how it learns your vendors.
             </p>
             {/* the boxed artefact of the scaffold (bar.md M4): where the sample shows a prompt, ours
                 shows what every document comes with — the specimen's own ledger, from rows */}
@@ -66,7 +66,7 @@ export default async function PricingPage() {
                 </p>
               ))}
               <p className="flex justify-between gap-4">
-                <span className="truncate">verdict · {String(specimen.verdict.decision).replaceAll("_", " ")}</span>
+                <span className="truncate">decision · {specimen.verdict.decision === "needs_review" ? "a person decides" : String(specimen.verdict.decision).replaceAll("_", " ")}</span>
                 <span className="text-fault">review</span>
               </p>
             </div>
@@ -157,8 +157,8 @@ export default async function PricingPage() {
                 </p>
                 <p className="micro mt-2 normal-case tracking-normal">
                   {p.code === "sovereign" ? "recommended for regulated teams · " : ""}
-                  per month · {p.included_documents.toLocaleString()} documents included, then{" "}
-                  {moneyFromCents(p.per_document_cents)} each
+                  per month · {p.included_documents.toLocaleString()} invoices included, then{" "}
+                  {moneyFromCents(p.per_document_cents)} per extra invoice · seats beyond the plan on request
                 </p>
               </div>
               <ul className="rule-y border-t border-rule text-step-0 text-ink-2">
