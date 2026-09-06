@@ -58,8 +58,57 @@ def _cord(spec: dict[str, Any]) -> Iterator[Example]:
     yield from load_cord(limit=spec.get("limit"))
 
 
-SOURCES = {"synthetic": _synthetic, "cord": _cord}
-LICENCES = {"synthetic": "generated", "cord": "CC BY 4.0", "docile": "MIT (access-gated)"}
+def _corrections(spec: dict[str, Any]) -> Iterator[Example]:
+    """Approved extractions become labelled examples; corrected values override the model's."""
+    from sqlalchemy import select
+
+    from ledgerlens_core.db import session_scope
+    from ledgerlens_core.models import Approval, Document, Extraction, Field, Page, Vendor
+
+    with session_scope() as db:
+        rows = db.execute(
+            select(Extraction, Document)
+            .join(Document, Document.id == Extraction.document_id)
+            .join(Approval, Approval.extraction_id == Extraction.id)
+            .order_by(Approval.created_at)
+        ).all()
+        store = get_object_store()
+        for extraction, document in rows:
+            page = db.scalar(
+                select(Page).where(Page.document_id == document.id).order_by(Page.number)
+            )
+            if page is None:
+                continue
+            labels: dict[str, Any] = {}
+            items: dict[int, dict[str, Any]] = {}
+            for f in db.scalars(select(Field).where(Field.extraction_id == extraction.id)):
+                if f.line_index is None:
+                    labels[f.name] = f.value  # Field.value already carries any correction
+                else:
+                    items.setdefault(f.line_index, {})[f.name] = f.value
+            if items:
+                labels["line_items"] = [items[i] for i in sorted(items)]
+            vendor = db.get(Vendor, document.vendor_id) if document.vendor_id else None
+            image = Image.open(io.BytesIO(store.get(page.object_key))).convert("RGB")
+            yield Example(
+                image,
+                labels,
+                None,
+                vendor.name if vendor else "unknown",
+                "corrections",
+                "tenant-owned",
+                document.difficulty,
+                f"document/{document.id}",
+            )
+
+
+SOURCES = {"synthetic": _synthetic, "cord": _cord, "corrections": _corrections}
+LICENCES = {
+    "synthetic": "generated",
+    "cord": "CC BY 4.0",
+    "docile": "MIT (access-gated)",
+    "corrections": "tenant-owned",
+}
 
 
 def assign_splits(

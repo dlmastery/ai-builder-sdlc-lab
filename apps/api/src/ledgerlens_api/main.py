@@ -13,7 +13,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 
-from ledgerlens_api.routers import auth, documents, models
+from ledgerlens_api.routers import auth, billing, documents, models, review, signals
 from ledgerlens_api.routers import jobs as jobs_router
 from ledgerlens_core import jobs
 from ledgerlens_core.bootstrap import bootstrap
@@ -91,6 +91,9 @@ def create_app() -> FastAPI:
     app.include_router(documents.router)
     app.include_router(models.router)
     app.include_router(jobs_router.router)
+    app.include_router(review.router)
+    app.include_router(billing.router)
+    app.include_router(signals.router)
     return app
 
 

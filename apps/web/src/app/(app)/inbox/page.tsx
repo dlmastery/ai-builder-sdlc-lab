@@ -16,8 +16,20 @@ const TONE: Record<string, string> = {
   uploaded: "text-ink-2",
 };
 
-export default async function InboxPage() {
-  const docs = await api<Paginated<DocumentOut>>("/documents");
+const FILTERS: Array<[string | null, string]> = [
+  [null, "all"],
+  ["needs_review", "needs review"],
+  ["auto_approved", "auto-approved"],
+  ["approved", "approved"],
+  ["failed", "failed"],
+];
+
+export default async function InboxPage(props: PageProps<"/inbox">) {
+  const params = await props.searchParams;
+  const filter = typeof params.status === "string" ? params.status : null;
+  const docs = await api<Paginated<DocumentOut>>(
+    filter ? `/documents?status_filter=${encodeURIComponent(filter)}` : "/documents",
+  );
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-end justify-between gap-6">
@@ -25,18 +37,36 @@ export default async function InboxPage() {
           <p className="micro">Inbox</p>
           <h1 className="mt-2 text-step-2 font-medium tracking-tight">
             {docs.total === 0
-              ? "No documents yet"
+              ? filter
+                ? `Nothing ${filter.replaceAll("_", " ")}`
+                : "No documents yet"
               : `${docs.total} document${docs.total === 1 ? "" : "s"}`}
           </h1>
         </div>
         <Uploader />
       </div>
+      <nav className="micro flex items-center gap-5" aria-label="Filter by status">
+        {FILTERS.map(([value, label]) => (
+          <Link
+            key={label}
+            href={value ? `/inbox?status=${value}` : "/inbox"}
+            className={filter === value ? "text-ink" : "hover:text-ink"}
+            aria-current={filter === value ? "page" : undefined}
+          >
+            {label}
+          </Link>
+        ))}
+      </nav>
 
       {docs.items.length === 0 ? (
-        <EmptyState testId="inbox-empty" title="Drop the first invoice.">
-          The pipeline will read it, ground every field, check the arithmetic, and tell you what
-          it is not sure about. Nothing is auto-approved until the threshold is earned.
-        </EmptyState>
+        filter ? (
+          <EmptyState title={`Nothing ${filter.replaceAll("_", " ")} right now.`} />
+        ) : (
+          <EmptyState testId="inbox-empty" title="Drop the first invoice.">
+            The pipeline will read it, ground every field, check the arithmetic, and tell you what
+            it is not sure about. Nothing is auto-approved until the threshold is earned.
+          </EmptyState>
+        )
       ) : (
         <ul className="rule-y border-t border-rule">
           {docs.items.map((d) => (

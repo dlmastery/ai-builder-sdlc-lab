@@ -23,6 +23,8 @@ TRIGGERABLE = {
     "evaluate_model": "gpu",
     "calibrate_model": "gpu",
     "train_difficulty": "gpu",
+    "observe": "cpu",
+    "probe_document": "gpu",
 }
 OPERATOR_ROLES = {"owner", "data_lead"}
 

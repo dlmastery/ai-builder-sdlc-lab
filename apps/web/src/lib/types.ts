@@ -42,6 +42,8 @@ export type DocumentOut = {
 
 export type AlternativeOut = { rank: number; value: string | null; probability: number };
 
+export type CorrectionOut = { old_value: string | null; new_value: string | null; created_at: string };
+
 export type FieldOut = {
   id: string;
   name: string;
@@ -54,7 +56,27 @@ export type FieldOut = {
   boxes: number[][];
   stability: number | null;
   alternatives: AlternativeOut[];
+  corrections: CorrectionOut[];
 };
+
+export type OcrWordOut = { text: string; box: number[]; score: number };
+
+export type SignalOut = {
+  id: string;
+  kind: string;
+  scope: string | null;
+  evidence: Record<string, unknown>;
+  intent_path: string | null;
+  status: string;
+  created_at: string;
+};
+
+export type SubscriptionOut = {
+  plan: PlanOut;
+  provider: string;
+  status: string;
+  current_period_end: string | null;
+} | null;
 
 export type VerifierResultOut = {
   rule: string;
@@ -80,12 +102,21 @@ export type ExtractionOut = {
   created_at: string;
 };
 
-export type PageOut = { number: number; width: number; height: number; image_url: string };
+export type PageOut = {
+  number: number;
+  width: number;
+  height: number;
+  image_url: string;
+  quality: Record<string, number> | null;
+  ocr_words: OcrWordOut[];
+};
 
 export type DocumentDetailOut = DocumentOut & {
   pages: PageOut[];
   extraction: ExtractionOut | null;
   job: JobOut | null;
+  vendor_name: string | null;
+  approved: boolean;
 };
 
 export type Paginated<T> = { items: T[]; total: number };

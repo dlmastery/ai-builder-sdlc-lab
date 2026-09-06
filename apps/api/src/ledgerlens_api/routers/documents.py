@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import hashlib
 import io
+import json
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, UploadFile, status
@@ -16,12 +18,14 @@ from sqlalchemy.orm import selectinload
 from ledgerlens_api.deps import Principal, current_principal, get_db, require_csrf
 from ledgerlens_api.schemas import (
     AlternativeOut,
+    CorrectionOut,
     DocumentDetailOut,
     DocumentOut,
     ExtractionOut,
     FieldOut,
     JobOut,
     ModelVersionOut,
+    OcrWordOut,
     PageOut,
     Paginated,
     UploadAccepted,
@@ -29,7 +33,17 @@ from ledgerlens_api.schemas import (
     VerifierResultOut,
 )
 from ledgerlens_core import jobs
-from ledgerlens_core.models import Document, Extraction, Field, Job, ModelVersion, Page
+from ledgerlens_core.models import (
+    Approval,
+    Correction,
+    Document,
+    Extraction,
+    Field,
+    Job,
+    ModelVersion,
+    Page,
+    Vendor,
+)
 from ledgerlens_core.storage import get_object_store, keys
 
 router = APIRouter(prefix="/documents", tags=["documents"])
@@ -190,6 +204,8 @@ def get_document(
             width=p.width,
             height=p.height,
             image_url=store.presigned_get(p.object_key),
+            quality=p.quality,
+            ocr_words=_ocr_words(store, p),
         )
         for p in db.scalars(
             select(Page).where(Page.document_id == document.id).order_by(Page.number)
@@ -208,12 +224,33 @@ def get_document(
     job = db.scalar(
         select(Job).where(Job.idempotency_key == f"process:{principal.tenant_id}:{document.sha256}")
     )
+    vendor = db.get(Vendor, document.vendor_id) if document.vendor_id else None
+    approved = (
+        extraction is not None
+        and db.scalar(select(Approval.id).where(Approval.extraction_id == extraction.id))
+        is not None
+    )
     return DocumentDetailOut(
         **_document_out(document).model_dump(),
         pages=pages,
         extraction=_extraction_out(db, extraction) if extraction else None,
         job=_job_out(job) if job else None,
+        vendor_name=vendor.name if vendor else None,
+        approved=approved,
     )
+
+
+def _ocr_words(store: Any, page: Page) -> list[OcrWordOut]:
+    if not page.ocr_object_key:
+        return []
+    try:
+        data = json.loads(store.get(page.ocr_object_key).decode("utf-8"))
+    except Exception:
+        return []
+    return [
+        OcrWordOut(text=w["text"], box=[float(v) for v in w["box"]], score=float(w["score"]))
+        for w in data.get("words", [])
+    ]
 
 
 def _extraction_out(db: DbSession, e: Extraction) -> ExtractionOut:
@@ -240,6 +277,16 @@ def _extraction_out(db: DbSession, e: Extraction) -> ExtractionOut:
                 alternatives=[
                     AlternativeOut(rank=a.rank, value=a.value, probability=a.probability)
                     for a in f.alternatives
+                ],
+                corrections=[
+                    CorrectionOut(
+                        old_value=c.old_value, new_value=c.new_value, created_at=c.created_at
+                    )
+                    for c in db.scalars(
+                        select(Correction)
+                        .where(Correction.field_id == f.id)
+                        .order_by(Correction.created_at)
+                    )
                 ],
             )
             for f in sorted(e.fields, key=lambda x: (x.line_index is not None, x.line_index or 0))

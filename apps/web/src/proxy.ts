@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 // Optimistic check only (Next 16 "proxy", formerly middleware): no cookie → sign-in.
 // The real check happens in the API on every request; this just avoids rendering a shell
 // for an anonymous visitor.
-const PROTECTED_PREFIXES = ["/inbox", "/documents", "/vendors", "/models", "/production"];
+const PROTECTED_PREFIXES = ["/inbox", "/documents", "/vendors", "/models", "/production", "/billing"];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

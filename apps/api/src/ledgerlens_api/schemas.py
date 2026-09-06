@@ -66,12 +66,20 @@ class PageOut(BaseModel):
     width: int
     height: int
     image_url: str
+    quality: dict[str, float] | None = None
+    ocr_words: list[OcrWordOut] = PField(default_factory=list)
 
 
 class AlternativeOut(BaseModel):
     rank: int
     value: str | None
     probability: float
+
+
+class CorrectionOut(BaseModel):
+    old_value: str | None
+    new_value: str | None
+    created_at: datetime
 
 
 class FieldOut(BaseModel):
@@ -86,6 +94,13 @@ class FieldOut(BaseModel):
     boxes: list[list[float]]
     stability: float | None
     alternatives: list[AlternativeOut]
+    corrections: list[CorrectionOut] = PField(default_factory=list)
+
+
+class OcrWordOut(BaseModel):
+    text: str
+    box: list[float]
+    score: float
 
 
 class VerifierResultOut(BaseModel):
@@ -128,6 +143,8 @@ class DocumentDetailOut(DocumentOut):
     pages: list[PageOut]
     extraction: ExtractionOut | None
     job: JobOut | None
+    vendor_name: str | None = None
+    approved: bool = False
 
 
 class UploadAccepted(BaseModel):

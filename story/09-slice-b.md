@@ -72,4 +72,23 @@ One clean synthetic invoice, base model, no adapter: every header field correct 
 
 `ledgerlens train --profile smoke --baseline`: 24 synthetic documents → 6 LoRA steps on the 2B → evaluate 8 test documents → calibrate on the calibration split → fit the conformal threshold → train the difficulty model → evaluate the OCR + rules baseline with the real OCR on the same 8 documents. Every stage is a `Job` row; every output is a `ModelVersion`, `EvalReport`, `EvalScore` or artifact.
 
+### 01:50 — The smoke train finished. Every number below came out of a row.
+
+| Stage | Result | What it means |
+|---|---|---|
+| `build_dataset` | 24 synthetic documents, vendor-first splits | eight layouts → tiny test/calibration splits (3 documents each) |
+| `train_extractor` | 6 LoRA steps, 54 s, loss 0.0007, 10.9 M of 2.2 B parameters trainable | the base model already writes the JSON almost perfectly on clean synthetic pages; a `supervised_tokens` stat was added so a too-low loss can never again hide a masking bug |
+| `evaluate_model` (LoRA) | field F1 **1.00** on 3 documents | true, and nearly meaningless at n = 3 — the demo profile evaluates on 40 |
+| `calibrate_model` | ECE 0.0036 → ~0; threshold **1.0**, coverage **0.0** | the conformal bound (k+1)/(n+1) cannot certify a 1 % error rate from a dozen calibration fields, so it certifies *nothing*. The maths said no. That is the guarantee working |
+| `train_difficulty` | not fitted ("single class") | every smoke document was easy; the heuristic stays in place until outcomes disagree |
+| `evaluate_model` (OCR + rules baseline, real OCR) | field F1 **0.20** on 3 documents, ~60 s per page | the same baseline scored ≥ 0.6 on *ideal* OCR; real word boxes and line grouping are where rules break. The fine-tuned model's margin over the baseline is therefore larger on real pages than the unit test suggested |
+
+*Developer:* "So the demo number is: the model is right and the system still refuses to auto-approve anything?"
+
+*Fable:* "Yes, and that is the demo. A threshold of 1.0 with zero coverage is the product telling the finance lead it has not seen enough reviewed documents to promise anything. When the demo profile runs on four hundred documents, the coverage number will be earned rather than assumed."
+
+### 02:05 — Slice C started while the GPU was busy
+
+Tests first, again: corrections and approvals as rows, a `corrections` dataset source that carries corrected values into the next training set, the `observe` job writing `vendor-f1-drop` and `calibration-drift` signals plus `lab/intent/*.md` files, and billing that completes in fake mode without keys. One test caught a tie — two fields corrected equally often and the intent naming only one — and the intent now lists every corrected field with its count, which is the better artifact anyway. The transparency view gained the OCR-words and hard-spots layers, inline correction with one keystroke, approval, and stability rings; Production shows signals and the live auto-approve rate; the inbox filters by status; pricing goes through checkout.
+
 *(continued below as the slice progresses)*

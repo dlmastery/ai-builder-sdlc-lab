@@ -46,7 +46,7 @@ export default async function PricingPage() {
               ))}
             </ul>
             <Link
-              href={`/sign-up?plan=${p.code}`}
+              href={`/billing/start?plan=${p.code}`}
               className="mt-auto rounded-[var(--radius)] border border-rule px-4 py-3 text-center text-ink hover:border-signal hover:text-signal"
             >
               Start on {p.name}

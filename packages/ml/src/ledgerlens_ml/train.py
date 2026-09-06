@@ -169,6 +169,8 @@ def train_lora(
     micro = 0
     losses: list[float] = []
     history: list[dict[str, Any]] = []
+    supervised_tokens = 0
+    total_tokens = 0
     while step < max_steps:
         for ex in items:
             if should_stop and should_stop():
@@ -176,6 +178,8 @@ def train_lora(
                 break
             image = Image.open(io.BytesIO(ex.image_bytes))
             batch = _encode(processor, image, target_json(ex.labels), prof.max_long_side)
+            supervised_tokens += int((batch["labels"] != -100).sum().item())
+            total_tokens += int(batch["labels"].numel())
             batch = {k: v.to(model.device) if hasattr(v, "to") else v for k, v in batch.items()}
             with torch.autocast(device_type=device, dtype=dtype, enabled=device == "cuda"):
                 out = model(**batch)
@@ -216,6 +220,8 @@ def train_lora(
         "final_loss": history[-1]["loss"] if history else None,
         "trainable_params": trainable,
         "total_params": total,
+        "supervised_tokens": supervised_tokens,
+        "supervised_fraction": round(supervised_tokens / total_tokens, 4) if total_tokens else None,
         "elapsed_s": round(time.perf_counter() - started, 1),
         "profile": asdict(prof),
         "device": device,

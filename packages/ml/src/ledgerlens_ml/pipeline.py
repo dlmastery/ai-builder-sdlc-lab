@@ -153,9 +153,68 @@ def process_document(db: DbSession, job: Job) -> dict[str, Any]:
     # OCR words are kept per page so the transparency view can draw them (Slice C)
     for page in pages:
         page.ocr_object_key = _store_ocr(store, page, ocr)
+    document.vendor_id = _assign_vendor(db, document, result.fields)
     document.status = decision.decision
     db.flush()
     return {"extraction_id": str(extraction.id), "decision": decision.decision}
+
+
+def _assign_vendor(db: DbSession, document: Document, fields: list[Any]) -> uuid.UUID | None:
+    """One Vendor row per tenant per normalised vendor name; learning curves hang off it."""
+    from ledgerlens_core.models import Vendor
+
+    name = next((f.value for f in fields if f.name == "vendor_name" and f.line_index is None), None)
+    key = normalize("vendor_name", name)
+    if not name or not key:
+        return document.vendor_id
+    vendor = db.scalar(
+        select(Vendor).where(Vendor.tenant_id == document.tenant_id, Vendor.normalized_name == key)
+    )
+    if vendor is None:
+        vendor = Vendor(tenant_id=document.tenant_id, name=name.strip(), normalized_name=key)
+        db.add(vendor)
+        db.flush()
+    return vendor.id
+
+
+def probe_document(db: DbSession, job: Job) -> dict[str, Any]:
+    """Stability probe (spec §3 step 6): re-extract under five mild perturbations and store, per
+    field, the fraction of runs that agreed with the served value. Off the request path."""
+    from ledgerlens_ml.probe import perturbations
+
+    document_id = uuid.UUID(str(job.payload["document_id"]))  # type: ignore[index]
+    extraction = db.scalar(
+        select(Extraction)
+        .where(Extraction.document_id == document_id)
+        .order_by(Extraction.created_at.desc())
+    )
+    if extraction is None:
+        raise RuntimeError("no extraction to probe")
+    pages = list(
+        db.scalars(select(Page).where(Page.document_id == document_id).order_by(Page.number))
+    )
+    store = get_object_store()
+    images = [Image.open(io.BytesIO(store.get(p.object_key))).convert("RGB") for p in pages]
+    extractor_mv = db.get(ModelVersion, extraction.model_version_id)
+    assert extractor_mv is not None
+    extractor = load_extractor(extractor_mv)
+    served = {
+        (f.name, f.line_index): normalize(f.name, f.value)
+        for f in db.scalars(select(Field).where(Field.extraction_id == extraction.id))
+    }
+    agree: dict[tuple[str, int | None], int] = dict.fromkeys(served, 0)
+    runs = 0
+    for variant in perturbations(images[0]):
+        runs += 1
+        result = extractor.extract([variant], None)
+        seen = {(f.name, f.line_index): normalize(f.name, f.value) for f in result.fields}
+        for key in served:
+            if seen.get(key) == served[key]:
+                agree[key] += 1
+    for f in db.scalars(select(Field).where(Field.extraction_id == extraction.id)):
+        f.stability = round(agree[(f.name, f.line_index)] / runs, 3) if runs else None
+    db.flush()
+    return {"extraction_id": str(extraction.id), "runs": runs}
 
 
 def _store_ocr(store: Any, page: Page, ocr: Any) -> str:
