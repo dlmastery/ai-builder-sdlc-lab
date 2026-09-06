@@ -120,6 +120,20 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
     }
   }
 
+  async function addField(name: string, value: string) {
+    setBusy(true);
+    setError(null);
+    try {
+      await post(`/extractions/${ex.id}/fields`, { name, value }, session.csrf_token);
+      setEditing(null);
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof ClientApiError ? e.message : "could not add the field");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function approve() {
     setBusy(true);
     setError(null);
@@ -191,21 +205,24 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
                 );
               })}
             {layers.has("fields") &&
-              ex.fields.map((f) =>
-                f.boxes.map((b, i) => {
-                  const [, x0, y0, x1, y1] = b;
+              ex.fields
+                .filter((f) => f.boxes.length > 0)
+                .map((f) => {
+                  // one box per field spanning the words it was grounded on: per-word boxes fuse
+                  // into blobs at line-item density (P3 round 8)
+                  const xs0 = f.boxes.map((b) => b[1]), ys0 = f.boxes.map((b) => b[2]);
+                  const xs1 = f.boxes.map((b) => b[3]), ys1 = f.boxes.map((b) => b[4]);
+                  const x0 = Math.min(...xs0), y0 = Math.min(...ys0);
+                  const x1 = Math.max(...xs1), y1 = Math.max(...ys1);
                   const conf = f.calibrated_confidence ?? 0;
                   const tone = toneFor(f, threshold);
                   const isSel = f.id === selected;
-                  // an ungrounded field is outlined, not filled: the page's own red ink (a stamp)
-                  // must stay distinguishable from the fault tint (design loop, P3 round 3)
-                  const outlineOnly = !f.grounded;
-                  // a number beside every coloured box, line items too; below the bar the two
-                  // decimals are the reason the box is not green (the bar is ~99.9999 %)
-                  const label = tone === "signal" ? pct(conf) : pct(conf, 2);
-                  const fs = Math.max(9, page.width * (f.line_index === null ? 0.012 : 0.0095));
+                  // the number beside a header field's box; line items carry theirs in the table —
+                  // at that density a label per box overlapped its neighbour (legibility wins)
+                  const label = f.line_index === null ? (tone === "signal" ? pct(conf) : pct(conf, 2)) : null;
+                  const fs = Math.max(10, page.width * 0.012);
                   return (
-                    <g key={`${f.id}-${i}`} className="arrive" data-layer="4">
+                    <g key={f.id} className="arrive" data-layer="4">
                       <rect
                         data-testid="field-box"
                         data-tone={tone}
@@ -213,28 +230,20 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
                         y={y0}
                         width={x1 - x0}
                         height={y1 - y0}
-                        fill={outlineOnly ? "none" : TONE_VAR[tone]}
-                        fillOpacity={tone === "signal" ? Math.max(0.08, conf * 0.32) : 0.26}
+                        fill={TONE_VAR[tone]}
+                        fillOpacity={tone === "signal" ? Math.max(0.08, conf * 0.32) : 0.22}
                         stroke={TONE_VAR[tone]}
-                        strokeWidth={isSel ? 3 : outlineOnly ? 2 : 1}
-                        strokeDasharray={outlineOnly ? "6 4" : undefined}
+                        strokeWidth={isSel ? 3 : 1}
                         strokeOpacity={isSel ? 1 : 0.8}
                       />
                       {label ? (
-                        <text
-                          x={x1 + fs * 0.4}
-                          y={y0 + fs}
-                          fill={TONE_VAR[tone]}
-                          fontSize={fs}
-                          fontFamily="var(--font-mono)"
-                        >
-                          {outlineOnly ? "not confirmed" : label}
+                        <text x={x1 + fs * 0.5} y={y0 + fs} fill={TONE_VAR[tone]} fontSize={fs} fontFamily="var(--font-mono)">
+                          {label}
                         </text>
                       ) : null}
                     </g>
                   );
-                }),
-              )}
+                })}
           </svg>
         </div>
         <p className="text-step--1 text-ink-3">
@@ -264,12 +273,53 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
           <p className="micro">Fields · {ex.model_version.kind} {ex.model_version.name}</p>
           <ul className="rule-y border-t border-rule">
             {missingRequired.map((n) => (
-              <li key={`missing-${n}`} data-testid={`readout-${n}`} className="grid grid-cols-[1fr_auto] items-baseline gap-3 py-2">
-                <span>
-                  <span className="micro">{fieldLabel(n)}</span>
-                  <span className="readout block text-step-0 text-ink-3">—</span>
+              <li key={`missing-${n}`} data-testid={`readout-${n}`} className="grid grid-cols-[1fr_auto] items-baseline gap-3 py-3">
+                {editing === `add:${n}` ? (
+                  <form
+                    className="flex flex-col gap-1"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      void addField(n, draft);
+                    }}
+                  >
+                    <span className="micro">{fieldLabel(n)}</span>
+                    <div className="flex items-center gap-2">
+                      <input
+                        autoFocus
+                        aria-label={`Add ${fieldLabel(n)}`}
+                        value={draft}
+                        onChange={(e) => setDraft(e.target.value)}
+                        onKeyDown={(e) => e.key === "Escape" && setEditing(null)}
+                        placeholder="type what the page says"
+                        className="readout w-full rounded-[var(--radius)] border border-ink-2 bg-ground px-2 py-1 text-step-0 text-ink"
+                      />
+                      <button type="submit" disabled={busy || !draft.trim()} className="text-step--1 text-ink">save</button>
+                      <button type="button" onClick={() => setEditing(null)} className="text-step--1 text-ink-3">esc</button>
+                    </div>
+                  </form>
+                ) : (
+                  <span>
+                    <span className="micro">{fieldLabel(n)}</span>
+                    <span className="readout block text-step-0 text-ink-3">—</span>
+                  </span>
+                )}
+                <span className="flex items-baseline gap-3">
+                  <span className="readout text-step--1 text-fault">missing · the model did not read one</span>
+                  {editing !== `add:${n}` ? (
+                    <button
+                      type="button"
+                      data-testid={`add-${n}`}
+                      onClick={() => {
+                        setEditing(`add:${n}`);
+                        setDraft("");
+                      }}
+                      className="text-step--1 text-ink-3 hover:text-ink"
+                      aria-label={`Add ${fieldLabel(n)}`}
+                    >
+                      add
+                    </button>
+                  ) : null}
                 </span>
-                <span className="readout text-step--1 text-fault">missing · the model did not read one</span>
               </li>
             ))}
             {header.map((f) => (

@@ -43,6 +43,45 @@ def test_correcting_a_field_writes_a_correction_row_and_returns_the_new_value(
     assert f["corrections"][0]["new_value"] == "1,171.20"
 
 
+def test_a_missing_required_field_can_be_added_as_a_correction(client: TestClient) -> None:
+    """When the model abstains on a required field there is no row to correct; the clerk must
+    still be able to supply it, and it must reach the next dataset like any correction (design
+    loop P3, round 8). Adding a field that already exists is a conflict, not a duplicate."""
+    from sqlalchemy import create_engine, text
+
+    from tests.conftest import TEST_DATABASE_URL
+
+    headers = register_and_login(client, "clerk@acme.io", "Acme")
+    doc = _upload(client, headers)
+    ex_id = doc["extraction"]["id"]
+    vendor = next(f for f in doc["extraction"]["fields"] if f["name"] == "vendor_name")
+    dup = client.post(
+        f"/extractions/{ex_id}/fields", headers=headers, json={"name": "vendor_name", "value": "X"}
+    )
+    assert dup.status_code == 409, dup.text  # it exists: correct it, do not add it
+    bad = client.post(
+        f"/extractions/{ex_id}/fields", headers=headers, json={"name": "not_a_field", "value": "X"}
+    )
+    assert bad.status_code == 422, bad.text
+    # simulate the real model's abstention (the stub always emits vendor_name): remove the row
+    with create_engine(TEST_DATABASE_URL, future=True).begin() as conn:
+        conn.execute(text("delete from fields where id = :id"), {"id": vendor["id"]})
+    r = client.post(
+        f"/extractions/{ex_id}/fields",
+        headers=headers,
+        json={"name": "vendor_name", "value": "Northwind Traders"},
+    )
+    assert r.status_code == 201, r.text
+    body = r.json()
+    assert body["name"] == "vendor_name" and body["value"] == "Northwind Traders"
+    assert body["corrected"] is True
+    again = client.get(f"/documents/{doc['id']}", headers=headers).json()
+    f = next(f for f in again["extraction"]["fields"] if f["name"] == "vendor_name")
+    assert f["grounded"] is False and f["calibrated_confidence"] is None
+    assert f["corrections"][0]["old_value"] is None
+    assert f["corrections"][0]["new_value"] == "Northwind Traders"
+
+
 def test_approving_an_extraction_moves_the_document_to_approved(client: TestClient) -> None:
     headers = register_and_login(client, "clerk@acme.io", "Acme")
     doc = _upload(client, headers)

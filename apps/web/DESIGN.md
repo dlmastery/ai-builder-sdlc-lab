@@ -40,7 +40,7 @@ where they conflict.
 ## Colour
 
 - Ground: `#0B0D10` (matte, not pure black); raised surface: `#12151A`; rule: `#1F242C`.
-- Ink: `#E6E8EB` primary, `#9AA3AD` secondary, `#868C93` tertiary (neutral grey — the earlier cool `#7A8591` read as a fourth hue to a fresh-context critic, design loop round 2).
+- Ink: `#E6E8EB` primary, `#A3A7AC` secondary, `#868C93` tertiary — neutral greys. The earlier slate greys (`#9AA3AD`, `#7A8591`) read as "steel blue" and "a fourth hue" to fresh-context critics (design loop rounds 2 and 6); on a near-black ground any cool cast becomes a colour.
 - **Signal** (confidence, the one accent): `#7CF2C4` — phosphor mint. Used only for meaning.
 - **Fault** (failed check, ungrounded, below threshold): `#FF6B6B`.
 - Caution (near threshold): `#F2C879`, used sparingly.
