@@ -14,6 +14,36 @@ This repository is both the **product** (a full-stack ML web application) and th
 
 The AI Builder does not write code, columns, layer widths, or CSS. The AI Builder decides **what** is worth shipping, names **what must not be violated**, judges **taste** against slop, and closes the loop when production signals arrive. Everything else is the agent's job.
 
+## The story, chapter by chapter
+
+| Chapter | What happens | Tag |
+|---|---|---|
+| [00 — Premise](story/00-premise.md) | An empty directory, a brief, and the AI Builder persona | — |
+| [01 — The first menu](story/01-step0-menu.md) | Six safe products; the meta-meta question | `step-0-menu` |
+| [02 — The elite menu](story/02-elite-menu.md) | Fable misreads "you pick", is corrected, raises the bar | `step-0-menu-v2` |
+| [03 — Due diligence](story/03-due-diligence-ledgerlens.md) | Risks, transparency, confidence maths, market, a stale model pick caught | — |
+| [04 — Pick confirmed, Gate 1](story/04-pick-confirmed-gate-1.md) | Models re-verified against the leaderboard; `intent.md`; policy at its 20-line cap | `gate-1-intent` |
+| [05 — Spec, Gate 2](story/05-spec-gate-2.md) | One design session → `spec.md`; concerns flagged; taste bet | `gate-2-spec` |
+| [06 — Loop and graph, Gate 3](story/06-loop-graph-gate-3.md) | `loop.md`, `graph.md` (mermaid); the 2B edit-in-spirit | `gate-3-loop-graph` |
+| [07 — Plan, Gate 4](story/07-plan-gate-4.md) | Plan-time model re-check; three slices; three hero directions | `gate-4-plan` |
+| [08 — Slice A](story/08-slice-a.md) | A database and a web app before any weight file; the critic loop | `slice-a` |
+| [09 — Slice B (live log)](story/09-slice-b.md) | Eval maths, calibration, synthetic data, the real OCR's undocumented format, a full disk, a slow flag, the smoke train | `slice-b` |
+| [10 — Slice C](story/10-slice-c.md) | Corrections → dataset; observe → signal → intent; billing; the real OCR meets the stamp | `slice-c` |
+
+`lab/decisions.md` holds every non-obvious decision (D-001 onward) with alternatives, reasoning, evidence and date. `lab/intent/` holds intents the *product* wrote.
+
+## Replaying the lab as a student
+
+```
+git clone https://github.com/dlmastery/ai-builder-sdlc-lab && cd ai-builder-sdlc-lab
+git checkout gate-4-plan      # read lab/*.md exactly as the AI Builder accepted them
+git checkout slice-a          # make up && make seed — a product with a stub inside
+git checkout slice-b          # make smoke-train — the first real model version in ~5 min
+git checkout main             # the closed loop
+```
+
+Each tag is a point where a human said "accept" and nothing after it existed yet.
+
 ## How to read this repo
 
 - `story/` — one numbered chapter per turn of the pairing: *Setting → AI Builder → Fable → Gate*. Read these in order. This is the tutorial.
