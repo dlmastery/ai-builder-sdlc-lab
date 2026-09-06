@@ -6,9 +6,10 @@ export default async function MarketingLayout({ children }: LayoutProps<"/">) {
   const session = await currentSession();
   return (
     <div className="flex min-h-full flex-col">
-      <header className="mx-auto flex w-full max-w-[1200px] items-center justify-between px-6 py-5">
+      {/* room between the wordmark and the links on a phone (customer test, ugly 1) */}
+      <header className="mx-auto flex w-full max-w-[1200px] flex-wrap items-center justify-between gap-x-8 gap-y-3 px-6 py-5">
         <Wordmark />
-        <nav className="flex items-center gap-6 text-step-0">
+        <nav className="flex items-center gap-5 whitespace-nowrap text-step-0">
           <Link href="/pricing" className="text-ink-2 hover:text-ink">
             Pricing
           </Link>

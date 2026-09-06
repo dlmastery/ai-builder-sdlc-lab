@@ -113,11 +113,9 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
   const hardWords = words.filter((w) => w.score < HARD_SPOT_SCORE);
   const corrected = ex.fields.filter((f) => f.corrections.length > 0).length;
   const invoiceNumber = ex.fields.find((f) => f.name === "invoice_number" && f.line_index === null)?.value;
-  const documentTitle = doc.vendor_name
-    ? `${doc.vendor_name}${invoiceNumber ? ` · ${invoiceNumber}` : ""}`
-    : invoiceNumber
-      ? `Invoice ${invoiceNumber}`
-      : doc.original_filename;
+  // the invoice number alone: with the vendor in front of it the number was the part that
+  // truncated (customer test, confusing 2); the vendor sits in the eyebrow above the plate
+  const documentTitle = invoiceNumber ? `Invoice ${invoiceNumber}` : doc.original_filename;
 
   function toggle(l: Layer) {
     setLayers((prev) => {
@@ -170,7 +168,10 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
   }
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,2.3fr)_minmax(300px,1fr)]">
+    // minmax(0, …) on the single phone column too: a 1240 px page image gave the column a
+    // 1240 px minimum and pushed the readouts — and the Approve button — off a 390 px screen
+    // (customer test, broken 2)
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,2.3fr)_minmax(300px,1fr)]">
       {/* --- the page --- */}
       <section className="flex flex-col gap-4">
         <div className="flex flex-col gap-3">
@@ -427,7 +428,7 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
 
         {sel ? <Alternatives field={sel} /> : null}
 
-        <Ledger results={ex.verifier_results} byId={byId} />
+        <Ledger results={ex.verifier_results} byId={byId} approved={doc.approved} />
 
         {/* provenance stays (rule 11: the view is served by a pinned, audited model version — a
             clerk may need to quote it), but as a plain sentence in the footer, not a header
@@ -686,12 +687,16 @@ function Alternatives({ field }: { field: FieldOut }) {
 function Ledger({
   results,
   byId,
+  approved,
 }: {
   results: VerifierResultOut[];
   byId: Map<string, FieldOut>;
+  approved: boolean;
 }) {
   // Arithmetic always shown with its numbers. Passing grounding/format checks collapse into one
   // count each; a failing one is listed on its own line so nothing that failed is ever hidden.
+  // Once a person has approved, a failed check is still true — the page still could not confirm
+  // the value — but it no longer blocks anything, and the row says so (customer test, confusing 1).
   const arithmetic = results.filter((r) => r.rule.startsWith("arithmetic."));
   const failed = results.filter((r) => !r.rule.startsWith("arithmetic.") && !r.passed);
   const groundedOk = results.filter((r) => r.rule === "grounding" && r.passed).length;
@@ -701,10 +706,10 @@ function Ledger({
       <p className="micro">Ledger · what was checked</p>
       <ul className="rule-y border-t border-rule text-step--1">
         {arithmetic.map((r, i) => (
-          <Row key={`a${i}`} text={describe(r, byId)} passed={r.passed} />
+          <Row key={`a${i}`} text={describe(r, byId)} passed={r.passed} overridden={approved && !r.passed} />
         ))}
         {failed.map((r, i) => (
-          <Row key={`f${i}`} text={describe(r, byId)} passed={false} />
+          <Row key={`f${i}`} text={describe(r, byId)} passed={false} overridden={approved} />
         ))}
         <Row text={`${groundedOk} values found on the page where the model said they were`} passed />
         <Row text={`${formatOk} dates and amounts are well-formed`} passed />
@@ -713,11 +718,14 @@ function Ledger({
   );
 }
 
-function Row({ text, passed }: { text: string; passed: boolean }) {
+function Row({ text, passed, overridden = false }: { text: string; passed: boolean; overridden?: boolean }) {
   return (
     <li data-testid="ledger-row" className="grid grid-cols-[1fr_auto] gap-4 py-3">
-      <span className="text-ink-2">{text}</span>
-      <span className={passed ? "text-signal" : "text-fault"}>{passed ? "✓" : "✗"}</span>
+      <span className="text-ink-2">
+        {text}
+        {overridden ? <span className="text-ink-3"> · overridden by a person</span> : null}
+      </span>
+      <span className={passed ? "text-signal" : overridden ? "text-ink-3" : "text-fault"}>{passed ? "✓" : "✗"}</span>
     </li>
   );
 }

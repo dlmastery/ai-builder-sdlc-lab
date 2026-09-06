@@ -182,6 +182,9 @@ class Page(Base):
     height: Mapped[int] = mapped_column(Integer, nullable=False)
     ocr_object_key: Mapped[str | None] = mapped_column(String(512), nullable=True)
     quality: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    # hash of the normalised page image (not the uploaded file): the same page in a different
+    # file is a duplicate the queue names (migration 0002)
+    content_sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
     document: Mapped[Document] = relationship(back_populates="pages")
 

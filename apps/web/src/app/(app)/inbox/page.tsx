@@ -127,6 +127,11 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
                     {d.vendor_name ?? "vendor not yet known"}
                     {d.difficulty != null ? ` · expected to be ${d.difficulty >= 0.5 ? "hard" : "easy"} to read · ${Math.round(d.difficulty * 100)}%` : ""}
                   </span>
+                  {d.duplicate_of ? (
+                    <span className="micro normal-case tracking-normal text-ink-3">
+                      same file as an earlier upload · read again on its own
+                    </span>
+                  ) : null}
                   {d.status === "approved" ? (
                     <span className="micro normal-case tracking-normal">approved by a person{d.reasons.length ? ` · ${d.reasons.length} review reason${d.reasons.length === 1 ? "" : "s"} overridden` : ""}</span>
                   ) : d.reasons.length > 0 ? (

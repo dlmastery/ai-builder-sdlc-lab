@@ -94,6 +94,33 @@ def test_list_rows_carry_the_marks_a_thumbnail_needs(client: TestClient) -> None
     assert all(m["field"] for m in row["marks"])
 
 
+def test_a_row_names_the_earlier_upload_whose_page_it_duplicates(client: TestClient) -> None:
+    """Identical bytes never make a second document (the upload is idempotent on the file hash),
+    but the same page in a different file does — a re-export, a re-scan saved again — and the
+    queue must say so: the newer row names the older one (customer test, broken 6). The match
+    is on the normalised page, not the file."""
+    from PIL.PngImagePlugin import PngInfo
+
+    headers = register_and_login(client, "clerk@acme.io", "Acme")
+    first = _upload(client, headers)["document"]["id"]
+    buf = io.BytesIO()
+    meta = PngInfo()
+    meta.add_text("Comment", "saved again")
+    Image.new("RGB", (640, 900), "white").save(buf, format="PNG", pnginfo=meta)
+    assert buf.getvalue() != _png_bytes()  # different bytes, the same page
+    r = client.post(
+        "/documents",
+        headers=headers,
+        files={"file": ("invoice-again.png", buf.getvalue(), "image/png")},
+    )
+    assert r.status_code == 202, r.text
+    second = r.json()["document"]["id"]
+    assert second != first
+    rows = {r["id"]: r for r in client.get("/documents", headers=headers).json()["items"]}
+    assert rows[first]["duplicate_of"] is None
+    assert rows[second]["duplicate_of"] == first
+
+
 def test_unfiltered_list_puts_actionable_documents_first(client: TestClient) -> None:
     """A queue shows what needs a person before what is settled (design loop P2, round 3):
     needs_review and failed rows come first, then in-flight, then approved — recency within."""

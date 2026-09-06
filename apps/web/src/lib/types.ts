@@ -51,6 +51,7 @@ export type DocumentRowOut = DocumentOut & {
   page_height: number;
   threshold: number | null;
   marks: Array<{ field: string; box: number[]; confidence: number; grounded: boolean }>;
+  duplicate_of: string | null;
 };
 
 export type AlternativeOut = { rank: number; value: string | null; probability: number };

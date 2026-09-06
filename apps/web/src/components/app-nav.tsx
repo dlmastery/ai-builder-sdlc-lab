@@ -19,10 +19,12 @@ export function AppNav() {
   const session = useSession();
   return (
     <header className="border-b border-rule">
-      <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between px-6 py-4">
-        <div className="flex items-center gap-8">
+      {/* wraps on a phone (customer test, broken 3): the nav takes its own line, the tenant and
+          role hide until there is room, nothing overlaps and nothing scrolls sideways */}
+      <div className="mx-auto flex w-full max-w-[1400px] flex-wrap items-center justify-between gap-x-6 gap-y-3 px-6 py-4">
+        <div className="flex flex-wrap items-center gap-x-8 gap-y-2">
           <Wordmark href="/inbox" />
-          <nav className="flex items-center gap-6">
+          <nav className="flex flex-wrap items-center gap-x-6 gap-y-1">
             {ITEMS.map(([href, label]) => {
               const active = path.startsWith(href);
               return (
@@ -39,7 +41,7 @@ export function AppNav() {
           </nav>
         </div>
         <div className="flex items-center gap-5 text-step--1">
-          <span className="text-ink-2">
+          <span className="hidden text-ink-2 md:inline">
             {session.tenant.name} · <span className="text-ink-3">{session.role.replace("_", " ")}</span>
           </span>
           <button

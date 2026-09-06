@@ -1,0 +1,5 @@
+Took 01-home-fold screenshot
+Took 02-home-full screenshot
+Took 03-signin-page screenshot
+Took 04-signin-bad-input screenshot (bad email, empty password)
+Took 05-post-signin screenshot, url=http://localhost:3000/inbox

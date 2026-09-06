@@ -7,6 +7,7 @@ import hashlib
 import io
 import json
 from collections.abc import Sequence
+from datetime import datetime
 from typing import Any
 from uuid import UUID
 
@@ -149,6 +150,7 @@ def upload(
             object_key=key,
             width=image.width,
             height=image.height,
+            content_sha256=hashlib.sha256(png.getvalue()).hexdigest(),
         )
     )
     job = jobs.enqueue(
@@ -245,6 +247,23 @@ def _document_rows(db: DbSession, docs: Sequence[Document]) -> list[DocumentRowO
                     grounded=bool(f.grounded),
                 )
             )
+    # the earliest document per *page* hash in this tenant, one query over the page's hashes:
+    # identical files never make two documents (the upload is idempotent), the same page in a
+    # different file does, and the queue names the earlier one (customer test, broken 6)
+    earliest: dict[str, tuple[UUID, datetime]] = {}
+    content_hashes = {p.content_sha256 for p in first_page.values() if p.content_sha256}
+    if content_hashes:
+        for did, sha, created in db.execute(
+            select(Page.document_id, Page.content_sha256, Document.created_at)
+            .join(Document, Document.id == Page.document_id)
+            .where(
+                Document.tenant_id == docs[0].tenant_id,
+                Page.number == 1,
+                Page.content_sha256.in_(content_hashes),
+            )
+            .order_by(Document.created_at)
+        ):
+            earliest.setdefault(sha, (did, created))
     vendor_ids = {d.vendor_id for d in docs if d.vendor_id}
     vendors = (
         {v.id: v.name for v in db.scalars(select(Vendor).where(Vendor.id.in_(vendor_ids)))}
@@ -270,6 +289,14 @@ def _document_rows(db: DbSession, docs: Sequence[Document]) -> list[DocumentRowO
                 page_height=page.height if page else 0,
                 threshold=verdict.threshold if verdict else None,
                 marks=marks.get(ex.id, []) if ex else [],
+                duplicate_of=(
+                    earliest[page.content_sha256][0]
+                    if page
+                    and page.content_sha256
+                    and page.content_sha256 in earliest
+                    and earliest[page.content_sha256][0] != d.id
+                    else None
+                ),
             )
         )
     return out

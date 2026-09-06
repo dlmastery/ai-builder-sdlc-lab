@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useState, useSyncExternalStore, type FormEvent } from "react";
 import { ClientApiError, post } from "@/lib/client";
 import type { SessionOut } from "@/lib/types";
 
@@ -11,12 +11,34 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
   const params = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  // the customer test clicked before hydration and the browser did a native GET with the
+  // password in the URL: the button is disabled in the server-rendered HTML and only enables
+  // once this effect has run; the form also declares POST, so a native submit could never GET
+  const ready = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setPending(true);
     setError(null);
     const form = new FormData(e.currentTarget);
+    const email = String(form.get("email") ?? "").trim();
+    const password = String(form.get("password") ?? "");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Enter your work email address, like name@company.com.");
+      return;
+    }
+    if (mode === "sign-up" && password.length < 12) {
+      setError("A password needs 12 characters or more.");
+      return;
+    }
+    if (!password) {
+      setError("Enter your password.");
+      return;
+    }
+    setPending(true);
     const body =
       mode === "sign-up"
         ? {
@@ -36,7 +58,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-6">
+    <form onSubmit={onSubmit} method="post" noValidate className="flex flex-col gap-6">
       <div>
         <p className="micro">{mode === "sign-up" ? "New workspace" : "Welcome back"}</p>
         <h1 className="mt-2 text-step-2 font-medium tracking-tight">
@@ -62,7 +84,8 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
       ) : null}
       <button
         type="submit"
-        disabled={pending}
+        disabled={pending || !ready}
+        data-testid="auth-submit"
         className="rounded-[var(--radius)] bg-ink px-4 py-3 text-step-0 font-medium text-ground hover:bg-ink-2 disabled:opacity-60"
       >
         {pending ? "…" : mode === "sign-up" ? "Create workspace" : "Sign in"}

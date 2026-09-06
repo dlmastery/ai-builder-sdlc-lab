@@ -161,6 +161,8 @@ class DocumentRowOut(DocumentOut):
     page_height: int = 0
     threshold: float | None = None
     marks: list[MarkOut] = PField(default_factory=list)
+    # the earlier document in this tenant with the same bytes, if any (customer test, broken 6)
+    duplicate_of: UUID | None = None
 
 
 class DocumentDetailOut(DocumentOut):
