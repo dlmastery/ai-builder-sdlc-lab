@@ -20,9 +20,10 @@ def from_pretrained_kwargs(device: str, *, load_in_4bit: bool = False) -> dict[s
 
     kw: dict[str, Any] = {"dtype": torch.bfloat16 if device == "cuda" else torch.float32}
     if load_in_4bit and device == "cuda":
-        from transformers import BitsAndBytesConfig
+        import transformers
 
-        kw["quantization_config"] = BitsAndBytesConfig(  # type: ignore[no-untyped-call]
+        bnb_config: Any = transformers.BitsAndBytesConfig  # untyped in some installs
+        kw["quantization_config"] = bnb_config(
             load_in_4bit=True, bnb_4bit_compute_dtype=torch.bfloat16, bnb_4bit_quant_type="nf4"
         )
     return kw
