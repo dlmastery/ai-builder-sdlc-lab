@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CoverageCurve, ReliabilityDiagram, Sparkline } from "@/components/charts";
+import { EmptyState } from "@/components/empty-state";
 import { PinButton } from "@/components/pin-button";
 import { api, ApiError } from "@/lib/api";
 import { pct, relTime } from "@/lib/format";
@@ -37,6 +38,14 @@ export default async function ModelDetailPage(props: PageProps<"/models/[id]">) 
         </div>
         <PinButton modelId={m.id} pinned={m.pinned} kind={m.kind} />
       </div>
+
+      {!ev && !train && curve.length === 0 && typeof m.metrics.ece_after !== "number" ? (
+        <EmptyState title="Nothing measured yet.">
+          This version has no training summary and no evaluation on record — a run that stopped
+          before its first checkpoint, or one still going. The job that produced it says why on
+          the Models &amp; runs page; an evaluation appears here the moment one is written.
+        </EmptyState>
+      ) : null}
 
       {ev ? (
         <section className="grid gap-6 md:grid-cols-4">

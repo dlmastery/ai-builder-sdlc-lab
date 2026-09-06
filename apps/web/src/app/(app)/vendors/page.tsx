@@ -29,20 +29,26 @@ export default async function VendorsPage() {
           {vendors.items.map((v) => {
             const last = v.curve[v.curve.length - 1];
             return (
-              <li key={v.id} data-testid="vendor-row" className="grid items-center gap-4 py-3 md:grid-cols-[1fr_120px_120px_240px_100px]">
-                <span className="text-step-0 text-ink">{v.name}</span>
-                <span className="readout text-step--1 text-ink-3">{v.documents} docs</span>
-                <span className="readout text-step--1 text-ink-3">{v.corrections} corrections</span>
+              <li key={v.id} data-testid="vendor-row" className="grid items-center gap-6 py-5 md:grid-cols-[1fr_320px_140px]">
+                <span>
+                  <span className="block text-step-1 font-medium tracking-tight text-ink">{v.name}</span>
+                  <span className="readout mt-1 block text-step--1 text-ink-3">
+                    {v.documents} documents · {v.corrections} corrections
+                  </span>
+                </span>
                 <span className="flex flex-col gap-1">
-                  <Sparkline values={v.curve.map((c) => c.accuracy ?? 0)} width={220} height={32} scale="unit" />
+                  <Sparkline values={v.curve.map((c) => c.accuracy ?? 0)} width={320} height={56} scale="unit" />
                   <span className="text-step--1 text-ink-3">
                     {v.curve.length === 1
                       ? "one extractor version reviewed · the curve needs a second run"
                       : `${v.curve.length} extractor versions`}
                   </span>
                 </span>
-                <span className={`readout text-step--1 ${(last?.accuracy ?? 0) >= 0.9 ? "text-signal" : "text-caution"}`}>
-                  {last?.accuracy != null ? pct(last.accuracy, 1) : "—"}
+                <span className="text-right">
+                  <span className={`readout block text-step-2 leading-none ${(last?.accuracy ?? 0) >= 0.9 ? "text-signal" : "text-caution"}`}>
+                    {last?.accuracy != null ? pct(last.accuracy, 1) : "—"}
+                  </span>
+                  <span className="micro mt-1 block">on your reviews</span>
                 </span>
               </li>
             );
