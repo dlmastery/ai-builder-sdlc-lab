@@ -63,6 +63,51 @@ def test_train_hands_post_training_stages_to_a_fresh_process(
     assert spawned == [["train", "--profile", "demo", "--resume-from", "mv-9", "--baseline"]]
 
 
+def test_train_resume_checkpoint_continues_the_same_model_version(
+    monkeypatch: pytest.MonkeyPatch, test_database_url: str
+) -> None:
+    """D-039: after an outage, `train --resume-checkpoint <mv>` trains the same model version
+    from its latest checkpoint and then hands the post-training stages to a fresh process."""
+    from ledgerlens_worker import cli
+
+    calls: list[tuple[str, dict[str, Any]]] = []
+    monkeypatch.setattr(
+        cli,
+        "_run",
+        lambda kind, payload, *, queue="gpu": (
+            calls.append((kind, payload)) or {"model_version_id": "mv-7"}
+        ),
+    )
+    monkeypatch.setattr(cli, "_latest_dataset", lambda name: "ds-1")
+    monkeypatch.setattr(cli, "commit_headroom_gb", lambda: None)
+    spawned: list[list[str]] = []
+    monkeypatch.setattr(cli, "_spawn", lambda args: spawned.append(args))
+
+    cli.cmd_train(
+        argparse.Namespace(
+            profile="overnight",
+            model="2b",
+            dataset=None,
+            baseline=True,
+            resume_from=None,
+            resume_checkpoint="mv-7",
+        )
+    )
+
+    assert calls == [
+        (
+            "train_extractor",
+            {
+                "dataset_id": "ds-1",
+                "profile": "overnight",
+                "model": "2b",
+                "resume_model_version_id": "mv-7",
+            },
+        )
+    ]
+    assert spawned == [["train", "--profile", "overnight", "--resume-from", "mv-7", "--baseline"]]
+
+
 def test_evaluate_passes_the_dataset_through(
     monkeypatch: pytest.MonkeyPatch, test_database_url: str
 ) -> None:

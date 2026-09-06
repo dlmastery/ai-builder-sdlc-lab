@@ -20,6 +20,12 @@ from typing import Any
 
 from PIL import Image
 
+from ledgerlens_ml.checkpoint import (
+    TrainerState,
+    checkpoint_dir,
+    prune_checkpoints,
+    should_checkpoint,
+)
 from ledgerlens_ml.extract.prompt import target_json, unknown_value_spans
 from ledgerlens_ml.extract.qwen import DEFAULT_BASE, build_messages, resize_long_side
 from ledgerlens_ml.loading import from_pretrained_kwargs
@@ -40,6 +46,9 @@ class TrainProfile:
     load_in_4bit: bool = False
     eval_every: int = 0
     max_train_items: int | None = None
+    # D-039: adapter + optimizer + scheduler + state every N optimiser steps; newest K kept
+    checkpoint_every: int = 25
+    keep_checkpoints: int = 2
 
 
 # Measured on the RTX 4090 Laptop (2B, bf16, gradient checkpointing): ~6 s per micro-batch at
@@ -49,7 +58,12 @@ class TrainProfile:
 # ~1 h build + ~6 h train (450 steps) + ~1 h evaluate/calibrate at 100 documents each.
 PROFILES: dict[str, TrainProfile] = {
     "smoke": TrainProfile(
-        "smoke", max_steps=6, grad_accum=2, max_long_side=640, max_train_items=12
+        "smoke",
+        max_steps=6,
+        grad_accum=2,
+        max_long_side=640,
+        max_train_items=12,
+        checkpoint_every=2,
     ),
     "demo": TrainProfile("demo", max_steps=100, grad_accum=4, max_long_side=896, epochs=1.0),
     # 896 px, not 1024: at 1024 the run OOMed with 7.8 GiB "free" (fragmentation, D-035)
@@ -163,9 +177,14 @@ def train_lora(
     *,
     log: Callable[[dict[str, Any]], None] | None = None,
     should_stop: Callable[[], bool] | None = None,
+    resume_from: Path | None = None,
+    on_checkpoint: Callable[[int, Path, list[int]], None] | None = None,
 ) -> dict[str, Any]:
+    """`resume_from` is a `checkpoint-<step>` directory (adapter/, optimizer.pt, scheduler.pt,
+    state.json); training continues from that step with the same data order. `on_checkpoint`
+    receives (step, directory, pruned_steps) after each save (D-039)."""
     import torch
-    from peft import LoraConfig, get_peft_model
+    from peft import LoraConfig, PeftModel, get_peft_model
     from transformers import AutoModelForImageTextToText, AutoProcessor
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -185,14 +204,17 @@ def train_lora(
     if hasattr(model, "enable_input_require_grads"):
         model.enable_input_require_grads()
 
-    lcfg = LoraConfig(
-        r=prof.lora_r,
-        lora_alpha=prof.lora_alpha,
-        lora_dropout=prof.lora_dropout,
-        target_modules=_lora_targets(),
-        task_type="CAUSAL_LM",
-    )
-    model = get_peft_model(model, lcfg)
+    if resume_from is not None:
+        model = PeftModel.from_pretrained(model, str(resume_from / "adapter"), is_trainable=True)
+    else:
+        lcfg = LoraConfig(
+            r=prof.lora_r,
+            lora_alpha=prof.lora_alpha,
+            lora_dropout=prof.lora_dropout,
+            target_modules=_lora_targets(),
+            task_type="CAUSAL_LM",
+        )
+        model = get_peft_model(model, lcfg)
     # keep the vision tower frozen (LoRA targets language projections; vision modules share names
     # in some VLMs, so freeze anything under a "visual"/"vision" prefix explicitly)
     for n, p in model.named_parameters():
@@ -228,10 +250,21 @@ def train_lora(
     micro = 0
     losses: list[float] = []
     history: list[dict[str, Any]] = []
+    resumed_from = 0
+    if resume_from is not None:
+        state = TrainerState.load(resume_from)
+        opt.load_state_dict(torch.load(resume_from / "optimizer.pt", map_location=device))
+        sched.load_state_dict(torch.load(resume_from / "scheduler.pt"))
+        step, micro, history, losses = state.step, state.micro, state.history, state.losses
+        resumed_from = step
+    skip = micro % len(items) if resume_from is not None else 0  # same data order as before
+    ckpt_root = out_dir.parent / "checkpoints"
     supervised_tokens = 0
     total_tokens = 0
     while step < max_steps:
-        for ex in items:
+        for idx, ex in enumerate(items):
+            if idx < skip:
+                continue
             if should_stop and should_stop():
                 max_steps = step
                 break
@@ -271,9 +304,19 @@ def train_lora(
                 history.append(entry)
                 if log:
                     log(entry)
+                if should_checkpoint(step, prof.checkpoint_every) and step < max_steps:
+                    ck = checkpoint_dir(ckpt_root, step)
+                    model.save_pretrained(str(ck / "adapter"))
+                    torch.save(opt.state_dict(), ck / "optimizer.pt")
+                    torch.save(sched.state_dict(), ck / "scheduler.pt")
+                    TrainerState(step, micro, history, losses[-prof.grad_accum * 4 :]).save(ck)
+                    pruned = prune_checkpoints(ckpt_root, keep=prof.keep_checkpoints)
+                    if on_checkpoint:
+                        on_checkpoint(step, ck, pruned)
                 if step >= max_steps:
                     break
         else:
+            skip = 0
             continue
         break
 
@@ -282,6 +325,8 @@ def train_lora(
     (out_dir / "train_history.json").write_text(json.dumps(history), encoding="utf-8")
     return {
         "steps": step,
+        "resumed_from_step": resumed_from,
+        "checkpoint_every": prof.checkpoint_every,
         "examples": len(items),
         "final_loss": history[-1]["loss"] if history else None,
         "trainable_params": trainable,

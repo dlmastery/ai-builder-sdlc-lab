@@ -105,9 +105,15 @@ def cmd_train(a: argparse.Namespace) -> None:
             # a 2B bf16 load peaks near 12 GB of host commit on Windows (D-028); below that the
             # process dies with "paging file too small (os error 1455)" rather than an OOM
             print(f"commit headroom {headroom:.1f} GB before training", file=sys.stderr)
-        res = _run(
-            "train_extractor", {"dataset_id": dataset_id, "profile": a.profile, "model": a.model}
-        )
+        payload: dict[str, Any] = {
+            "dataset_id": dataset_id,
+            "profile": a.profile,
+            "model": a.model,
+        }
+        if getattr(a, "resume_checkpoint", None):
+            # D-039: same model version, latest stored checkpoint, same data order
+            payload["resume_model_version_id"] = a.resume_checkpoint
+        res = _run("train_extractor", payload)
         print(json.dumps(res, indent=1))
         # D-029: the process that trained does not load a second model; a fresh one does
         _spawn(
@@ -208,6 +214,11 @@ def main(argv: list[str] | None = None) -> None:
         "--resume-from",
         metavar="MODEL_VERSION",
         help="skip build and train; evaluate/calibrate/difficulty this saved extractor",
+    )
+    t.add_argument(
+        "--resume-checkpoint",
+        metavar="MODEL_VERSION",
+        help="continue training this model version from its latest stored checkpoint",
     )
     t.set_defaults(fn=cmd_train)
     e = sub.add_parser("evaluate")

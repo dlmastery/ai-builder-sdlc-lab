@@ -119,30 +119,60 @@ def train_extractor(db: DbSession, job: Job) -> dict[str, Any]:
     )
 
     size = "4b" if "4B" in prof.base else "2b"
-    mv = ModelVersion(
-        kind="extractor",
-        name=f"qwen3.5-{size}-lora",
-        config={
-            "base": prof.base,
-            "max_long_side": prof.max_long_side,
-            "load_in_4bit": prof.load_in_4bit,
-            "profile": prof.name,
-        },
-        metrics={},
-        dataset_id=dataset_id,
-        job_id=job.id,
-    )
-    db.add(mv)
-    db.flush()
-    mv.name = f"qwen3.5-{size}-lora-{str(mv.id)[:8]}"
-    db.commit()
+    resume_id = p.get("resume_model_version_id")
+    if resume_id:
+        # D-039: continue the same model version from its latest stored checkpoint
+        resumed = db.get(ModelVersion, uuid.UUID(resume_id))
+        if resumed is None:
+            raise RuntimeError(f"no model version {resume_id} to resume")
+        mv = resumed
+        mv.job_id = job.id
+        db.commit()
+    else:
+        mv = ModelVersion(
+            kind="extractor",
+            name=f"qwen3.5-{size}-lora",
+            config={
+                "base": prof.base,
+                "max_long_side": prof.max_long_side,
+                "load_in_4bit": prof.load_in_4bit,
+                "profile": prof.name,
+                "checkpoint_every": prof.checkpoint_every,
+            },
+            metrics={},
+            dataset_id=dataset_id,
+            job_id=job.id,
+        )
+        db.add(mv)
+        db.flush()
+        mv.name = f"qwen3.5-{size}-lora-{str(mv.id)[:8]}"
+        db.commit()
 
     def log(entry: dict[str, Any]) -> None:
         _progress(db, job, model_version_id=str(mv.id), **entry)
 
+    ckpt_prefix = keys.artifact(mv.id, "checkpoints/")
+
+    def on_checkpoint(step: int, directory: Path, pruned: list[int]) -> None:
+        for f in directory.rglob("*"):
+            if f.is_file():
+                rel = f.relative_to(directory).as_posix()
+                store.put(f"{ckpt_prefix}checkpoint-{step}/{rel}", f.read_bytes())
+        for old in pruned:
+            for key in store.list_keys(f"{ckpt_prefix}checkpoint-{old}/"):
+                store.delete(key)
+        _progress(db, job, last_checkpoint_step=step)
+
     with tempfile.TemporaryDirectory() as tmp:
         out_dir = Path(tmp) / "adapter"
-        stats = train_lora(examples, prof, out_dir, log=log)
+        resume_from = (
+            _download_latest_checkpoint(store, ckpt_prefix, Path(tmp)) if resume_id else None
+        )
+        if resume_id and resume_from is None:
+            raise RuntimeError(f"model version {resume_id} has no stored checkpoint to resume")
+        stats = train_lora(
+            examples, prof, out_dir, log=log, resume_from=resume_from, on_checkpoint=on_checkpoint
+        )
         files = sorted(f.name for f in out_dir.iterdir() if f.is_file())
         for name in files:
             store.put(keys.artifact(mv.id, f"adapter/{name}"), (out_dir / name).read_bytes())
@@ -154,6 +184,25 @@ def train_extractor(db: DbSession, job: Job) -> dict[str, Any]:
     store.put(mv.card_object_key, card.encode("utf-8"), content_type="text/markdown")
     db.commit()
     return {"model_version_id": str(mv.id), **{k: v for k, v in stats.items() if k != "profile"}}
+
+
+def _download_latest_checkpoint(store: Any, prefix: str, into: Path) -> Path | None:
+    """Fetch `checkpoint-<highest step>/` from the object store into `into/checkpoints/`."""
+    steps: dict[int, list[str]] = {}
+    for key in store.list_keys(prefix):
+        rest = key[len(prefix) :]
+        head = rest.split("/", 1)[0]
+        if head.startswith("checkpoint-") and head[len("checkpoint-") :].isdigit():
+            steps.setdefault(int(head[len("checkpoint-") :]), []).append(key)
+    if not steps:
+        return None
+    step = max(steps)
+    root = into / "checkpoints" / f"checkpoint-{step}"
+    for key in steps[step]:
+        target = root / key[len(f"{prefix}checkpoint-{step}/") :]
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(store.get(key))
+    return root
 
 
 def _model_card(mv: ModelVersion, stats: dict[str, Any]) -> str:

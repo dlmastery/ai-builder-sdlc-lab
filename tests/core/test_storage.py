@@ -21,6 +21,21 @@ def test_put_then_get_roundtrip(test_database_url: str) -> None:
     assert not store.exists(key)
 
 
+def test_list_keys_under_a_prefix(test_database_url: str) -> None:
+    """Resuming a train needs the latest checkpoint's files under artifacts/<mv>/checkpoints/
+    (D-039); listing by prefix is the one read the store lacked."""
+    from ledgerlens_core.storage import get_object_store
+
+    store = get_object_store()
+    prefix = f"test/{uuid.uuid4()}/"
+    for name in ("a.bin", "sub/b.bin"):
+        store.put(prefix + name, b"x")
+    assert sorted(store.list_keys(prefix)) == [prefix + "a.bin", prefix + "sub/b.bin"]
+    assert store.list_keys(prefix + "nothing/") == []
+    for key in store.list_keys(prefix):
+        store.delete(key)
+
+
 def test_key_layout_matches_plan() -> None:
     from ledgerlens_core.storage import keys
 
