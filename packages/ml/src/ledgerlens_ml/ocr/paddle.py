@@ -198,8 +198,11 @@ class PaddleOcrVL:
 
         device = "cuda" if torch.cuda.is_available() else "cpu"
         dtype = torch.bfloat16 if device == "cuda" else torch.float32
-        model: Any = AutoModelForImageTextToText.from_pretrained(MODEL_ID, dtype=dtype)
-        self._model = model.to(device).eval()
+        kwargs: dict[str, Any] = {"dtype": dtype}
+        if device == "cuda":
+            kwargs["device_map"] = "cuda"  # straight to the GPU; no host-RAM staging copy
+        model: Any = AutoModelForImageTextToText.from_pretrained(MODEL_ID, **kwargs)
+        self._model = (model if device == "cuda" else model.to(device)).eval()
         # The published checkpoint's generation config disables the KV cache; without it every
         # decode step recomputes the ~2k-token vision prompt (measured: 1.2 tok/s vs 10x+ with it).
         self._model.generation_config.use_cache = True

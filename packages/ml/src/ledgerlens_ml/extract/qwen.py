@@ -110,8 +110,10 @@ class QwenExtractor:
             kwargs["quantization_config"] = BitsAndBytesConfig(
                 load_in_4bit=True, bnb_4bit_compute_dtype=torch.bfloat16, bnb_4bit_quant_type="nf4"
             )
+        if device == "cuda":
+            kwargs["device_map"] = "cuda"  # straight to the GPU; no host-RAM staging copy
         model: Any = AutoModelForImageTextToText.from_pretrained(self.config.base, **kwargs)
-        if not self.config.load_in_4bit:
+        if device != "cuda":
             model = model.to(device)
         if self.config.adapter_dir:
             from peft import PeftModel

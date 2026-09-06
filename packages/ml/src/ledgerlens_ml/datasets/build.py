@@ -35,11 +35,12 @@ class Example:
 
 
 def _synthetic(spec: dict[str, Any]) -> Iterator[Example]:
-    from ledgerlens_ml.synth import generate
+    """One page at a time: `generate()` would render the whole batch into memory first."""
+    from ledgerlens_ml.synth import generate_one
 
-    for i, d in enumerate(
-        generate(seed=int(spec.get("seed", 0)), n=int(spec["n"]), degrade=spec.get("degrade"))
-    ):
+    seed, n = int(spec.get("seed", 0)), int(spec["n"])
+    for i in range(n):
+        d = generate_one(seed * 100_003 + i, degrade=spec.get("degrade"))
         yield Example(
             d.image,
             d.labels,

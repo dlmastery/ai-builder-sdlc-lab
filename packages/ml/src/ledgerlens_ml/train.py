@@ -122,10 +122,12 @@ def train_lora(
         kwargs["quantization_config"] = BitsAndBytesConfig(
             load_in_4bit=True, bnb_4bit_compute_dtype=torch.bfloat16, bnb_4bit_quant_type="nf4"
         )
+    if device == "cuda":
+        kwargs["device_map"] = "cuda"  # weights go straight to the GPU; no host-RAM staging copy
     model: Any = AutoModelForImageTextToText.from_pretrained(prof.base, **kwargs)
     if prof.load_in_4bit and device == "cuda":
         model = prepare_model_for_kbit_training(model)
-    else:
+    elif device != "cuda":
         model = model.to(device)
     processor = AutoProcessor.from_pretrained(prof.base)
     model.gradient_checkpointing_enable()
