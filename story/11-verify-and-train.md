@@ -28,4 +28,8 @@ Measured: ~6 s per micro-batch at 1024 px, ~47 s per optimiser step at accumulat
 
 Running in the background: `build_dataset` (400 synthetic across eight layouts + 300 CORD receipts, vendor-first splits, licences recorded) → `train_extractor` → `evaluate_model` on 60 test documents → `calibrate_model` on the calibration split → `train_difficulty` → the baseline with real OCR on 12 documents. Results below as they land.
 
+### 09:25 — CI green
+
+The first successful GitHub Actions run in the repository's history (commit `611ee32`): Python job (ruff, mypy, 87 tests against Postgres, Redis and MinIO) and web job (lint, typecheck, build) both pass. Every earlier red run is still in the Actions history; a student can see exactly when the loop started policing itself.
+
 *(continued below as the run progresses)*

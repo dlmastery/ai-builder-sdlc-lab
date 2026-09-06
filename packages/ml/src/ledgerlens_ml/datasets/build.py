@@ -151,49 +151,66 @@ def build_dataset(
     split_fractions: dict[str, float] | None = None,
     kind: str = "train_eval",
 ) -> dict[str, Any]:
+    """Streams: each page goes to the object store as it is produced; only its key, labels and
+    vendor stay in memory. Splits are assigned once every vendor is known, then the rows are
+    written. (An earlier version held every decoded page in RAM and was killed by the OS on a
+    700-document build.)"""
     fractions = split_fractions or DEFAULT_SPLITS
-    examples: list[Example] = []
-    manifest: list[dict[str, Any]] = []
-    for spec in sources:
-        loader = SOURCES[spec["kind"]]
-        batch = list(loader(spec))
-        examples.extend(batch)
-        manifest.append({**spec, "licence": LICENCES[spec["kind"]], "count": len(batch)})
-
     dataset = Dataset(
         name=name,
         kind=kind,
-        sources=manifest,
+        sources=[],
         split_policy={"by": "vendor", **fractions},
         job_id=job.id,
     )
     db.add(dataset)
     db.flush()
 
-    split_of = assign_splits((e.vendor for e in examples), fractions, seed=len(examples))
     store = get_object_store()
-    for i, e in enumerate(examples):
-        key = keys.dataset(dataset.id, f"{i:06d}.png")
-        buf = io.BytesIO()
-        e.image.convert("RGB").save(buf, format="PNG", optimize=False)
-        store.put(key, buf.getvalue(), content_type="image/png")
-        labels = dict(e.labels)
-        labels["__boxes"] = e.boxes
-        labels["__difficulty"] = e.difficulty
-        labels["__vendor"] = e.vendor
-        labels["__size"] = [e.image.width, e.image.height]
+    manifest: list[dict[str, Any]] = []
+    staged: list[dict[str, Any]] = []
+    for spec in sources:
+        loader = SOURCES[spec["kind"]]
+        count = 0
+        for e in loader(spec):
+            i = len(staged)
+            key = keys.dataset(dataset.id, f"{i:06d}.png")
+            buf = io.BytesIO()
+            e.image.convert("RGB").save(buf, format="PNG", optimize=False)
+            store.put(key, buf.getvalue(), content_type="image/png")
+            labels = dict(e.labels)
+            labels["__boxes"] = e.boxes
+            labels["__difficulty"] = e.difficulty
+            labels["__vendor"] = e.vendor
+            labels["__size"] = [e.image.width, e.image.height]
+            staged.append(
+                {
+                    "key": key,
+                    "labels": labels,
+                    "vendor": e.vendor,
+                    "source": e.source,
+                    "licence": e.licence,
+                }
+            )
+            count += 1
+            e.image.close()
+        manifest.append({**spec, "licence": LICENCES[spec["kind"]], "count": count})
+    dataset.sources = manifest
+
+    split_of = assign_splits((s["vendor"] for s in staged), fractions, seed=len(staged))
+    counts: dict[str, int] = {}
+    for s in staged:
+        split = split_of[s["vendor"]]
+        counts[split] = counts.get(split, 0) + 1
         db.add(
             DatasetItem(
                 dataset_id=dataset.id,
-                external_ref=key,
-                split=split_of[e.vendor],
-                source=e.source,
-                licence=e.licence,
-                labels=labels,
+                external_ref=s["key"],
+                split=split,
+                source=s["source"],
+                licence=s["licence"],
+                labels=s["labels"],
             )
         )
     db.flush()
-    counts: dict[str, int] = {}
-    for e in examples:
-        counts[split_of[e.vendor]] = counts.get(split_of[e.vendor], 0) + 1
-    return {"dataset_id": str(dataset.id), "items": len(examples), "splits": counts}
+    return {"dataset_id": str(dataset.id), "items": len(staged), "splits": counts}
