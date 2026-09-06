@@ -198,7 +198,13 @@ def build_dataset(
         manifest.append({**spec, "licence": LICENCES[spec["kind"]], "count": count})
     dataset.sources = manifest
 
-    split_of = assign_splits((s["vendor"] for s in staged), fractions, seed=len(staged))
+    # Stratify by source, then split by vendor within each source, so every source (eight
+    # synthetic layouts, dozens of CORD buckets) contributes to every split. A single shuffle
+    # over all vendor groups once left the test split with no synthetic layout at all.
+    split_of: dict[str, str] = {}
+    for source in sorted({s["source"] for s in staged}):
+        vendors = (s["vendor"] for s in staged if s["source"] == source)
+        split_of.update(assign_splits(vendors, fractions, seed=len(staged) + len(source)))
     counts: dict[str, int] = {}
     for s in staged:
         split = split_of[s["vendor"]]
