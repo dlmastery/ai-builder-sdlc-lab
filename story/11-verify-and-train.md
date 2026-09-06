@@ -32,4 +32,8 @@ Running in the background: `build_dataset` (400 synthetic across eight layouts +
 
 The first successful GitHub Actions run in the repository's history (commit `611ee32`): Python job (ruff, mypy, 87 tests against Postgres, Redis and MinIO) and web job (lint, typecheck, build) both pass. Every earlier red run is still in the Actions history; a student can see exactly when the loop started policing itself.
 
+### 09:35 — Killed by the operating system
+
+The demo run died during `build_dataset`: "stopped because the system is running low on memory". The builder held every decoded page — 700 images at 1240×1754 — in a Python list before writing any of them, on a machine already carrying the OCR model in the worker, WSL, and a dozen browser processes (7 GB free of 32). Rewritten to stream: each page goes to the object store as it is produced, only its key, labels and vendor stay in memory, splits are assigned once the vendors are known. The orphaned jobs were marked failed with that sentence as the reason. Attempt three is running.
+
 *(continued below as the run progresses)*
