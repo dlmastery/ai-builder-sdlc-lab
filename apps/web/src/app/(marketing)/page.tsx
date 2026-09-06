@@ -70,8 +70,8 @@ const STORY = [
 export default function HomePage() {
   return (
     <div className="mx-auto w-full max-w-[1200px] px-6">
-      <section className="grid items-center gap-14 py-20 md:min-h-[92vh] md:grid-cols-[1fr_1fr] md:py-12">
-        <div className="flex max-w-[26ch] flex-col gap-8">
+      <section className="grid items-center gap-16 py-24 md:min-h-[92vh] md:grid-cols-[1.1fr_1fr] md:py-16">
+        <div className="flex max-w-[24ch] flex-col gap-9">
           <p className="micro">Sovereign document AI · runs on your hardware</p>
           <h1 className="text-step-3 font-medium leading-[1.02] tracking-tight text-ink">
             Extraction that shows its work — and knows when it doesn&apos;t.
@@ -92,7 +92,7 @@ export default function HomePage() {
             </Link>
           </div>
         </div>
-        <div className="md:max-w-[560px] md:justify-self-end">
+        <div className="md:max-w-[480px] md:justify-self-end">
           <Specimen />
         </div>
       </section>
@@ -137,7 +137,7 @@ export default function HomePage() {
                     <strong className="font-medium text-ink">What it reads from:</strong> {s.reads}
                   </p>
                   <p className="callout">
-                    <strong className="font-medium text-ink">How you know it worked:</strong>{" "}
+                    <strong className="font-medium text-ink"><span aria-hidden className="mr-2">✓</span>How you know it worked:</strong>{" "}
                     <span className="readout text-step-1 text-ink">{s.figure}</span> {s.proof}
                   </p>
                 </div>

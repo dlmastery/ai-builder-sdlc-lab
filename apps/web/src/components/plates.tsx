@@ -21,8 +21,8 @@ function Plate({ title, children }: { title: string; children: React.ReactNode }
       {/* a drafting-sheet frame: one hairline in the drawing's own ink, no fill, corner ticks —
           a drawn plate (bar.md M1), not a UI card (DESIGN.md) */}
       <rect x="12" y="12" width="776" height="476" fill="none" stroke={INK3} strokeWidth="0.8" strokeOpacity="0.7" />
-      <g stroke={INK} strokeWidth="1.6" fill="none">
-        <path d="M12 56V12h44M744 12h44v44M12 444v44h44M744 488h44v-44" />
+      <g stroke="var(--ink)" strokeWidth="3" fill="none" strokeLinecap="square">
+        <path d="M12 72V12h60M728 12h60v60M12 428v60h60M728 488h60v-60" />
       </g>
       <g fill={INK3} fontSize="10" style={{ fontFamily: "var(--font-mono)" }}>
         <text x="20" y="480">LEDGERLENS · PLATE</text>
@@ -179,10 +179,10 @@ export function PlateLedger() {
       {rows.map(([lhs, rhs, ok], i) => (
         <g key={lhs} style={MONO} fontSize="15">
           <line x1={120} y1={156 + i * 56} x2={680} y2={156 + i * 56} stroke={INK} strokeOpacity="0.25" />
-          <text x={180} y={148 + i * 56} fill="var(--ink)">{lhs}</text>
-          <text x={420} y={148 + i * 56} fill={INK}>{rhs}</text>
+          <text x={180} y={148 + i * 56} fill={ok ? "var(--ink)" : FAULT}>{lhs}</text>
+          <text x={420} y={148 + i * 56} fill={ok ? INK : FAULT}>{rhs}</text>
           <text x={650} y={149 + i * 56} textAnchor="end" fill={ok ? INK : FAULT} fontSize="18">{ok ? "✓" : "✗"}</text>
-          {!ok ? <rect x={168} y={128 + i * 56} width={496} height={30} fill="none" stroke={FAULT} strokeWidth="1.5" /> : null}
+          {!ok ? <line x1={160} y1={128 + i * 56} x2={160} y2={158 + i * 56} stroke={FAULT} strokeWidth="4" /> : null}
         </g>
       ))}
       <Dim x1={120} y1={462} x2={680} y2={462} label="every check shows the numbers it used" />

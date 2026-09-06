@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { ClientApiError, post } from "@/lib/client";
-import { fieldLabel, pct } from "@/lib/format";
+import { fieldLabel, pct, reasonText } from "@/lib/format";
 import type { DocumentDetailOut, FieldOut, OcrWordOut, VerifierResultOut } from "@/lib/types";
 import { useSession } from "./session-provider";
 
@@ -134,7 +134,7 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]">
+    <div className="grid gap-5 lg:grid-cols-[minmax(0,2.3fr)_minmax(300px,1fr)]">
       {/* --- the page --- */}
       <section className="flex flex-col gap-4">
         <div className="flex flex-wrap items-end justify-between gap-4">
@@ -143,7 +143,7 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
               Document{doc.vendor_name ? ` · ${doc.vendor_name}` : ""}
               {doc.difficulty != null ? ` · difficulty ${pct(doc.difficulty)}` : ""}
             </p>
-            <h1 className="mt-1 truncate text-step-1 font-medium tracking-tight">
+            <h1 className="mt-1 truncate text-step-2 font-medium leading-none tracking-tight">
               {doc.original_filename}
             </h1>
           </div>
@@ -235,15 +235,16 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
           </svg>
         </div>
         <p className="text-step--1 text-ink-3">
-          Boxes are where each value was grounded in the OCR text. Green tint is calibrated
-          confidence; amber is below the {pct(threshold)} threshold on a field that cannot block
-          approval; red is ungrounded, or below threshold on a required field. Hard spots are OCR
-          words the specialist read with a score under {pct(HARD_SPOT_SCORE)}.
+          Boxes show where each value was found on the page. Green: read with confidence (the
+          number beside it). Amber box: a field the system is less sure of but that cannot block
+          approval on its own. Red: a required field that could not be found on the page or was
+          read too uncertainly. Soft amber patches are hard spots — words the reader struggled
+          with (score under {pct(HARD_SPOT_SCORE)}), such as under a stamp.
         </p>
       </section>
 
       {/* --- the readouts --- */}
-      <aside className="flex flex-col gap-6">
+      <aside className="flex flex-col gap-10">
         <Verdict
           decision={doc.approved ? "approved" : (verdict?.decision ?? doc.status)}
           reasons={doc.approved ? [] : (verdict?.reasons ?? [])}
@@ -359,8 +360,10 @@ function HardSpot({ w }: { w: OcrWordOut }) {
       width={x1 - x0 + pad * 2}
       height={y1 - y0 + pad * 2}
       rx={pad}
-      fill="var(--fault)"
-      fillOpacity={0.12 + (HARD_SPOT_SCORE - w.score) * 0.6}
+      // hard spots are "where the page was hard", not "what is wrong": caution, never fault,
+      // so a stamp's own red ink and an ungrounded field stay distinguishable (P3 round 5)
+      fill="var(--caution)"
+      fillOpacity={0.12 + (HARD_SPOT_SCORE - w.score) * 0.5}
       stroke="none"
     />
   );
@@ -396,6 +399,7 @@ function Verdict({
         <div>
           <p className="micro">Verdict</p>
           <p className={`mt-2 text-step-1 font-medium ${ok ? "text-ink" : "text-caution"}`}>
+            <span aria-hidden className="mr-2">{ok ? "✓" : "◐"}</span>
             {decision.replaceAll("_", " ")}
           </p>
         </div>
@@ -405,7 +409,7 @@ function Verdict({
             data-testid="approve"
             disabled={busy}
             onClick={onApprove}
-            className="rounded-[var(--radius)] border border-ink-2 px-3 py-2 text-step--1 text-ink hover:bg-ink hover:text-ground disabled:opacity-60"
+            className="rounded-[var(--radius)] bg-ink px-3 py-2 text-step--1 font-medium text-ground hover:bg-ink-2 disabled:opacity-60"
           >
             {busy ? "…" : corrected > 0 ? `Approve with ${corrected} correction${corrected === 1 ? "" : "s"}` : "Approve as read"}
           </button>
@@ -414,15 +418,19 @@ function Verdict({
         )}
       </div>
       <p className="mt-2 text-step--1 text-ink-2">
-        Auto-approval requires every required field ≥ {pct(threshold)} calibrated confidence,
-        grounded on the page, and a passing ledger.
+        {ok
+          ? "Every required field was read with near-certainty, found on the page, and the sums add up."
+          : `To approve on its own, the system needs every required field read at ${pct(threshold)} or better, found on the page, and the sums adding up. It stopped because:`}
       </p>
       {reasons.length > 0 ? (
         <ul className="mt-3 flex flex-col gap-1 text-step--1">
           {reasons.map((r, i) => (
             <li key={i} className="text-fault">
-              {String(r.field ?? "")} · {String(r.why ?? "").replaceAll("_", " ")}
-              {typeof r.confidence === "number" ? ` (${pct(r.confidence)})` : ""}
+              {reasonText(
+                String(r.field ?? ""),
+                String(r.why ?? ""),
+                typeof r.confidence === "number" ? r.confidence : undefined,
+              )}
             </li>
           ))}
         </ul>
@@ -462,7 +470,7 @@ function Readout({
   const wasCorrected = field.corrections.length > 0;
   return (
     <li className={selected ? "bg-surface" : ""}>
-      <div className="grid grid-cols-[1fr_auto] items-baseline gap-3 py-2">
+      <div className="grid grid-cols-[1fr_auto] items-baseline gap-3 py-3">
         {editing ? (
           <form
             data-testid={`readout-${field.name}`}

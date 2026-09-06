@@ -1,63 +1,107 @@
 import Link from "next/link";
+import { PlateGuarantee } from "@/components/plates";
 import { api } from "@/lib/api";
 import { moneyFromCents } from "@/lib/format";
 import type { PlanOut } from "@/lib/types";
+import specimen from "@/specimen/northwind.json";
 
 export const metadata = { title: "Pricing" };
+
+// Pricing follows the bar (apps/web/design/bar.md): a plate, the plain-words scaffold with a
+// measured "how you know", then the plans as rule-separated columns — not cards — with the
+// recommended tier named in words, never by colour alone. Numbers come from the exported specimen.
+
+const m = specimen.metrics;
+const secondsPerPage = specimen.latency_ms != null ? Math.round(specimen.latency_ms / 1000) : null;
 
 export default async function PricingPage() {
   const plans = await api<PlanOut[]>("/plans");
   return (
-    <div className="mx-auto w-full max-w-[1200px] px-6 py-8">
-      <p className="micro">Pricing · billing runs in test mode in this lab</p>
-      <h1 className="mt-3 text-step-3 font-medium leading-[1.02] tracking-tight">
-        Pay for automation you can defend.
-      </h1>
-      <p className="mt-4 max-w-[60ch] text-step-1 leading-snug text-ink-2">
-        Every plan includes the transparency view. Higher tiers buy a guaranteed auto-approval
-        rate, per-vendor learning, and the right to keep your documents on your own hardware.
-      </p>
-      <div className="mt-8 grid gap-6 md:grid-cols-3">
-        {plans.map((p) => (
-          <article
-            key={p.code}
-            data-testid="plan-card"
-            className={`flex flex-col gap-5 rounded-[var(--radius)] border p-6 ${
-              p.code === "sovereign" ? "border-signal" : "border-rule"
-            }`}
-          >
-            <div>
-              <div className="micro">{p.code}</div>
-              <h2 className="mt-2 text-step-2 font-medium tracking-tight">{p.name}</h2>
-            </div>
-            <div className="readout">
-              <span className="text-step-2">{moneyFromCents(p.monthly_price_cents)}</span>
-              <span className="text-step--1 text-ink-3"> / month</span>
-              <div className="mt-1 text-step--1 text-ink-2">
-                {p.included_documents.toLocaleString()} documents included, then{" "}
-                {moneyFromCents(p.per_document_cents)} each
+    <div className="mx-auto w-full max-w-[1200px] px-6 py-16">
+      <section className="max-w-[26ch]">
+        <p className="micro">Pricing · billing runs in test mode in this lab</p>
+        <h1 className="mt-4 text-step-3 font-medium leading-[1.02] tracking-tight">
+          Pay for automation you can defend.
+        </h1>
+      </section>
+
+      <section className="mt-16 flex flex-col gap-10 border-t border-rule pt-16">
+        <div className="mx-auto w-full max-w-[880px]">
+          <PlateGuarantee />
+        </div>
+        <div className="grid gap-8 md:grid-cols-[260px_1fr]">
+          <h2 className="text-step-2 font-medium leading-tight tracking-tight text-ink">
+            <span className="text-ink-3">01 · </span>What you are buying
+          </h2>
+          <div className="flex max-w-[66ch] flex-col gap-4 text-step-0 leading-relaxed text-ink-2">
+            <p>
+              <strong className="font-medium text-ink">What it does, in plain words.</strong> Every plan reads
+              your documents on your own hardware and shows its work: where each value was found,
+              how sure it is, and what it checked. Higher tiers buy the guarantee — auto-approval at
+              a stated error budget — per-vendor learning from your corrections, and the right to
+              keep documents inside your network.
+            </p>
+            <p>
+              <strong className="font-medium text-ink">What you need:</strong> one GPU with 16 GB of memory for
+              the specialist reader and the 2B extractor; a scanner or an inbox; someone who will
+              correct the first hundred documents.
+            </p>
+            <p className="callout">
+              <strong className="font-medium text-ink"><span aria-hidden className="mr-2">✓</span>How you know it worked:</strong>{" "}
+              <span className="readout text-step-1 text-ink">
+                {m.field_f1 != null ? `${(m.field_f1 * 100).toFixed(1)} %` : "—"}
+              </span>{" "}
+              field-level accuracy on {m.documents ?? "—"} held-out documents,{" "}
+              {secondsPerPage != null ? `${secondsPerPage} s` : "—"} per page on one GPU, and today an honest
+              0 % auto-approved at ≤ 1 % field error — the number every plan is measured against, never
+              typed.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-16 border-t border-rule pt-16">
+        <h2 className="text-step-2 font-medium leading-tight tracking-tight text-ink">
+          <span className="text-ink-3">02 · </span>Three plans
+        </h2>
+        <div className="mt-10 grid gap-px bg-rule md:grid-cols-3">
+          {plans.map((p) => (
+            <article key={p.code} data-testid="plan-card" className="flex flex-col gap-6 bg-ground pr-8 pt-6 md:pl-8 md:first:pl-0">
+              <div>
+                <div className="micro">
+                  {p.name}
+                  {p.code === "sovereign" ? " · recommended for regulated teams" : ""}
+                </div>
+                <p className="readout mt-3 text-step-3 leading-none text-ink">
+                  {moneyFromCents(p.monthly_price_cents)}
+                </p>
+                <p className="micro mt-2 normal-case tracking-normal">
+                  per month · {p.included_documents.toLocaleString()} documents included, then{" "}
+                  {moneyFromCents(p.per_document_cents)} each
+                </p>
               </div>
-            </div>
-            <ul className="rule-y text-step-0 text-ink-2">
-              {p.features.map((f) => (
-                <li key={f} className="py-2">
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <Link
-              href={`/billing/start?plan=${p.code}`}
-              className="mt-auto rounded-[var(--radius)] border border-rule px-4 py-3 text-center text-ink hover:border-signal hover:text-signal"
-            >
-              Start on {p.name}
-            </Link>
-          </article>
-        ))}
-      </div>
-      <p className="mt-6 text-step--1 text-ink-3">
-        Checkout is wired to the payment provider&apos;s test mode when keys are configured;
-        otherwise billing is simulated and clearly labelled in the workspace.
-      </p>
+              <ul className="rule-y border-t border-rule text-step-0 text-ink-2">
+                {p.features.map((f) => (
+                  <li key={f} className="py-3">
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href={`/billing/start?plan=${p.code}`}
+                className="mt-auto rounded-[var(--radius)] border border-ink-2 px-4 py-3 text-center text-ink hover:bg-ink hover:text-ground"
+              >
+                Start on {p.name}
+              </Link>
+            </article>
+          ))}
+        </div>
+        <p className="callout mt-12 max-w-[72ch] text-step--1">
+          <strong className="font-medium text-ink">Test mode.</strong> Checkout is wired to the payment
+          provider&apos;s test mode when keys are configured; otherwise billing is simulated and clearly
+          labelled in the workspace. No card is charged in this lab.
+        </p>
+      </section>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { EmptyState } from "@/components/empty-state";
 import { Uploader } from "@/components/uploader";
 import { api } from "@/lib/api";
-import { fieldLabel, relTime, statusLabel } from "@/lib/format";
+import { reasonChip, relTime, statusLabel } from "@/lib/format";
 import type { DocumentRowOut, Paginated, ProductionOut } from "@/lib/types";
 
 export const metadata = { title: "Inbox" };
@@ -15,7 +15,7 @@ export const metadata = { title: "Inbox" };
 // the signal colour is for confidence and evidence, never for a workflow state (DESIGN.md);
 // approval is a settled state and reads in ink, review in caution, failure in fault
 const CHIP: Record<string, string> = {
-  needs_review: "chip-caution",
+  needs_review: "chip-ink", // the red reason chips already carry why; caution stays sparing (round 5)
   auto_approved: "chip-ink",
   approved: "chip-ink",
   failed: "chip-fault",
@@ -116,11 +116,11 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
               <Link
                 data-testid="document-row"
                 href={`/documents/${d.id}`}
-                className="grid items-center gap-5 py-4 hover:bg-surface md:grid-cols-[56px_minmax(0,1fr)_180px_150px_90px]"
+                className="grid items-center gap-5 py-5 hover:bg-surface md:grid-cols-[64px_minmax(0,1fr)_180px_150px_90px]"
               >
                 <Thumb src={d.thumbnail_url} alt="" />
-                <span className="flex min-w-0 flex-col gap-1">
-                  <span className="truncate text-step-0 text-ink">{d.original_filename}</span>
+                <span className="flex min-w-0 flex-col gap-1.5">
+                  <span className="truncate text-step-1 font-medium leading-tight tracking-tight text-ink">{d.original_filename}</span>
                   <span className="micro truncate normal-case tracking-normal">
                     {d.vendor_name ?? "vendor not yet known"}
                     {d.difficulty != null ? ` · predicted difficulty ${Math.round(d.difficulty * 100)}%` : ""}
@@ -131,7 +131,7 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
                     <span className="flex flex-wrap gap-2">
                       {d.reasons.slice(0, 3).map((r, i) => (
                         <span key={i} className="chip chip-fault">
-                          {fieldLabel(String(r.field ?? ""))} · {String(r.why ?? "").replaceAll("_", " ")}
+                          {reasonChip(String(r.field ?? ""), String(r.why ?? ""))}
                         </span>
                       ))}
                       {d.reasons.length > 3 ? <span className="text-ink-3">+{d.reasons.length - 3}</span> : null}
@@ -151,9 +151,9 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
 }
 
 function Thumb({ src, alt }: { src: string | null; alt: string }) {
-  if (!src) return <span className="block h-[72px] w-[56px] rounded-[2px] border border-rule bg-surface" aria-hidden />;
+  if (!src) return <span className="block h-[84px] w-[64px] rounded-[2px] border border-rule bg-surface" aria-hidden />;
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt={alt} className="block h-[72px] w-[56px] rounded-[2px] border border-rule object-cover object-top" />;
+  return <img src={src} alt={alt} className="block h-[84px] w-[64px] rounded-[2px] border border-rule object-cover object-top" />;
 }
 
 function Grounded({ n, of }: { n: number; of: number }) {
