@@ -14,3 +14,5 @@
 12. Anomaly is not guilt. UI copy says "review", never "suspect"; false-alarm rate is a first-class metric.
 13. Archive every turn: a `story/NN-*.md` chapter (Setting / AI Builder / Fable / Gate) and a commit; accepted gates get a tag. Push after every commit.
 14. Over-specification is a bug. Under-constraint is a bug. If a section reads like a design novel, cut it in front of the class and say why.
+15. `plan.md` must be implementable by a fresh agent context that has read nothing else — files, order, risks, proof. Each stage may run in a new session or subagent; the artifact is the handoff, not the conversation.
+16. Production-generated intents land in `lab/intent/` with a signal prefix (e.g. `false-alarm-tanker.md`); the maintain hook writes them, a human triages them into the next loop.
