@@ -208,6 +208,14 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** the earlier comment was a belief about an API, not a measurement, and it cost a run. Two memory ceilings exist on this machine — the coding harness's watchdog (system free RAM, D-025's neighbour) and the OS commit limit — and they favour opposite load strategies; the commit limit is the one that kills a detached process, so it wins. Raising the page file is the user's system setting to change, not mine.
 - **Date:** 2026-09-06
 
+## D-029 · One model-bearing job per process
+
+- **Context:** attempt six trained the demo LoRA to completion (100 steps, 466 examples, 30.5 min, final loss 0.0142, adapter saved, metrics on the `model_versions` row) and then the launcher died four seconds later with an access violation (0xc0000005) in `torch_cpu.dll` — Windows Application event 1000, no Python traceback — as the evaluate stage loaded a second copy of the base model into the process that still held the training graph. The CUDA allocator had logged four near-OOM retries during training (0.9–2.4 GB free of 16 GB).
+- **Decided:** a process carries at most one model-bearing job. Celery: `worker_max_tasks_per_child=1`. CLI: `train --resume-from <model_version>` runs evaluate → calibrate → difficulty → baseline against a saved adapter, so a crash between stages costs the stage, not the training. The orphaned evaluate job row is marked failed with the event-log reference.
+- **Alternatives:** freeing the training model explicitly before evaluating (`del`, `gc.collect()`, `empty_cache()`) — fragile, and the crash is in native code; running the whole chain in a subprocess per stage from the CLI — the same idea with more plumbing; the worker setting already expresses it.
+- **Why:** it is the production shape anyway (a worker child that loads, serves one job and exits cannot leak or fragment), and it turns "the run crashed" into "one stage needs re-running". Nothing was retrained.
+- **Date:** 2026-09-06
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.

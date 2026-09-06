@@ -56,4 +56,14 @@ Two lessons for the student. First, the machine has two different memory ceiling
 
 Attempt six is running, detached, watched through the `jobs` table.
 
+### 10:40 — The LoRA trained. Then the process died anyway.
+
+**Training succeeded.** 100 optimiser steps over 466 training documents (the demo dataset's train split: eight synthetic layouts and CORD receipts, vendor-disjoint from test), 30.5 minutes, final loss 0.0142 on the 25 % of tokens that are JSON values (the prompt and the image are never supervised). 10.9 million trainable parameters out of 2.22 billion — the adapter is 0.5 % of the model. The GPU spent the run at its edge: the allocator logged four near-out-of-memory retries at 0.9–2.4 GB free of 16 GB and recovered each time. The adapter and its metrics are on the `model_versions` row.
+
+Four seconds after the job row said *succeeded*, the launcher process died with an access violation in `torch_cpu.dll` — no Python traceback, just a Windows event-log entry — while the next stage loaded a second copy of the base model into a process that still held the training graph. Everything that had been printed to stdout was flushed; everything after was not, which is why the log simply stops.
+
+The fix is a shape, not a patch (D-029): a process carries one model-bearing job. The Celery worker now recycles its child after every task; the CLI grew `--resume-from`, so the evaluate → calibrate → difficulty → baseline chain runs against the saved adapter in a fresh process. The test for the resume path was written before the flag existed and failed for the right reason (no `_dataset_of`). The orphaned evaluate job is marked failed with the event-log reference. Nothing was retrained: thirty minutes of GPU time survived the crash because the artifact was written before the process died — which is the argument for writing artifacts early, made by an access violation.
+
+Meanwhile CI went red on the load-path commit, twice, for two different reasons, and I nearly wrote "green again" in this chapter before checking. First: mypy on Linux considered a `type: ignore` unused that mypy on Windows had required (the two environments disagree about whether `BitsAndBytesConfig` is typed; calling it through an `Any` satisfies both). Second, one commit later: the new loading tests import torch, and CI deliberately installs no GPU stack — so those three tests now skip where torch is absent and the headroom test still runs everywhere. The lesson is the same one as 09:00, repeated because I repeated it: a claim about CI is a lookup, not a feeling.
+
 *(continued below as the run progresses)*
