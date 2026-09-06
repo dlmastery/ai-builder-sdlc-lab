@@ -16,6 +16,8 @@ The AI Builder does not write code, columns, layer widths, or CSS. The AI Builde
 
 **Want to run this lab with your own product?** Read [PLAYBOOK.md](PLAYBOOK.md): the script gate by gate (with what this run's AI Builder actually said), what the agent owes you every turn, how to recognise elite artifacts, and what to read before the first training job on a laptop.
 
+**Skills.** The lab's procedures live as modular skills in [`.claude/skills/`](.claude/skills/README.md) (Agent Skills format): the AI Builder flow (`proposing-products`, `grilling-the-builder`, `running-gates`, `delivering-slices`, `closing-the-loop`), the meta flow (`writing-story-chapters`, `logging-decisions`, `measuring-before-fixing`, `operating-laptop-training`, `design-loop`, `authoring-skills`), and product-specific skills written on the fly (`ledgerlens-*`). The showcase script is [SCRIPT.md](SCRIPT.md).
+
 ## The story, chapter by chapter
 
 | Chapter | What happens | Tag |
