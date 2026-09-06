@@ -96,47 +96,56 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
           <span aria-hidden className="pointer-events-none absolute bottom-0 right-0 h-5 w-5 border-b-[3px] border-r-[3px] border-ink" />
           {/* the title lettered inside the plate in display capitals, as every plate's is
               (bar.md M1, round 17) */}
+          {/* the plate is the picture (round 19): title lettered inside, the page filling the
+              frame with its marks, a caption in the drawing's ink — and the words beneath it, as
+              the sample keeps its scaffold under the plate */}
           <h2 className="text-center text-step-2 font-semibold uppercase tracking-[0.16em] text-ink">Review next</h2>
           <div aria-hidden className="mx-auto mb-6 mt-3 h-px w-40 bg-ink-3" />
-          <div className="grid gap-6 md:grid-cols-[320px_minmax(0,1fr)] md:items-start">
-            <Link href={`/documents/${next.id}`} aria-label="Open the next document to review" className="block">
-              <Thumb src={next.thumbnail_url} alt="" width={next.page_width} height={next.page_height} marks={next.marks} threshold={next.threshold ?? 0.9} large />
-            </Link>
-            <div className="flex min-w-0 flex-col gap-4">
-              <p className="micro">The marks show where each value was found · green at the bar, amber below it, red where a person is needed</p>
-              <p className="truncate font-mono text-step-0 text-ink">{next.original_filename}</p>
-              <p className="micro normal-case tracking-normal">
-                {next.vendor_name ?? "vendor not yet known"}
-                {next.difficulty != null ? ` · expected to be ${next.difficulty >= 0.5 ? "hard" : "easy"} to read · ${Math.round(next.difficulty * 100)}%` : ""}
-                {` · ${next.grounded_fields}/${next.field_count} values found on the page`}
-              </p>
-              {next.reasons.length > 0 ? (
-                <div className="callout text-step-0">
-                  <p>
-                    <strong className="font-medium"><span aria-hidden className="mr-2">◐</span>Why it stopped.</strong> The
-                    system would not approve this on its own because:
-                  </p>
-                  <ul className="mt-2 flex flex-col gap-1">
-                    {oneReasonPerField(next.reasons).map((r) => (
-                      <li key={r.field} className="text-fault">
-                        {reasonText(r.field, r.why)}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-              <p className="mt-2">
-                <Link href={`/documents/${next.id}`} className="rounded-[var(--radius)] bg-ink px-4 py-2 text-step-0 font-medium text-ground hover:bg-ink-2">
-                  Open and decide →
-                </Link>
-              </p>
-              <p className="micro mt-2 flex justify-between normal-case tracking-normal">
-                <span>Ledgerlens · page 1 of {next.page_count}</span>
-                <span className="readout">{next.page_width} × {next.page_height}</span>
-              </p>
-            </div>
-          </div>
+          <Link href={`/documents/${next.id}`} aria-label="Open the next document to review" className="mx-auto block w-full max-w-[520px]">
+            <Thumb src={next.thumbnail_url} alt="" width={next.page_width} height={next.page_height} marks={next.marks} threshold={next.threshold ?? 0.9} large />
+          </Link>
+          <p className="micro mt-4 flex justify-between normal-case tracking-normal">
+            <span>Ledgerlens · page 1 of {next.page_count} · green at the bar, amber below it, red where a person is needed</span>
+            <span className="readout">{next.page_width} × {next.page_height}</span>
+          </p>
         </section>
+      ) : null}
+      {next ? (
+        <div className="grid gap-8 md:grid-cols-[260px_1fr]">
+          <h2 className="text-step-2 font-medium leading-tight tracking-tight text-ink">
+            <span className="text-ink-3">01 · </span>The next one
+          </h2>
+          <div className="flex max-w-[66ch] flex-col gap-4 text-step-0 leading-relaxed text-ink-2">
+            <p>
+              <strong className="font-medium text-ink">What it is, in plain words.</strong>{" "}
+              <span className="font-mono text-ink">{next.original_filename}</span> from{" "}
+              {next.vendor_name ?? "a vendor not yet known"}
+              {next.difficulty != null ? `, expected to be ${next.difficulty >= 0.5 ? "hard" : "easy"} to read (${Math.round(next.difficulty * 100)} % chance of needing a person)` : ""}
+              . {next.grounded_fields} of {next.field_count} values were found on the page where the model said they were.
+            </p>
+            {next.reasons.length > 0 ? (
+              <div className="callout">
+                <p>
+                  <strong className="font-medium text-ink"><span aria-hidden className="mr-2">◐</span>Why it stopped.</strong> The
+                  system would not approve this on its own because:
+                </p>
+                <ul className="mt-2 flex flex-col gap-1">
+                  {oneReasonPerField(next.reasons).map((r) => (
+                    <li key={r.field}>
+                      <span aria-hidden className="mr-2 text-fault">✗</span>
+                      {reasonText(r.field, r.why)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            <p>
+              <Link href={`/documents/${next.id}`} className="rounded-[var(--radius)] bg-ink px-4 py-2 text-step-0 font-medium text-ground hover:bg-ink-2">
+                Open and decide →
+              </Link>
+            </p>
+          </div>
+        </div>
       ) : null}
 
       <nav aria-label="Filter by status" className="grid grid-cols-2 gap-px border-y border-rule bg-rule md:grid-cols-5">
