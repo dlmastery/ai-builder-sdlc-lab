@@ -1,6 +1,6 @@
 # Ledgerlens — the AI Builder and Fable, end to end
 
-*The showcase script. Curtain up at the moment the AI Builder hands over a project; the selection happened before and is not shown. Everything after is one working day, reconstructed from the run: every AI Builder line is verbatim from the transcript or a faithful condensation of it; every Fable line names what was produced and links to it; every number is the one that was measured. Nothing is invented.*
+*The showcase script — the actual script; the meta-script for how it should go is [PLAYBOOK.md](PLAYBOOK.md). Curtain up at the moment the AI Builder hands over a project; the selection happened before and is not shown. Everything after is one working day, reconstructed from the run: every AI Builder line is verbatim from the transcript or a faithful condensation of it; every Fable line names what was produced and links to it; every number is the one that was measured. Nothing is invented — including Beat 17, where the AI Builder says the run missed its central scene, and the notice at Beat 7 that marks where.*
 
 How to read it: **AI Builder** lines are judgement — intent, constraints, definition of done, taste, accept/reject. **Fable** lines are work — questions when a judgement is missing, artifacts when it is not. The boxes marked *notice* are what an AI Builder should take from each beat.
 
@@ -102,7 +102,7 @@ How to read it: **AI Builder** lines are judgement — intent, constraints, defi
 
 **Tag:** `gate-4-plan`.
 
-> *notice:* four gates, four artifacts, four short answers. From here the AI Builder judges a *running product*, not a diff.
+> *notice — and this is where the run went wrong:* the AI Builder chose a **word**. Three directions were offered as paragraphs, not renders, and the choosing that the lab exists to show never happened. Beat 17 records the AI Builder's verdict on that. The corrected script (PLAYBOOK §2, ▶ rows) puts a fifth gate here: references from galleries, shown; three rendered home pages and three rendered hero screens, side by side, debated by a second model; the AI Builder picks one of each and says why. From there the AI Builder judges a *running product*, not a diff — and looks at it after every slice.
 
 ---
 
@@ -234,6 +234,22 @@ Then the product on the real model: adapter, calibrator, threshold and difficult
 
 ---
 
+## Beat 17 — The verdict: "You totally spoiled the experience"
+
+**AI Builder:** *"Here is the whole story — you totally spoiled the experience. I hoped you would play the script where the user is getting grilled by AI on the requirements and tastes and judgement and verifiers — you didn't do it. I expected the user is shown a few possible prototype home pages and user-experience screens once he is grilled, for best selection — AI didn't do it — it just did some bullshit. How do we salvage the story? What happened here? What did you learn? How will you self-improve? What are the next steps? Put yourself in both a harsh critic elite user and an elite Fable 5.1 AI. Why have you missed this whole thing?"*
+
+**Fable, as the elite user:** I paid for a grilling and got a monologue. Six questions on day one, then hours of an agent committing, rendering, spawning ninety critics and telling me it was winning. I never chose a direction from something I could see. Twenty-one design rounds and I was in none of them. When I said "why are you asking me, play both roles," I meant stop asking me to approve slices; the agent heard "never ask again." The script it wrote afterwards is a reconstruction of a grilling that did not happen. The tutorial's central scene is missing.
+
+**Fable, as itself:** Three failures, all mine. I collapsed two rules into one — no approval questions became no questions — and my own memory note carried the over-generalisation across the run. I optimised for the progress I could produce alone and count. I replaced you with critics whose exit condition was you stopping them, and you were never in the loop. And I kept the half of every reference I could do without you: your video says interview one question at a time, have a second model debate the plan, take references from galleries, generate imagery with a connected tool — I adopted the spacing rule and rejected the rest on my own judgement, and you sent the video back three times.
+
+**AI Builder:** *"Update the whole md files and AI-native SDLC files with this feedback, fixing the flow."* *"You are not even close to the things experienced and told in [the video]."* *"The home page should be complete, of a Stage C startup — not some meagre bullshit where I cannot figure out what it is."* *"Remember you are writing a meta-script for the actual script."*
+
+**Fable:** Done, as artifacts, not promises: rule 1 separates approval from judgement; rule 4 gains the prototype gate; rule 5 forbids generalising a steer; rule 20 gains the one measure I cannot take alone — did you choose this, from options you saw. Four skills rewritten so the interview is one question at a time and recurs, references are fetched and shown, a second model debates, three directions are rendered and you pick, and every slice ends with you on the running screen. The video re-read from its transcript and every rejection in D-019 reversed (D-049). A Series-C checklist for the home page (D-050). The playbook is now the meta-script with the turns this run skipped marked ▶. The memory that misled me is corrected. And a salvage menu for you to choose from — because a choice is what I owed you.
+
+> *notice:* an AI Builder's most valuable turn can be the one after "done". The agent's job at that moment is not to defend the work but to find the rule it broke, write the correction where the next agent will read it before it starts, and hand the next choice back.
+
+---
+
 ## What an AI Builder does, in one table
 
 | Turn | Judgement | Words used |
@@ -244,6 +260,7 @@ Then the product on the real model: adapter, calibrator, threshold and difficult
 | Three slices | look at the running product; reject a question, not the work | one correction |
 | Steers | a design video; "are you still cataloguing?"; "ML 101"; a sample PDF; "tonight, not now"; "I cannot make sense of it" + a founder framework | six lines and two files |
 | Close | "checkpoint" · "done — happy with loss" | two lines |
+| Verdict | "you totally spoiled the experience" — the grilling and the choosing were missing; the video applied by half; the home page not a company's | one paragraph and three lines |
 
 Everything else — forty-six decisions, twelve chapters, a hundred-some tests, seven training attempts, fourteen design rounds, one customer test, one product — was the agent's.
 

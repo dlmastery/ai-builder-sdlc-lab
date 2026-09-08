@@ -32,6 +32,24 @@ In this order, each in the customer's words, none in the machine's:
 - One call to action, twice: at the fold and at the end. A pricing hook in words ("plans start free").
 - Run the never-list over the finished page: `grep -i` for each word.
 
+## 2b. The home page is a Series-C company's — complete (D-050)
+
+*"The home page should be complete, of a Stage C startup — not some meagre bullshit where I cannot figure out what it is."* Before any prototype is shown, check it against this list; a page missing a row is a lab demo, however good its plates:
+
+- **Navigation** — product, how it works, security, customers, pricing, docs, company; sign in; one primary action.
+- **Hero** — the promise in the customer's words, the real product in it (the real specimen), one action, one secondary.
+- **Proof** — customer logos and quotes, or the honest substitute stated as such: the measured numbers, the public build, the named limits.
+- **What you get** — three outcomes a customer would say back.
+- **Product tour** — the sections with plates, each with *what it does · you need · how you know it worked*.
+- **Where the numbers go** — integrations with the books and systems the buyer already runs (or "coming" labelled honestly).
+- **Security and data** — where documents live, what leaves, what is logged, what an auditor can quote; certifications held or not held, stated.
+- **Versus the alternatives** — the two or three things the buyer is weighing (retyping, a cloud API, the incumbent) in one honest table.
+- **Pricing teaser** — plans start free; the number a finance lead buys.
+- **FAQ** — the questions from the grilling, answered.
+- **Footer** — legal, privacy, status, changelog, contact, the open build.
+
+Every claim measured or labelled as not yet true. The visitor critic reads the fold for five seconds and the page for a minute; if they cannot say what the company sells and why it is different, it fails regardless of the critics.
+
 ## 3. Then the critics — with the goal written from the visitor's side
 
 The brief critic's goal must be: *a finance lead who has never heard of this lands here; within five seconds they can say what it does, for whom, and what to click; within a minute they can say why it is different and what it will not do.* Never the builder's description of the mechanism. If the AI Builder says they cannot make sense of the page, that verdict outranks every critic (rule 5) and this skill runs again from step 1.

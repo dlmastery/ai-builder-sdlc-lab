@@ -25,14 +25,15 @@ Walkthrough of Anthropic's AI-Native SDLC playbook. What Fable took from it for 
 
 <https://www.youtube.com/watch?v=swcKLJWnhNw>
 
-A creator's tour of what a September-2026 frontier model does well for builders. Fable's summary of what transfers to this lab (decision D-019):
+A creator's tour of five things a September-2026 frontier model does for builders. The first summary here (D-019) kept the parts the agent could do alone and rejected the rest; the AI Builder sent the video back three times. Re-read from the full transcript on 2026-09-07 (D-049), this is what it actually says, and all of it now applies:
 
-- **Interview first, then plan.** The model asks one question at a time until it has the context, then proposes a plan and has a second frontier model critique it. Our intent/spec gates already work this way; the critique step is added to the design loop.
-- **One coherent "operating system" UI** with breathing room and clear spacing beats a dense dashboard. Adopted as a density rule per view.
-- **Design references chosen before building**, from curated galleries, and a **design-loop skill with critics** that iterates on the result. Adopted: two named reference registers in `apps/web/DESIGN.md`; three written critiques before each taste review.
-- **Golden-ratio spacing and type scale** (φ ≈ 1.618) as the reason well-known product sites feel proportioned. Adopted as the token scale.
-- **Scroll-driven storytelling** on marketing pages. Adopted for the home page.
-- Not adopted: generated hero imagery and marketplace component grabbing — see D-019 for why.
+1. **Solve the biggest problem — by interview.** The model *"interviews you one question at a time"* until it has the context, then proposes a plan, then *"debates this with [a second frontier model]"* before executing with subagents. It asks clarifying questions *before it starts*. The lab's first run asked six questions in two batches and never asked again; the corrected flow interviews one question at a time at every gate, and a fresh-context frontier instance debates the plan and the prototypes.
+2. **One operating-system UI** with *"room to breathe"*, built in one prompt from a goal-driven brief ("what is one goal this quarter"); everything on it is geared to that goal. The creator shows a second model's version of the same thing as *"text density… skewed in together"* — the density rule per view comes from here.
+3. **Beautiful websites need a great reference.** *"You won't get brilliant results unless you have a great reference."* References come from galleries (the creator names Refero and 21st.dev, and a curated list of his own) and *"get inspiration from multiple different sites and create something really unique."* Hero images and video come from a **connected generator** (OpenArt, via its CLI) working *"on autopilot"*. A **design-loop skill with critics** iterates on the result. The lab now fetches references from galleries and shows them to the AI Builder, who picks; a generator is asked for when none is connected.
+4. **UI systems.** Pull a component from a gallery, re-theme it, and the model gets the spacing right because *"1.61 is the golden ratio… all text is 1.61 either above or below as a multiple"*; then turn the look into tokens and build more from the same tokens; keep a library of what you built. Adopted: the φ scale, tokens first, gallery components as raw material re-themed into the product (never left recognisable).
+5. **Find the leak.** Give it real transactions and priorities; it finds what you pay for twice, what you do not use, and what you are *not* investing in. Not this product's job — but its shape (real data in, plain-words findings out, both directions) is the transparency view's shape.
+
+The creator's closing question is the lab's: *"how do we build systems that work for us even when we're not thinking about them?"* — and his answer is an agentic operating system, which is what the loop-and-graph gate builds.
 
 ## 3. The lab brief
 

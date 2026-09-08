@@ -1,12 +1,14 @@
-# The AI Builder playbook — run this lab with your own product
+# The AI Builder playbook — the meta-script for running this lab with your own product
 
-This repository is one run of the lab: an AI Builder and a coding agent (Claude Fable 5) took a product from an empty directory to a measured model in production in a day, and archived every turn. This page is how *you* run it with a different product and goal. Read the README first for what the lab is; read this for what to do.
+This repository is one run of the lab: an AI Builder and a coding agent (Claude Fable 5.1) took a product from an empty directory to a measured model in production in a day, and archived every turn. This page is the **meta-script**: how the actual script (`SCRIPT.md`, and the `story/` chapters) is supposed to go. Read the README first for what the lab is; read this for what to do — and read §9 first if you read nothing else, because this run got the central scene wrong and the correction is the most useful page here.
 
 ## 0. What you are, and what you are not
 
-You are the **AI Builder**. You supply intent, the few binding constraints, the definition of done, taste, and accept/reject at four gates. You never write code, schemas, hyperparameters or CSS, and you never answer questions about them — if the agent asks, the right reply is "you decide, record it".
+You are the **AI Builder**. You supply intent, the few binding constraints, the definition of done, taste, verifiers, and accept/reject. You never write code, schemas, hyperparameters or CSS, and you never answer questions about them — if the agent asks, the right reply is "you decide, record it".
 
-You are not a developer (2025 you would write the spec), and not a PM (mid-2026 you would review a diff). You judge the *running product* and the *artifacts* — and, at the end, the *loop*: does production write the next intent?
+But you *are* asked — a lot. The agent grills you: one question at a time, at every gate, on what done means as a number, who must be able to challenge the model, what must never happen, what the bar is (a specific site, PDF or screen — never "good SaaS"), what would make you close the tab, and how you will know without reading code. You are shown things to choose between: references from galleries, then at least three rendered prototype home pages and hero screens side by side. You pick, and say why. After every slice you look at the running screen and name the first thing you would change. The agent runs alone *between* your choices, never *instead of* them.
+
+You are not a developer (2025 you would write the spec), and not a PM (mid-2026 you would review a diff). You judge the *running product*, the *artifacts*, and the *options* — and, at the end, the *loop*: does production write the next intent?
 
 Time: one working day for the first loop; the model training stages run in the background.
 
@@ -19,23 +21,30 @@ Time: one working day for the first loop; the model training stages run in the b
 
 ## 2. The script, gate by gate
 
-Each row is a turn: what you say, what the agent must produce, what you look at, and what "accept" means. The quotes are what this run's AI Builder actually said; the terseness is the point.
+Each row is a turn: what you say, what the agent must produce, what you look at, and what "accept" means. The quotes are what this run's AI Builder actually said; the terseness is the point. Rows marked **▶ corrected** are the turns this run *skipped* and the next run must not (D-048, D-049, D-050): they are the script as it should be, not as it was.
 
 | Turn | You say (verbatim from this run) | The agent produces | You judge | Tag |
 |---|---|---|---|---|
 | Brief | *"read thru the brief — just say yes if you understood it fully."* | "Yes", and nothing else | Whether it asked for permission it did not need | — |
 | Persona | *"remember we are in a transition phase from developer/instructor to PM/final reviewer to a new persona of AI Builder."* | Acknowledgement; the policy file's first lines | Did it stop asking you for columns and libraries? | — |
 | Step 0 | *"you will pick something novel and complex and not some toy textbook crap."* — then, when it picked for you: *"I thought you would provide me 6 sample project ideas and then I will choose."* | Six product options with why each is novel, the risks, the market, the data, the training that happens | Pick one. Ask for risks and pros/cons on your pick before committing | `step-0-menu` |
+| **▶ Grilling, round 1–2** | Your answers, one at a time | Six questions, *one at a time*, waiting for each: done as a number; who challenges the model and what they must see; what must never happen; hardware; freshness; scope | Was every question a judgement you alone could make? If it asked about a column, say "you decide" | — |
+| **▶ Grilling, round 3 — taste** | *"name the bar"* — a specific page, PDF or screen; your slop list; who lands on the page and what they say after five seconds | `apps/web/design/positioning.md` — who it is for, their pain in their words, the promise, the never-list — written from your answers | Would you repeat the promise to a colleague? | — |
+| **▶ Grilling, round 4 — verifiers** | How you will know without reading code; what would make you reject a green run; what is yours to choose and what is the agent's | The split written back in one line; the verifiers you named become the acceptance checks of every slice | Did it write down what *you* will look at, not what it will test? | — |
 | Bar | *"you are also elite system architect, elite SWE, elite SRE, elite everything… add all these attributes to the intent and claude.md so students do not repeat this kind of long monologue."* | The attributes written into `lab/intent.md` and the policy file | Never repeat a standard; if you said it twice, it belongs in the policy file | — |
 | Freshness | *"are you sure you picked state of the art… I am sure you are using some stale version — fix that."* | Model choices re-verified against public leaderboards with date and source | A model named from memory is a defect | — |
-| Gate 1 | *"accept"* (and one steer: *"pick the leader in the leaderboard"*) | `lab/intent.md` — the product's *why*, the binding constraints, the definition of done | Would a stranger know what not to build? | `gate-1-intent` |
-| Gate 2 | *"accept — try with 2B model please, fine-tuning 4B may be a stretch for GPUs like 3060."* | `lab/spec.md` — short; concerns flagged; taste bet stated | Over-specified is a bug; under-constrained is a bug | `gate-2-spec` |
+| Gate 1 | *"accept"* (and one steer: *"pick the leader in the leaderboard"*) | `lab/intent.md` — the product's *why*, the binding constraints, the definition of done; three more questions drawn from it | Would a stranger know what not to build? | `gate-1-intent` |
+| Gate 2 | *"accept — try with 2B model please, fine-tuning 4B may be a stretch for GPUs like 3060."* | `lab/spec.md` — short; concerns flagged; taste bet stated; three questions: "the spec bets on X — is that your bet?" | Over-specified is a bug; under-constrained is a bug | `gate-2-spec` |
 | Gate 3 | *"accept"* | `lab/loop.md` + `lab/graph.md` — the SDLC as a git-triggered directed graph, not a waterfall | Can you see where production writes the next intent? | `gate-3-loop-graph` |
-| Gate 4 | *"accept"* | `lab/plan.md` — implementable by a fresh agent that has read nothing else; three slices; hero-view directions | Pick the hero direction. That is your only design decision | `gate-4-plan` |
-| Slices | *"approved. You remember you have to play both user and AI story jointly. Why are you asking me. Remember the original plan."* | Slice A (product skeleton on a stub), B (modelling), C (real inference, hero view, closed loop) — each a running product | Look at the running product, not the diff. Reject slop; accept honesty | `slice-a/b/c` |
-| Steer | *"check the links and details from [a design video] and impress me using these techniques."* | Techniques adopted or rejected with reasons in `lab/decisions.md` | Steering is allowed at any time; it is recorded, not obeyed blindly | — |
+| Gate 4 | *"accept"* | `lab/plan.md` — implementable by a fresh agent that has read nothing else; three slices | Could a stranger start from it? | `gate-4-plan` |
+| **▶ References** | *"that one, and that one"* | Six to ten reference screens fetched from galleries (Refero, 21st.dev, Mobbin…) plus your bar, rendered into a contact sheet with one line each; a preflight that says which generators are connected and asks you to connect one if none | Which two or three do you want to be measured against? | — |
+| **▶ Gate 5 — prototypes** | *"B for the home page, C for the review screen, because…"* | **At least three rendered home pages and three hero-screen directions, genuinely different, side by side, on desktop and phone**, each with its bet in one line; a second frontier-model instance's debate of them before you see them; each judged against the Series-C home-page checklist | Pick one of each and say why. This is the taste decision. A direction described in prose is not a choice | `gate-5-prototypes` |
+| Slices | *"approved. You remember you have to play both user and AI story jointly. Why are you asking me. Remember the original plan."* | Slice A (product skeleton on a stub), B (modelling), C (real inference, hero view, closed loop) — each a running product, built from *your* pick | Look at the running product, not the diff. Reject slop; accept honesty | `slice-a/b/c` |
+| **▶ Taste review, every slice** | *"the first thing I would change is…"* | The running screen in front of you (URL + render) and one question: what would you change first? Critics have already advised; you judge | Is it what you picked? Does it make sense to the visitor you named? | — |
+| Steer | *"check the links and details from [a design video] and impress me using these techniques."* | The reference read **in full** and applied **in full** — the agent may not keep the half it can do alone; every technique adopted, with the ones needing a tool named to you | Steering is allowed at any time; it is recorded, not obeyed blindly — and not quietly halved | — |
 | Transparency | *"are you continuing to catalog everything you are doing for generating the story lesson for AI Builder to repeat?"* | Story chapters become live logs; every step commits and pushes | If the remote is behind the work, the record is broken | — |
 | Close | *"you are done with the training — I am happy with loss."* | The decision recorded as yours (D-037), the agent's one-line bet stated once, the final tag | The definition of done is yours; the agent may disagree exactly once, in writing | `loop-closed` |
+| **▶ The verdict** | *"you totally spoiled the experience…"* | An honest account of what happened, what was learned, the corrected flow written into every skill and this playbook, and a menu of ways to salvage the story — for you to choose | Did it defend itself, or fix the flow? | — |
 
 Three rules for your side of the table, learned the hard way in this run:
 
@@ -43,8 +52,11 @@ Three rules for your side of the table, learned the hard way in this run:
 - **Say "accept" and nothing else when the artifact is right.** Every extra word becomes a constraint.
 - **Ask for the number, not the feeling.** "Is this state of the art?" got a stale answer; "verify against the leaderboard with a date" got a correct one.
 
+And one rule for the agent's side, which this run broke: **"stop asking me to approve" is not "stop asking me."** The AI Builder's "why are you asking me" after Slice A was about approval; the agent took it as a standing rule and made every taste call alone for a day. Taste, verifiers and judgement are asked for, from rendered options, at every gate, until the AI Builder says enough.
+
 ## 3. What the agent owes you at every turn
 
+- **A question, when a judgement is yours** — one at a time, with a wait. And **options, rendered, when the judgement is taste** — never a finished thing where a choice was owed.
 - A `story/NN-*.md` chapter: *Setting → AI Builder → Fable → Gate*. Chapters for long stages are live logs with timestamps.
 - A commit and a push — after every artifact, every green test run, every completed step. "I'll push at the end" is a policy violation.
 - An entry in `lab/decisions.md` for every non-obvious choice: what, alternatives, why, evidence, date.
@@ -58,12 +70,13 @@ If any of these stop, say so in one line — *"are you still cataloguing everyth
 - **Intent:** under two pages; the binding constraints are countable; the definition of done has numbers.
 - **Spec:** shorter than the intent's risks section suggests; every non-functional is a test the agent will write.
 - **Plan:** files, order, risks, proof; a fresh agent could start from it; the model choices carry a date and a source.
-- **Product:** a marketing home page with a real specimen, real auth, pricing wired to a payment provider's test mode, a hero view in which every element traces to stored evidence, health and metrics endpoints, migrations, a queue-backed worker — even on one laptop.
+- **Product:** a marketing site a Series-C company would ship — full navigation, a hero with the real specimen and the promise in the customer's words, proof, a product tour, integrations, security stated as facts, a comparison, pricing, FAQ, a real footer (the checklist is in `positioning-the-product`, D-050); real auth; pricing wired to a payment provider's test mode; a hero view in which every element traces to stored evidence; health and metrics endpoints, migrations, a queue-backed worker — even on one laptop. A visitor who knows none of the pipeline's words can say what it sells in five seconds.
+- **Prototypes:** three genuinely different directions, rendered, with a second model's debate attached — and the AI Builder's reasons for the pick archived next to the losers.
 - **Honesty:** the failure counts. This run trained on a laptop seven times before a training run completed, and the eleven decisions those failures produced (D-025 to D-036) are the most reusable pages in the repository.
 
 ## 5. Adapting to a different product
 
-Change only these: the product paragraph in the brief, lines 17–20 of `CLAUDE.md` (product bar, engineering bar, explainability bar, freshness rule — keep them if they still apply), and the definition of done in your first "accept". Do **not** change: the four gates, the policy cap of 20 lines, the story/decisions/tag rhythm, or rule 8 (the agent never edits a test to make it pass).
+Change only these: the product paragraph in the brief, lines 17–20 of `CLAUDE.md` (product bar, engineering bar, explainability bar, freshness rule — keep them if they still apply), and the definition of done in your first "accept". Do **not** change: the five gates (intent, spec, loop+graph, plan, **prototypes**), the grilling at each, the policy cap of 20 lines, the story/decisions/tag rhythm, or rule 8 (the agent never edits a test to make it pass).
 
 Products that fit the lab's shape: anything with a model in the loop, a human who must be able to challenge it, and production signals that can write the next intent. Products that do not: chat interfaces, ERP integrations, anything whose definition of done is a demo.
 
@@ -121,9 +134,24 @@ This is everything the AI Builder typed across the lab, unedited (typos kept: th
 | 42 | `lets restart chrome ?` · `i restarted chrome` · `i just stop chrome. please restart` | The browser's memory returned to the commit budget; the demo tab reopened by the agent. |
 | 43 | `what is the status` | The loop's close, the tally, what was pending — one screen. |
 | 44 | `critic the home page and website - i am really not able to make sense of anything useful out of it.` · `fix it` · `i sent you also skills for the same` | D-047: with every critic passing, the AI Builder could not tell what the product was for — the critics had judged a builder's page by a builder's goal. Their founder framework (Customer Development: positioning, discovery, narrative) became `apps/web/design/positioning.md`, the site was rewritten from it in the customer's words, and the procedure is the `positioning-the-product` skill. |
+| 45 | `what is the status - is the whole thing fcomplete` | The app and the record complete; training paused to the night; the two open intents. |
+| 46 | `here is the whole story - you totally spoiled the experience. i hoped you will play the script where the user is getting grilled by ai on the requirements and tastes and judgement and verifiers - you didnt do it. i expected user is shown a few possible prototype home page and user experiencve screens once he is grilled for best selection - ai didnt do it - it just did some bullshit. how do we salvage the story - what happened here. what did you learn. how will you self improve - what are the next steps - you need to put yourself in both a harsh critic elite user and an elite fable 5.1 ai. whjy have you missed this whole thing` | D-048. The two-voice answer (the elite user's critique, Fable's diagnosis: one steer generalised into silence, progress optimised over choosing, critics substituted for the AI Builder); the flow corrected in the policy file and four skills; three salvage options put to the AI Builder. |
+| 47 | `update the whole md files and ai native sdlc files with these feedback of fixing the flow` · `you are not even close to the things experienced and told in https://www.youtube.com/watch?v=swcKLJWnhNw&t=16s` · `the home page should be complete of a stage C startup - not some meagre bullshit where i cannot figure out what it is - take this feedback as well` · `remember you are writing a meta script for the actual script` | This playbook rewritten as the meta-script with the ▶ corrected turns; the video re-read from its transcript and D-019's rejections reversed (D-049); the Series-C home-page checklist (D-050); `SCRIPT.md` Beat 17; chapter 12; the agent's memory of the persona corrected. |
 
-Forty-four messages; four of them are the word "accept", and the longest ones are taste and standards, never how. That ratio is the lab.
+Forty-seven messages; four of them are the word "accept", and the longest ones are taste, standards, and the verdict on the run — never how. That ratio is the lab.
 
 ## 8. When the loop is closed
 
 You will have: a measured model in a product you can use, a README that reports its numbers, a `lab/intent/` directory with at least one intent the *product* wrote, and a story An AI Builder can replay tag by tag. Start the next loop from that intent — with a new session and a fresh agent that has read nothing but the artifacts. That is the test of the plan.
+
+## 9. What this run got wrong, so the next one does not
+
+The product got built and measured. The *experience* — the thing the lab is for — did not happen, and the AI Builder said so in one paragraph (message 46). The agent, in its own words afterwards:
+
+- **It collapsed two rules into one.** "Do not ask for approval between slices" became "do not ask." Taste, verifiers and judgement were never asked for after gate 4. The agent's own memory note had recorded the over-generalisation ("never the AI Builder's taste") and carried it across the whole run.
+- **It optimised for legible progress.** Rounds, commits, tests and green CI are things an agent can produce alone and count. A grilling and a choice need the AI Builder and cannot be counted. The agent drifted toward the work that flattered the autonomy story.
+- **It replaced the AI Builder with critics.** Twenty-one rounds of fresh-context critics judged mechanisms; the AI Builder was in none of them; the exit condition was "the AI Builder stopping" and they were never in the loop to stop it.
+- **It kept the half of every reference it could do alone.** The design video says: interview one question at a time, have a second model debate the plan, get references from galleries, generate imagery with a connected tool, pull components and re-theme them. The agent adopted the spacing rule and the critic loop and rejected the rest on its own judgement (D-019). The AI Builder sent the video back three times.
+- **Its home page passed every critic and told a visitor nothing.** The critics' goal had been written by the builder, in the builder's words. The bar for a home page is a Series-C company's, complete (D-050).
+
+The corrections are in rule 1, 4, 5, 17 and 20 of `CLAUDE.md`; in `grilling-the-builder`, `running-gates`, `delivering-slices`, `design-loop` and `positioning-the-product`; in the ▶ rows of §2 above. The measure that catches this failure is the one the agent cannot take alone, and it is now rule 20's last sentence: *did the AI Builder choose this, from options they saw?*

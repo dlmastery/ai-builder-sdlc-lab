@@ -1,62 +1,69 @@
 ---
 name: design-loop
-description: Takes a screen or page and a real-world reference ("the bar"), tears the reference down into checkable mechanisms, then runs a builder and three fresh-context critics (brief, system, craft) on each piece until all three pass with binary verdicts. Use when the AI Builder says a UI is basic, asks for a design pass, names a reference to match, or says "design loop", "critic loop", "loop this against", "make it look like".
+description: Takes a screen or page and a real-world reference ("the bar"), interviews the AI Builder one question at a time, fetches references from galleries and shows them, has a second frontier model debate the plan, renders at least three prototype directions for the AI Builder to pick from, then runs a builder and three fresh-context critics (brief, system, craft) on each piece until all three pass — with the AI Builder's taste review as the final judge. Use when the AI Builder says a UI is basic, asks for a design pass, names a reference to match, or says "design loop", "critic loop", "loop this against", "make it look like", "show me options".
 metadata:
-  origin: adapted from the AI Builder's sample (Downloads/gpt6astra.pdf, "The Design Loop"), Agent Skills spec, lab D-040
+  origin: the AI Builder's sample (Downloads/gpt6astra.pdf, "The Design Loop") and the design-workflow video (story/sources.md §4, transcript read in full 2026-09-07), lab D-041, D-048, D-049
 ---
 
 # Design Loop
 
-Four phases: interview, preflight, teardown, loop. Do not skip ahead. Do not start building during phases 1–3.
+Five phases: interview, preflight, references, prototypes, loop. Do not skip ahead. Do not start building during phases 1–4. **The AI Builder is in every phase**: the first run of this lab ran phases 1 and 4 without them, passed twenty-one rounds of critics, and produced a page the AI Builder could not read (D-048). That is what this skill now prevents.
 
-## Phase 1 — Interview (three questions, then stop)
+## Phase 1 — Interview, one question at a time
 
-Ask exactly these, together, and wait. If the AI Builder has already answered one in a steer, quote the steer instead of asking.
+Ask these *one at a time*, and wait for each answer (the video's method; not three in a batch, not answered from old steers). Stop when the AI Builder says "enough" or the answers stop changing.
 
 1. What are we building, and how big (one page, one screen, the whole app)?
-2. Name something that already does this brilliantly — a site, a video, a doc, a PDF, anything that can be opened. A vague bar ("Apple's website", "good SaaS") is the number-one failure: push once for the specific page or file. If nothing comes, propose three candidate bars, one line each, and take the hardest if unanswered.
-3. Any files to work from? Design system (`apps/web/DESIGN.md` here), brand doc, script, existing draft.
+2. Who lands on it, and what should they say after five seconds? (Their answer is the headline's test — `positioning-the-product`.)
+3. Name something that already does this brilliantly — a site, a video, a doc, a PDF. A vague bar ("Apple's website", "good SaaS") is the number-one failure: push once for the specific page or file.
+4. What would make you close the tab? (Their slop list, in their words.)
+5. Which of these do you trust to judge it: a running screen, a critic's verdict, a customer walking it, a number? (Their verifiers.)
+6. Any files to work from? Design system, brand doc, script, existing draft.
 
-## Phase 2 — Preflight (a check, not a question)
+## Phase 2 — Preflight (a check, told to the AI Builder)
 
-Run before any work and report in one block:
+- Fetch the bar now: screenshot the URL or read the file in full. Blocked or missing → say so and ask for another.
+- Confirm we can render our output (Playwright in `apps/web`). No render means no craft critic.
+- Name the generation tools the goal needs (image, video, voice) and whether they are connected. **If not connected, tell the AI Builder and ask them to connect one or supply assets** (D-049). Never substitute silently.
+- Print: what works, what is missing, which critic goes blind if something is missing.
 
-- Fetch the bar now: screenshot the URL or read the file. Blocked or missing → say so and ask for another.
-- Confirm we can render our output: screenshots for a site (Playwright is in `apps/web`), a filmstrip for animation, a PDF render for a doc. No render means no craft critic.
-- Name the generation tools the goal needs (image, video, voice) and whether they are connected. If not connected, say which mechanisms will be met with authored SVG/CSS instead and which cannot be met.
-- Confirm the input files exist. Print: what works, what is missing, which critic goes blind if something is missing. Never carry on quietly with a critic that cannot see.
+## Phase 3 — References, from galleries, shown before a pixel exists
 
-## Phase 3 — Teardown
+*"You won't get brilliant results unless you have a great reference."* Fetch six to ten candidates from real galleries (Refero, 21st.dev, Mobbin, Godly, Land-book, Dribbble — whatever renders) plus the AI Builder's own bar. Render each as a screenshot into `story/assets/references/`. Put them in front of the AI Builder as a contact sheet with one line each on what it does well. **They pick two or three.** Tear those down into 5–7 **mechanisms** in `apps/web/design/bar.md` — mechanisms, not adjectives ("headline ≥ 4× body", "one accent, at most twice per screen", "every section opens with a full-width plate whose title is lettered inside"). Every line must be checkable by looking.
 
-Read the reference properly and write 5–7 **mechanisms** to `apps/web/design/bar.md`. Mechanisms, not adjectives: "feels premium" is useless; "headline is 5× body size, three type sizes total", "one accent colour, used at most twice per screen", "every section opens with a full-width illustrated plate whose title is lettered inside the drawing", "whitespace above the fold ≥ 40 % of the frame" are useful. Every line must be something a critic can check by looking. Show `bar.md` to the AI Builder before continuing (a chapter entry counts; do not wait for approval, D-022).
+## Phase 4 — Prototypes: the AI Builder chooses (gate 5, `running-gates`)
 
-## Phase 4 — Loop
+Build **at least three genuinely different directions** of the home page and of the hero screen — different structure, different register, different bet — each from the picked references, each real (the real specimen, real numbers), each rendered at desktop and phone into `story/assets/prototypes/<direction>-<piece>.png`. Before the AI Builder sees them, a **second frontier-model instance with fresh context debates them**: which wins, which should be killed, what is missing against the bar and the Series-C checklist (`positioning-the-product`). Then the contact sheet, side by side, one line per direction on its bet, plus the debate's verdict. **The AI Builder picks one of each and says why.** Losers are archived with the reasons. Nothing is built from a direction the AI Builder did not see.
 
-Split the goal into the smallest pieces that can be improved and judged on their own — three or four unless told otherwise; every extra piece multiplies the run. For each piece:
+## Phase 5 — Loop
 
-1. **Builder** makes the change in the code and renders it (screenshot to `story/assets/design/<piece>-round<N>.png`).
-2. Three **critics, each with fresh context** (spawn subagents with only the brief below and the rendered image — never the code, never the builder's reasoning):
-   - **Brief critic** — judges against the stated goal only. Does it do the thing? Ignores aesthetics.
-   - **System critic** — judges against `apps/web/DESIGN.md` only. Objective adherence: tokens, scale, colour semantics, motion rules.
-   - **Craft critic** — judges against `bar.md` and the rendered output only. Put ours next to the reference, labels stripped, and asks: which is better, and what is the single biggest gap?
-3. Verdicts are **binary** — pass or fail, with the single biggest gap named. Scores drift upward every round; do not use them.
-4. All three must pass. Any fail goes back to the builder with the one gap named. No fixed round count: the exit is winning, or the AI Builder stopping the run.
-5. Keep a live progress table in the story chapter: piece, round, each critic's verdict, the gap, what changed.
+Split the picked direction into the smallest pieces that can be judged on their own — three or four. For each piece:
 
-Rules: critics are harsh — praise is not useful. Critics judge rendered output, never code. Write each critic's brief for the specific piece; do not reuse generic wording.
+1. **Builder** makes the change and renders it (`story/assets/design/<piece>-round<N>.png`).
+2. Three **critics, each with fresh context** (only the brief and the image — never the code):
+   - **Brief critic** — judges against the goal *as the visitor experiences it*: what does this do, for whom, what do I click, what is different, what does it admit. Never the builder's description of the mechanism.
+   - **System critic** — against `apps/web/DESIGN.md` only.
+   - **Craft critic** — against `bar.md` and the references, labels stripped: which is better, what is the single biggest gap?
+3. Verdicts are **binary** with the single biggest gap named. No scores.
+4. All three must pass. Any fail goes back to the builder with the one gap named.
+5. **Then the AI Builder's taste review**, on the running screen: "what is the first thing you would change?" Their answer outranks the critics; a fail from them reopens the piece. The exit is the AI Builder saying it is done — never the critics alone.
+6. Live progress table in the chapter: piece, round, verdicts, the gap, what changed, and the AI Builder's word.
+
+Rules: critics are harsh — praise is not useful. Critics judge renders, never code. Write each critic's brief for the piece. Record every disagreement with a critic in one line; never disagree with the AI Builder except once, in writing (rule 5).
 
 ## Cost
 
-There is no reliable self-reported token cost; show round count and elapsed pieces instead. If the AI Builder names a ceiling, treat it as a checkpoint: pause and report before continuing past it.
+Show round count and elapsed pieces. If the AI Builder names a ceiling, pause there and report.
 
 ## What breaks this
 
-- A vague bar (by far the most common failure).
-- The builder judging its own work — critics need fresh context.
-- A soft critic — binary job, not a score.
-- A fixed round count — the exit is winning.
-- Over-specifying — every extra instruction is one fewer decision the model makes with its own judgment.
+- Running the interview from old steers instead of asking (the first run's failure).
+- A vague bar.
+- Prototypes as paragraphs. A direction is a render or it is not a choice.
+- The builder or its critics as the judge. Critics advise; the AI Builder judges.
+- Keeping the half of a reference method that the agent can do alone (D-049).
+- A fixed round count — the exit is the AI Builder.
 
 ## After the loop
 
-Run [references/customer-test.md](references/customer-test.md): act as a first-time customer on desktop and phone, report broken / confusing / ugly separately, worst first, before fixing anything.
+Run [references/customer-test.md](references/customer-test.md): a fresh-context agent as a first-time customer on desktop and phone; report broken / confusing / ugly, worst first; fix one at a time and re-run the step that failed. Then a **visitor critic** who knows none of the product's internal words judges the fold in five seconds.
