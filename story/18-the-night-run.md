@@ -44,3 +44,4 @@ So the profile is relaunched unchanged: `train --profile overnight --baseline` �
 - **07:30:45** — **checkpoint 275.** 10,262 s, loss 0.0001.
 - **07:46:14** — **checkpoint 300.** 11,193 s. Two thirds; 150 steps left.
 - **08:01:43** — **checkpoint 325.** 12,086 s, loss 0.0001.
+- **08:17:14** — **checkpoint 350.** 13,040 s. A hundred steps left, about an hour.
