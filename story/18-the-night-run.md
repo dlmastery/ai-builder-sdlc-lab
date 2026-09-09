@@ -83,3 +83,20 @@ So the profile is relaunched unchanged: `train --profile overnight --baseline` �
   Same model, same weights, two hours apart: 0.53 and 0.97. Nothing about the model changed; the population and the scoring did. The one line to read twice: **vendor name 77 of 77** on synthetic vendors the model had never seen — the delivered model's number there was 0 of 50, because it refused to guess (chapter 11, the honest zero on the home page). Whether that is the mask (D-030) teaching it to answer where the label is known, or the renderer's vendors being learnable by their layout, is the next question; the receipts' 23 carry no vendor label, so this table cannot say. Where it loses: line items (0.925) and the three totals. Calibration on the sampled hundred is next, then the delivered model on the very same hundred.
 - **13:18** — **calibration, night model, sampled hundred of the calibration split:** expected calibration error 0.046 before → **0.036 after**; the conformal bar for a 1-in-100 error budget lands at **0.826**, and **94.25 % of fields clear it** (coverage). On the receipt-only sample two hours earlier: ECE 0.26 → 0.14, bar 1.0, coverage 0. Difficulty model refitted on 200: 15.5 % of pages expected to need a person (was 80 % on receipts). Two cautions before anyone reads 94 % as the product's number: coverage counts *fields*, and the product approves a *document* only when every required field clears the bar and is found on the page, so the documents-approved-without-a-person figure is lower and is measured only when the app reads real pages under this model; and this is the calibration split of a dataset that is three quarters synthetic — the figure the home page shows must come from the invoices a customer actually drops. The baseline on its sampled forty is running; then the delivered model on this same hundred.
 - **13:33** — the OCR+rules baseline on its sampled forty: **0.5597** (it read 0.22 on forty receipts under the old scoring). So the floor on this population is 0.56 and the night model's 0.97 is measured against it. Re-measurement 1 exited cleanly. **Re-measurement 2** launched at 13:33:55 (PID 136448): the delivered model `2beb2897` — evaluation, calibration, difficulty on the identical hundred.
+- **14:29** — **the delivered model on the same hundred: field F1 0.9259.** Side by side, same documents, same scoring:
+
+  | field | support | delivered `2beb2897` | night `dc95336b` |
+  |---|---|---|---|
+  | all | 1,146 | 0.926 (p 0.966 · r 0.889) | **0.974** (p 0.973 · r 0.975) |
+  | vendor name | 77 | 0.000 (0 of 77 — it refused to guess) | **1.000** |
+  | vendor address | 77 | 0.915 (12 missed) | **1.000** |
+  | invoice number · issue date · payment terms | 77 | 1.000 | 1.000 |
+  | due date | 77 | 0.994 | 1.000 |
+  | currency | 100 | 0.980 | 0.990 |
+  | tax | 89 | 0.977 | 0.989 |
+  | subtotal | 91 | 0.956 | 0.978 |
+  | total | 100 | 0.970 | 0.970 |
+  | line items | 304 | 0.916 | 0.925 |
+  | OCR + rules baseline (sampled 40) | — | 0.560 | — |
+
+  The whole gap is where the delivered model abstained: vendor names, and twelve vendor addresses. Everything else is a tie or a point or two. The night model was trained on five thousand pages with the unknown-field mask, the delivered one on 466 with the same mask; the honest zero on the home page was a small model refusing to guess names it had rarely been shown, not a rule. What the night model's 77 of 77 does *not* prove: that it reads real vendors' names — the 77 are unseen vendors of the *renderer*, and the 23 receipts carry no vendor label to check against. The specimen, a real invoice with a real stamp, is the next test and the app is the place it is taken. Calibration and difficulty for the delivered model on the same hundred are running; then the judgement.
