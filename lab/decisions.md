@@ -384,6 +384,21 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** rule 17 says "a product, not a lab demo"; a home page that a buyer cannot parse is a lab demo however good its plates are.
 - **Date:** 2026-09-07
 
+## D-052 · The paused run measured: a checkpoint interval, not a crash — relaunch as is
+
+- **Context:** D-043 paused the overnight run at step 9 with no checkpoint and ordered the night to start by measuring that exit. Measured 2026-09-09: no Windows error event in the run's window; its stderr ends cleanly after the weight load; the jobs row shows 9 steps in 387 s (~43 s a step) and the pause marker was applied while the job was still `running`. The overnight profile checkpoints every 25 steps (`TrainProfile.checkpoint_every`), so step 9 had none by design — the pause cost six minutes of work, as the interval says it may.
+- **Alternatives:** lower `checkpoint_every` to 10 (about seven minutes of exposure; a ~40 MB adapter write each time) — cheap, but the interval was chosen for exactly this trade and nothing failed; change nothing and relaunch; skip the measurement and relaunch.
+- **Decided:** relaunch the overnight profile unchanged, detached, from the start (there is no checkpoint to resume), with the jobs-table monitor armed. The hypothesis "the trainer exits silently around step 9" is **falsified** and recorded as such; the memory that carried it is corrected.
+- **Why:** rule 18 — measure before fixing, record falsified hypotheses; rule 10 — the checkpoint interval is the amount you can afford to lose, and six minutes is affordable.
+- **Date:** 2026-09-09
+
+## D-053 · An idempotent upload must say so
+
+- **Context:** customer test 2 (chapter 17, broken 1): three uploads of the sample invoice returned `202 Accepted` and produced nothing on the page, because the upload is idempotent on the file hash (a deliberate choice; `test_same_file_uploaded_twice_is_one_job`) and the client only refreshed. The rows exist in no database because none was made. Eleven critic rounds and two green suites had passed it.
+- **Decided:** the contract stays idempotent — identical bytes never make a second document — but the response carries `existing: true` and the page says so in the customer's words: *"Already in your queue as <name>, uploaded <date> · open it."* Both suites test it (API first, red then green; the browser test uploads the same bytes twice).
+- **Why:** correct engineering the customer cannot see is a broken product. Rule 17's last line: a green suite of slop fails; so does a green suite of silence.
+- **Date:** 2026-09-09
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.
