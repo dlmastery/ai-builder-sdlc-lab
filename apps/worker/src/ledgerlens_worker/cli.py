@@ -96,8 +96,11 @@ def _dataset_of(model_version_id: str) -> str:
 
 def cmd_train(a: argparse.Namespace) -> None:
     if a.resume_from:
-        # the post-training stages against a saved adapter (D-029): no build, no train
-        mv, dataset_id = a.resume_from, _dataset_of(a.resume_from)
+        # the post-training stages against a saved adapter (D-029): no build, no train. With
+        # --dataset, on that dataset rather than the one it was trained on — two models are
+        # compared on the same sample or not at all (D-055)
+        mv = a.resume_from
+        dataset_id = getattr(a, "dataset", None) or _dataset_of(a.resume_from)
     else:
         dataset_id = a.dataset or _latest_dataset(f"{a.profile}-auto") or _build_dataset(a.profile)
         headroom = commit_headroom_gb()
@@ -140,14 +143,25 @@ def cmd_train(a: argparse.Namespace) -> None:
     limit = {"smoke": 8, "demo": 60, "overnight": 100}[a.profile]
     # the baseline needs the OCR specialist per page (~1 min each on a laptop): keep it bounded
     baseline_limit = {"smoke": 8, "demo": 12, "overnight": 40}[a.profile]
+    # the dataset travels in the payload only when it was named (D-055); otherwise the jobs use the
+    # model's own, as before
+    on: dict[str, Any] = {"dataset_id": dataset_id} if getattr(a, "dataset", None) else {}
     print(
         json.dumps(
-            _run("evaluate_model", {"model_version_id": mv, "split": "test", "limit": limit}),
+            _run("evaluate_model", {"model_version_id": mv, "split": "test", "limit": limit, **on}),
             indent=1,
         )
     )
-    print(json.dumps(_run("calibrate_model", {"model_version_id": mv, "limit": limit}), indent=1))
-    print(json.dumps(_run("train_difficulty", {"model_version_id": mv, "limit": limit}), indent=1))
+    print(
+        json.dumps(
+            _run("calibrate_model", {"model_version_id": mv, "limit": limit, **on}), indent=1
+        )
+    )
+    print(
+        json.dumps(
+            _run("train_difficulty", {"model_version_id": mv, "limit": limit, **on}), indent=1
+        )
+    )
     if a.baseline:
         with session_scope() as db:
             from ledgerlens_ml.jobs import ensure_baseline

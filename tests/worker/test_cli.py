@@ -35,6 +35,31 @@ def test_resume_from_skips_build_and_train(
     assert calls[0][1] == {"model_version_id": "mv-1", "split": "test", "limit": 60}
 
 
+def test_resume_from_can_be_pointed_at_another_dataset(
+    monkeypatch: pytest.MonkeyPatch, test_database_url: str
+) -> None:
+    """D-055: to compare two models they must be measured on the same sample. The delivered model
+    was trained on demo-auto; `train --resume-from <mv> --dataset <overnight-auto>` evaluates,
+    calibrates and scores difficulty on the dataset named, not the one it was trained on."""
+    from ledgerlens_worker import cli
+
+    calls: list[tuple[str, dict[str, Any]]] = []
+    monkeypatch.setattr(
+        cli, "_run", lambda kind, payload, *, queue="gpu": calls.append((kind, payload)) or {}
+    )
+    monkeypatch.setattr(cli, "_dataset_of", lambda mv: "ds-trained-on")
+    monkeypatch.setattr(cli, "commit_headroom_gb", lambda: None)
+
+    cli.cmd_train(
+        argparse.Namespace(
+            profile="overnight", model="2b", dataset="ds-other", baseline=False, resume_from="mv-1"
+        )
+    )
+
+    assert [k for k, _ in calls] == ["evaluate_model", "calibrate_model", "train_difficulty"]
+    assert all(p.get("dataset_id") == "ds-other" for _, p in calls), calls
+
+
 def test_train_hands_post_training_stages_to_a_fresh_process(
     monkeypatch: pytest.MonkeyPatch, test_database_url: str
 ) -> None:
