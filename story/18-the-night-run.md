@@ -68,3 +68,16 @@ So the profile is relaunched unchanged: `train --profile overnight --baseline` �
 - **10:55** — both defects fixed test-first while calibration runs on the old code (commit `c459190`, D-055): the evaluator scores only the fields the truth knows; a limited run is a hash-ordered sample of the split, the same hundred for every model; the prediction cache is named by sample size. One old test had asserted the confusion and was corrected in the open. Next, when the launcher exits: the night model and the delivered model, both re-measured on the same sampled hundred of the overnight test split — which needs `--resume-from` to accept a dataset that is not the one the model was trained on (test first, next).
 - **11:08** — `--resume-from --dataset` done (`3afd937`). The launcher's own stages, on the old code and the same hundred receipts: calibration found no threshold below 1.0 that keeps the error inside the budget — **coverage 0.0**, the honest zero again, on a population the model was never asked to auto-approve; difficulty trained on 200 documents; the OCR+rules baseline on 40 receipts is queued last. All superseded by the re-measurement; recorded because they happened.
 - **11:20** — the baseline read 0.2184 on 40 receipts (old scoring); the launcher exited. **Re-measurement 1** launched at 11:20:35 (PID 129284): the night model, `train --profile overnight --resume-from dc95336b --dataset overnight-auto --baseline` — evaluation, calibration and difficulty on the hash-ordered sample, the baseline on its sampled forty. Re-measurement 2, the delivered model `2beb2897` on the same sample, follows when this exits.
+- **12:19** — **night model, re-measured: field F1 0.9738 on the sampled hundred** (77 synthetic invoices, 23 CORD receipts — the hash sample's mix; the whole test split is 612).
+
+  | field | support | tp | fp | fn | precision | recall | F1 |
+  |---|---|---|---|---|---|---|---|
+  | all | 1,146 | 1,117 | 31 | 29 | 0.973 | 0.975 | 0.974 |
+  | vendor name · address · invoice number · issue date · due date · payment terms | 77 each | 77 | 0 | 0 | 1.000 | 1.000 | 1.000 |
+  | currency | 100 | 99 | 1 | 1 | 0.990 | 0.990 | 0.990 |
+  | tax | 89 | 88 | 1 | 1 | 0.989 | 0.989 | 0.989 |
+  | subtotal | 91 | 89 | 2 | 2 | 0.978 | 0.978 | 0.978 |
+  | total | 100 | 97 | 3 | 3 | 0.970 | 0.970 | 0.970 |
+  | line items | 304 | 282 | 24 | 22 | 0.922 | 0.928 | 0.925 |
+
+  Same model, same weights, two hours apart: 0.53 and 0.97. Nothing about the model changed; the population and the scoring did. The one line to read twice: **vendor name 77 of 77** on synthetic vendors the model had never seen — the delivered model's number there was 0 of 50, because it refused to guess (chapter 11, the honest zero on the home page). Whether that is the mask (D-030) teaching it to answer where the label is known, or the renderer's vendors being learnable by their layout, is the next question; the receipts' 23 carry no vendor label, so this table cannot say. Where it loses: line items (0.925) and the three totals. Calibration on the sampled hundred is next, then the delivered model on the very same hundred.
