@@ -33,3 +33,4 @@ So the profile is relaunched unchanged: `train --profile overnight --baseline` �
 - **04:39** — pre-flight passed at 9.7 GB (floor 9); weights loaded cleanly; the model on the GPU at 3.8 GB by 04:41, 7.7 GB once training began. The demo API and the web server were brought back after the load's peak, because the AI Builder asked where the app was.
 - **04:55:50** — **checkpoint 25.** 926 s for 25 steps (37 s a step, faster than the sixth's 43), loss 0.0369. 12 GB was a peak, not a floor: the load fit inside 9.7 GB this time. The margin is still luck, and the floor stays at 12 by default.
 - **05:11:19** — **checkpoint 50.** 1,895 s (38 s a step, steady), loss 0.009 — down from 0.037 at step 25. On pace for step 450 at about 09:15 UTC.
+- **05:25:46** — **checkpoint 75.** 2,731 s (36 s a step), loss 0.0059. The loss curve so far: 0.037 → 0.009 → 0.006 at 25-step marks — the unknown-field mask (D-030) keeps it from the near-zero of the smoke runs, which is the point.
