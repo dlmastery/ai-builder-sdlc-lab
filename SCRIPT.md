@@ -250,6 +250,16 @@ Then the product on the real model: adapter, calibrator, threshold and difficult
 
 ---
 
+## Beat 18 — Loop 2: the grilling, the references, the picks
+
+**AI Builder:** *"1."* (rewind at the plan gate, live) — then, when the agent stopped to wait: *"What is the status — are you playing simulation?"* and *"Why waiting on me — I told you to simulate an expert with great taste and answer."*
+
+**Fable:** Understood, and recorded as D-051: you direct; I play the elite AI Builder — the one who asks the question and answers it, visibly, in a voice you can override in one line. So the grilling happens on the page (chapter 13): *who is the person, by name and by morning?* — "Priya, who runs accounts payable for a 60-person instruments company, 08:40, eleven invoices, a stamp over the total on the third." *Which three sites is the bar?* — "Linear's fold, Stripe's completeness, Mercury's voice." *What would make you close the tab?* — "a word I would not say to my controller." *Phone or desktop first?* — "phone; the CFO reads it in a taxi." *What must be true before you would let it approve without you?* — "one error in a hundred, measured on invoices it has never seen, and I can see where every number came from." Then the references, fetched from the galleries and shown, not described (chapter 14). Then gate 5: three complete home pages — product-as-proof, a day in Priya's life on paper, the number 95/100 — rendered side by side on desktop and phone, debated by a second frontier model with fresh context, and the AI Builder picks: *"A, and take B's morning timeline and C's four numbers"* (chapter 15, tag `gate-5-prototypes`). Then three review screens — the evidence sidebar, the calm document, the inspect canvas — debated the same way; the debate says B for the clerk and kills C; the AI Builder: *"B — it is the only one that reads like a document and not like a cockpit. Take the one change whole: what needs me, under the verdict, above the page, with its add and edit right there. Nothing else in that strip."* Built, rendered, tested, default (chapter 16, tag `gate-5-review`). Then the taste review on the running phone: *"the number is the one thing I match against the paper and it is the one thing cut off"* — fixed on the same screen.
+
+> *notice:* the corrected flow is not more questions; it is questions with something to point at. Every taste call in loop 2 was made from a render the AI Builder had in front of them, and every answer is on the page in their voice, where the Director can strike it out.
+
+---
+
 ## What an AI Builder does, in one table
 
 | Turn | Judgement | Words used |
