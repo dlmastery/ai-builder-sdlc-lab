@@ -293,10 +293,19 @@ export function TransparencyView({ doc, variant = "a" }: { doc: DocumentDetailOu
           {/* the title lettered inside the plate (bar.md M1, round 11): what the page is — its
               vendor and invoice number as read — at the display step; the filename, the
               identifier, sits above the frame in monospace (DESIGN.md) */}
-          {/* one step down on a phone: at the display step "Invoice INV-2026-00417" truncated to
-              "Invoic…" on 390 px (gate 5 renders) */}
-          <h1 className="truncate px-2 pb-3 pt-1 text-step-2 font-medium leading-none tracking-tight md:text-step-3" title={documentTitle}>
-            {documentTitle}
+          {/* on a phone the number alone, one step down: "Invoice INV-2026-00417" truncated to
+              "Invoic…" at the display step and to "Invoice INV-2026-0…" two steps down (gate 5
+              renders, taste review) — the whole number must be readable on 390 px, it is what the
+              clerk matches against; the word "Invoice" returns from the small breakpoint up */}
+          <h1 className="truncate px-2 pb-3 pt-1 text-step-1 font-medium leading-none tracking-tight sm:text-step-2 md:text-step-3" title={documentTitle}>
+            {invoiceNumber ? (
+              <>
+                <span className="hidden sm:inline">Invoice </span>
+                {invoiceNumber}
+              </>
+            ) : (
+              documentTitle
+            )}
           </h1>
         <div className={variant === "c" ? "grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-[minmax(0,1fr)_220px]" : ""}>
         <div className="relative overflow-hidden">

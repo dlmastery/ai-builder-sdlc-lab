@@ -37,6 +37,16 @@ One component, three layouts, the same rows and the same actions — correct, ad
 
 B is the default review screen. Built: the needs-you strip under the status line with add and edit inline; the confidence labels stay on the page; the four slop lines rewritten; A and C remain reachable at `?view=a` and `?view=c` as the archived losers. Rendered at desktop and phone; the browser suite re-run against the new default.
 
+## Taste review (rule 4: after the slice, on the running screen)
+
+*Fable: "Here is the default on the desktop fold and on the phone. What is the first thing you would change?"*
+
+**AI Builder:** *"Two things, both on the phone, both older than this slice. The plate letters the title 'Invoice INV…' — the number is the one thing I match against the paper and it is the one thing cut off; that survived a loop-1 fix that only went one step down. And the app's own nav is three rows on a phone: links, then Production alone, then Sign out. Two rows at most. Nothing on the desktop — the strip does what the debate said it would."*
+
+*Fable:* both done on the same screen, re-rendered, the browser suites re-run — the title is the number alone on a phone, one step down (the word "Invoice" returns from the small breakpoint up); the nav is the wordmark and sign-out on one row, the four links on the second. Renders: `story/assets/prototypes/review-b-phone-fold.png`, `review-b-desktop-fold.png`.
+
+Also found on the way, not by a critic: the strip read the threshold before it was declared (a render-time throw, caught by reading the code before running it); the row's "edit" button and the correction input shared one accessible name ("Correct total"), which the strict-mode browser test surfaced as two elements under one label — the button is now "Edit total", label in name.
+
 ## Gate
 
-Picked by the character; the Director may override. Tag `gate-5-review` on the default's landing.
+Picked by the character; the Director may override. Tag `gate-5-review` on the default's landing (commit `3978e0b`, CI green).
