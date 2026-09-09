@@ -399,6 +399,14 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** correct engineering the customer cannot see is a broken product. Rule 17's last line: a green suite of slop fails; so does a green suite of silence.
 - **Date:** 2026-09-09
 
+## D-054 · The commit pre-flight refuses, it does not warn
+
+- **Context:** the night run of 2026-09-09 (chapter 18) printed "commit headroom 9.8 GB before training" — its own comment said a 2B bf16 load peaks near 12 GB (D-028) — and went ahead. 78 s later the trainer's interpreter died with an access violation in `torch_cpu.dll` (Windows Application event 1000, no Python traceback) and left a job row that said `running`. D-052's hypothesis for the *pause* stands; this is a different event with the D-029 signature, memory-pressure-shaped, and not yet proven to be the allocation — recorded as a hypothesis.
+- **Alternatives:** keep warning and rely on the human reading stderr; lower the profile's footprint (4-bit base) — changes the experiment; a heartbeat in the jobs table so a crashed job is marked by a reaper — right, and a bigger piece for the next loop.
+- **Decided:** below a floor (12 GB by default, `LEDGERLENS_COMMIT_FLOOR_GB` to override on a machine that has shown it can) `train` exits before enqueuing, naming both numbers and what frees memory. The orphaned row was marked failed by hand with the cause. The relaunch waits for room the human controls — Chrome and WSL hold most of the machine, and the page file is theirs (memory note). Test first: `test_train_refuses_to_start_below_the_commit_floor`.
+- **Why:** rule 18 — measure before fixing; a pre-flight that measures and then ignores the measurement is decoration. Rule 10 — a job must not be able to look alive after it has died; the reaper is filed as `lab/intent/ops-job-heartbeat.md`.
+- **Date:** 2026-09-09
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.

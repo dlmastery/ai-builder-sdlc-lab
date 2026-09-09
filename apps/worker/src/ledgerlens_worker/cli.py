@@ -103,8 +103,17 @@ def cmd_train(a: argparse.Namespace) -> None:
         headroom = commit_headroom_gb()
         if headroom is not None:
             # a 2B bf16 load peaks near 12 GB of host commit on Windows (D-028); below that the
-            # process dies with "paging file too small (os error 1455)" rather than an OOM
+            # process dies with "paging file too small (os error 1455)" — or, as on the night of
+            # 2026-09-09, with an access violation in torch_cpu.dll and no traceback, leaving a
+            # job row that says running (chapter 18). So the pre-flight refuses instead of warning.
             print(f"commit headroom {headroom:.1f} GB before training", file=sys.stderr)
+            floor = float(os.environ.get("LEDGERLENS_COMMIT_FLOOR_GB", "12"))
+            if headroom < floor:
+                raise SystemExit(
+                    f"commit headroom {headroom:.1f} GB is below the {floor:g} GB a 2B bf16 load "
+                    "peaks at (D-028); free memory (browser tabs, WSL) or raise the page file, "
+                    "or set LEDGERLENS_COMMIT_FLOOR_GB lower on a machine that has shown it can"
+                )
         payload: dict[str, Any] = {
             "dataset_id": dataset_id,
             "profile": a.profile,

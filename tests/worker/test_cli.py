@@ -108,6 +108,41 @@ def test_train_resume_checkpoint_continues_the_same_model_version(
     assert spawned == [["train", "--profile", "overnight", "--resume-from", "mv-7", "--baseline"]]
 
 
+def test_train_refuses_to_start_below_the_commit_floor(
+    monkeypatch: pytest.MonkeyPatch, test_database_url: str
+) -> None:
+    """Chapter 18: the pre-flight printed "commit headroom 9.8 GB" and went ahead; the load needs
+    ~12 GB of host commit on Windows (D-028) and the process died with an access violation in
+    torch_cpu.dll, leaving a job row that said running. Below the floor the CLI refuses, names both
+    numbers, and never enqueues; the floor is an environment knob for machines that differ."""
+    from ledgerlens_worker import cli
+
+    calls: list[str] = []
+    monkeypatch.setattr(cli, "_run", lambda kind, payload, *, queue="gpu": calls.append(kind) or {})
+    monkeypatch.setattr(cli, "_latest_dataset", lambda name: "ds-1")
+    monkeypatch.setattr(cli, "commit_headroom_gb", lambda: 9.8)
+    monkeypatch.delenv("LEDGERLENS_COMMIT_FLOOR_GB", raising=False)
+    ns = argparse.Namespace(
+        profile="overnight", model="2b", dataset=None, baseline=True, resume_from=None
+    )
+
+    with pytest.raises(SystemExit) as exc:
+        cli.cmd_train(ns)
+
+    assert "9.8" in str(exc.value) and "12" in str(exc.value)
+    assert calls == []
+
+    monkeypatch.setenv("LEDGERLENS_COMMIT_FLOOR_GB", "8")
+    monkeypatch.setattr(cli, "_spawn", lambda args: None)
+    monkeypatch.setattr(
+        cli,
+        "_run",
+        lambda kind, payload, *, queue="gpu": calls.append(kind) or {"model_version_id": "mv-1"},
+    )
+    cli.cmd_train(ns)
+    assert calls == ["train_extractor"]
+
+
 def test_evaluate_passes_the_dataset_through(
     monkeypatch: pytest.MonkeyPatch, test_database_url: str
 ) -> None:
