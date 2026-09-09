@@ -136,7 +136,7 @@ export function PlatePipeline({ stages }: { stages: Array<{ kind: string; name: 
 /** 01 · What it read — a page under a lens; the lens is the accent. */
 export function PlateRead() {
   return (
-    <Plate title="Every word, scored">
+    <Plate title="Every word, and how clearly it read it">
       <Sheet x={110} y={110} w={300} h={330} />
       <Lines x={140} y={152} rows={[0.9, 0.6, 0.75, 0.4, 0.85, 0.5, 0.7]} w={240} />
       <g fill="none" stroke={INK} strokeWidth="1">

@@ -27,7 +27,7 @@ export default async function PricingPage() {
         {/* the promise in the customer's words (positioning.md, D-047) */}
         <p className="mt-6 text-step-0 leading-relaxed text-ink-2">
           Every plan reads your invoices on your own machine and shows where every number came from.
-          Higher plans buy approval without a person under a stated error budget, learning from your
+          Higher plans buy approval without a person under a limit you set — at most one wrong field in a hundred — learning from your
           corrections vendor by vendor, and the right to keep every invoice inside your building.
           Plans start free.
         </p>

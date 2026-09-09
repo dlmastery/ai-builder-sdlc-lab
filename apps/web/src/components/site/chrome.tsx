@@ -91,7 +91,7 @@ export function SiteFooter() {
       </div>
       <div id="legal" className="mx-auto flex w-full max-w-[1200px] flex-wrap justify-between gap-4 border-t border-rule px-6 py-6 text-step--1 text-ink-3">
         <span>© 2026 Ledgerlens · an AI Builder SDLC lab product · every number on this site is measured on real invoices, never typed.</span>
-        <span>Your documents are processed on your hardware. We hold no copy. No sub-processors.</span>
+        <span>Your documents are processed on your hardware. We hold no copy. No third party touches them.</span>
       </div>
     </footer>
   );

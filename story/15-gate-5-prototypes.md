@@ -38,6 +38,23 @@ Built by Fable in one pass from shared sections (`apps/web/src/components/site/`
 
 The pick applied: `/` becomes direction A with the AI Builder's merges — B's line and morning, C's band under the proof, plate 04 to a sentence, the honest line at body size, the phone headline one step down — and the marketing layout takes the company navigation and footer so the pricing page inherits them. The three prototypes stay at `/prototypes/a`, `/b`, `/c` as the archived losers with the reasons above. Then the review-screen directions (chapter 16).
 
+## Visitor critic, round 14 — two fresh readers on the rebuilt page
+
+Two fresh-context readers (a finance lead who knows no machine-learning words; desktop full page and phone), spawned twice by accident and kept because they disagreed:
+
+| | Reader 1 | Reader 2 |
+|---|---|---|
+| In one sentence | "reads invoices for you and shows exactly where each number came from" — for finance teams who cannot send invoices out | "reads invoices automatically on my own computer and fills in the fields my books need, showing exactly where every number came from and flagging anything it isn't sure about" |
+| Would click | yes — "Try it with one invoice" is concrete and low-risk | yes, same reason |
+| Jargon | API · sub-processors · confidence · error budget · training data · "Sovereign" as a plan name | "EVERY WORD, SCORED" · "1 % error" (a stat with no denominator) |
+| Unanswered | — | who else uses it; which accounting system it connects to; how long setup takes |
+| Phone | product barely visible above the fold | **caption cut mid-word: "A REAL INVOICE, AS LEDGERLENS REA…"** |
+| Verdict | PASS | **FAIL**, on the cut caption alone |
+
+**AI Builder:** *"Reader 2 is right and the fail stands: a cut word on the phone is broken, whatever the rest says. Fix it. Then the words: 'scored' is our word, not Priya's — 'and how clearly it read it'. '1 % error' becomes 'at most 1 wrong field in 100' wherever it appears, including the band. 'Error budget' goes everywhere; 'the limit you set' is what she would say. 'Training data' → 'the next version learns from it'. 'Sub-processors' in the footer → 'no third party touches them'. 'Confidence' in the export row → 'how sure it was'. The three unanswered questions: setup time gets an honest FAQ line — minutes, no training on your formats first; the accounting systems are already listed as planned, and 'planned' is the truth, so it stays; 'who else uses it' is answered by 'No customers yet' and I will not dress that up. Keep 'Sovereign' — it is the plan's name, and a name is allowed to be a word she would not say. One disagreement recorded."*
+
+*Fable:* done as listed; re-rendered as round 15 on desktop and phone (`story/assets/design/home-round15.png`, `home-phone-round15.png`); the FAQ has seven questions.
+
 ## Gate
 
 Picked by the character; the Director may override. `gate-5-prototypes` tagged on the home page's rebuild.

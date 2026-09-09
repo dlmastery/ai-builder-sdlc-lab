@@ -57,7 +57,8 @@ export function Specimen() {
       {/* a caption a visitor can read (positioning.md): what this is and what the colours mean;
           the model that read it stays, as provenance, in the footer line */}
       <div className="micro mb-3 flex items-center justify-between gap-3">
-        <span className="truncate">A real invoice, as Ledgerlens read it</span>
+        {/* wraps on a phone — truncated it read "AS LEDGERLENS REA…" (visitor critic, home r14) */}
+        <span className="min-w-0 text-balance">A real invoice, as Ledgerlens read it</span>
         <span className="hidden shrink-0 normal-case tracking-normal sm:inline">green: sure · amber: glance · red: a person decides</span>
       </div>
       <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_168px]">

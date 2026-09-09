@@ -69,7 +69,7 @@ export function WhatYouGet() {
   const items: Array<[string, string]> = [
     ["Every field, filled in", "Vendor, invoice number, issue and due dates, currency, subtotal, tax, total, payment terms, and every line item — into your books, not retyped."],
     ["Proof on the page", "Each value comes with the box it was read from, drawn on the invoice, and a percentage that means what it says. A value that is not on the page is not trusted."],
-    ["An honest split", "Invoices it is sure about are approved under an error budget you set. The rest come to you with the reason in plain words and the spot to look at."],
+    ["An honest split", "Invoices it is sure about are approved under the limit you set. The rest come to you with the reason in plain words and the spot to look at."],
   ];
   return (
     <section id="product" className="border-t border-rule">
@@ -88,7 +88,7 @@ export function WhatYouGet() {
 /** Where the numbers go — honest about what exists. */
 export function Integrations({ n }: { n?: string }) {
   const rows: Array<[string, string]> = [
-    ["CSV and Excel export", "today — every approved invoice, every field, with its confidence and its correction history"],
+    ["CSV and Excel export", "today — every approved invoice, every field, with how sure it was and who corrected what"],
     ["QuickBooks Online", "planned — the fields map one to one to a bill"],
     ["Xero", "planned"],
     ["NetSuite", "planned — requested first by the finance leads we spoke to"],
@@ -181,8 +181,8 @@ export function PricingTeaser({ plans, n }: { plans: PlanOut[]; n?: string }) {
     <Section id="pricing" n={n} title="Plans start free">
       <p>
         Every plan reads on your machine and shows where every number came from. Higher plans buy
-        approval without a person under an error budget you set, learning from your corrections, and
-        running inside your own building.
+        approval without a person under the limit you set — say, at most one wrong field in a hundred —
+        learning from your corrections, and running inside your own building.
       </p>
       <div className="grid gap-px border-t border-rule bg-rule md:grid-cols-3">
         {plans.map((p) => (
@@ -208,7 +208,8 @@ export function PricingTeaser({ plans, n }: { plans: PlanOut[]; n?: string }) {
 export function Faq({ n }: { n?: string }) {
   const qa: Array<[string, string]> = [
     ["Does any invoice ever leave our building?", "No. The models run on your machine; the database and the document store are yours. The one outbound call is the payment provider's test mode when you open pricing."],
-    ["What happens when it is wrong?", "You correct the value on the page; the old value stays visible, struck through, with who changed it and when. The correction becomes training data for the next version, for that vendor."],
+    ["What happens when it is wrong?", "You correct the value on the page; the old value stays visible, struck through, with who changed it and when. The next version learns from the correction, for that vendor."],
+    ["How long until the first invoice is read?", "Minutes. Sign up, drop one invoice; it is read on your machine within a couple of minutes and shows its evidence. Nobody sets it up on your formats first — it learns your vendors from the corrections you make as you go."],
     ["What happens when it is not sure?", "It says so, in a sentence — which field, and why — and the invoice goes to a person. It never approves a value it could not find on the page."],
     ["What do we need to run it?", "One computer with a good graphics card (we tell you which; one is enough), a scanner or an inbox the invoices arrive in, and someone to check the first hundred."],
     ["Why is the approved-without-a-person number zero?", `Because on the ${NUMBERS.docs ?? "—"} test invoices the model refused to guess a vendor it had never seen, and a required field it will not answer sends the invoice to a person. The guarantee is real; the number is honest; the next version trains on exactly that gap.`],
