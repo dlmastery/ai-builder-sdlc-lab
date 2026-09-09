@@ -79,7 +79,10 @@ def _norm_items(items: Any) -> list[tuple[str | None, str | None]]:
 
 def score_document(truth: Labels, pred: Labels) -> DocScore:
     s = DocScore()
-    names = [n for n in HEADER_FIELDS if n in truth or n in pred]
+    # only the fields the truth *knows*: a key absent from the labels is unannotated — unknown,
+    # not null (rule 7, D-030) — and a prediction against it is unmeasurable, not a false
+    # positive. A key present with None is a real absence and is scored (chapter 18).
+    names = [n for n in HEADER_FIELDS if n in truth]
     for name in names:
         t = normalize(name, truth.get(name))
         p = normalize(name, pred.get(name))

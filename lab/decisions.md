@@ -407,6 +407,14 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** rule 18 — measure before fixing; a pre-flight that measures and then ignores the measurement is decoration. Rule 10 — a job must not be able to look alive after it has died; the reaper is filed as `lab/intent/ops-job-heartbeat.md`.
 - **Date:** 2026-09-09
 
+## D-055 · The measuring stick had two defects: unknown fields scored as wrong, and a limit that took the head of a sorted list
+
+- **Context:** the night run's evaluation (chapter 18) reported field F1 0.5302 against the delivered model's 0.9499. Measured before believed: (1) the 100 "test documents" were the first hundred items of the split in path order — all CORD receipts, because `datasets/cord/…` sorts before `datasets/synthetic/…` — while the delivered model's 60 were mostly synthetic invoices; (2) 534 of the 746 false positives were predictions against fields the truth never annotated (a receipt has no invoice number; CORD has no key for it). Rule 7 says an unannotated field is unknown, not null, and D-030 taught the trainer that; the evaluator treated a missing key as null and scored every prediction against it as wrong. Over the fields the truth knows, the same predictions read precision 0.70, recall 0.81, F1 ≈ 0.75.
+- **Alternatives:** leave the evaluator and compare models only on the full split (5× the GPU time, and the unknown-field error remains); score unknown fields as correct-if-null (rewards abstention on fields no one measured — a different bias); stratify the sample by source explicitly (right too, but a hash order is simpler, deterministic and the same for every model).
+- **Decided:** `score_document` scores only the header fields present in the truth — an explicit null is a real absence and is scored; an absent key is skipped. A limited prediction run orders the split by a hash of the path (`_items(..., sample=True)`), so `limit=100` is the same hundred documents for every model, across sources; training keeps path order (D-039). The prediction cache is named by sample size so head-ordered files are never served. One existing test encoded the old confusion and was corrected in the open (rule 8, chapter 18). Tonight's calibration and difficulty ran under the old code on the same hundred receipts and are superseded: after the launcher finishes, both the night model and the delivered model are re-evaluated and re-calibrated on the same sampled hundred, and the AI Builder judges the pin from those numbers.
+- **Why:** rule 18 — measure before fixing — applies to the metric as much as to the model; rule 7 — unannotated is unknown — must hold in the evaluator or the loss mask (D-030) is undone at the scoreboard.
+- **Date:** 2026-09-09
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.

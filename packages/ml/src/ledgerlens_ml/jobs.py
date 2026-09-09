@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, Any, overload
 
 import numpy as np
 from PIL import Image
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session as DbSession
 
 from ledgerlens_core.models import Dataset, DatasetItem, EvalReport, EvalScore, Job, ModelVersion
@@ -42,12 +42,22 @@ def _pinned(db: DbSession, kind: str) -> ModelVersion | None:
 
 
 def _items(
-    db: DbSession, dataset_id: uuid.UUID, split: str, limit: int | None = None
+    db: DbSession,
+    dataset_id: uuid.UUID,
+    split: str,
+    limit: int | None = None,
+    *,
+    sample: bool = False,
 ) -> list[DatasetItem]:
+    """The items of a split. Path order by default (training replays the same order on a resume,
+    D-039). With `sample=True` the order is a hash of the path, so a `limit` is a deterministic
+    sample across the split's sources instead of its head — the head of the overnight test split
+    was a hundred CORD receipts, because their paths sort first (chapter 18)."""
+    order = func.md5(DatasetItem.external_ref) if sample else DatasetItem.external_ref
     q = (
         select(DatasetItem)
         .where(DatasetItem.dataset_id == dataset_id, DatasetItem.split == split)
-        .order_by(DatasetItem.external_ref)
+        .order_by(order)
     )
     if limit:
         q = q.limit(limit)
@@ -251,14 +261,14 @@ def _predict_split(
     """Run (or load) predictions for a split. Each record: item id, vendor, labels, prediction
     labels, per-field raw confidence, correctness, difficulty features."""
     store = get_object_store()
-    key = predictions_key(mv.id, dataset_id, split)
+    key = predictions_key(mv.id, dataset_id, split, limit=limit)
     if store.exists(key):
         return [json.loads(line) for line in store.get(key).decode("utf-8").splitlines() if line]
     extractor = load_extractor(mv, beams=1)  # greedy: alternatives are not scored
     ocr_mv = _pinned(db, "ocr")
     needs_ocr = mv.kind == "baseline" or mv.name == "ocr-rules"
     records: list[dict[str, Any]] = []
-    items = _items(db, dataset_id, split, limit)
+    items = _items(db, dataset_id, split, limit, sample=True)
     for n, it in enumerate(items, start=1):
         image = _load_image(it)
         labels = _clean_labels(it.labels or {})
@@ -299,10 +309,15 @@ def _predict_split(
     return records
 
 
-def predictions_key(mv_id: uuid.UUID, dataset_id: uuid.UUID, split: str) -> str:
-    """Prediction cache per (model, dataset, split): the baseline row is shared across datasets,
-    and a cache keyed by model alone once served another dataset's predictions (D-031)."""
-    return keys.report(mv_id, f"predictions-{dataset_id}-{split}.jsonl")
+def predictions_key(
+    mv_id: uuid.UUID, dataset_id: uuid.UUID, split: str, *, limit: int | None = None
+) -> str:
+    """Prediction cache per (model, dataset, split, sample): the baseline row is shared across
+    datasets, and a cache keyed by model alone once served another dataset's predictions (D-031);
+    a limited run is a hash-ordered sample of the split (chapter 18), named by its size so it never
+    serves, or is served by, the full split or the old head-ordered files."""
+    tag = f"-n{limit}h" if limit else ""
+    return keys.report(mv_id, f"predictions-{dataset_id}-{split}{tag}.jsonl")
 
 
 def _truth_value(labels: dict[str, Any], name: str, line_index: int | None) -> str | None:

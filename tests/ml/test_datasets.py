@@ -37,6 +37,48 @@ def test_build_synthetic_dataset_writes_items_with_disjoint_splits(db_session) -
     assert all(i.external_ref for i in items), "every item points at its page in the object store"
 
 
+def test_a_limited_evaluation_samples_the_split_not_its_head(db_session) -> None:  # type: ignore[no-untyped-def]
+    """Chapter 18: `limit=100` on the overnight test split returned the first hundred items in
+    path order — all CORD receipts, because their paths sort first — so "100 test documents" was a
+    different population from the delivered model's. A limited run must take a deterministic
+    sample across the split: the same items every time, for every model, in an order that owes
+    nothing to the path."""
+    import hashlib
+
+    from ledgerlens_core.models import DatasetItem, Job
+    from ledgerlens_ml.datasets.build import build_dataset
+    from ledgerlens_ml.jobs import _items
+
+    job = Job(kind="build_dataset", idempotency_key="ds-test-sample", payload={})
+    db_session.add(job)
+    db_session.flush()
+    result = build_dataset(
+        db_session,
+        job,
+        sources=[{"kind": "synthetic", "n": 40, "seed": 1}],
+        name="synthetic-40-sample",
+        split_fractions={"train": 0.5, "val": 0.1, "calibration": 0.1, "test": 0.3},
+    )
+    ds_id = result["dataset_id"]
+    test_items = db_session.scalars(
+        select(DatasetItem).where(DatasetItem.dataset_id == ds_id, DatasetItem.split == "test")
+    ).all()
+    assert len(test_items) >= 6
+    by_hash = sorted(test_items, key=lambda i: hashlib.md5(i.external_ref.encode()).hexdigest())
+    by_path = sorted(test_items, key=lambda i: i.external_ref)
+
+    sample = _items(db_session, ds_id, "test", limit=4, sample=True)
+    again = _items(db_session, ds_id, "test", limit=4, sample=True)
+    assert [i.id for i in sample] == [i.id for i in again], "the sample is deterministic"
+    assert [i.id for i in sample] == [i.id for i in by_hash[:4]], "ordered by a hash of the path"
+    assert [i.id for i in sample] != [i.id for i in by_path[:4]], (
+        "and not the head of the sorted list"
+    )
+    # training keeps path order (D-039: a resume replays the same data order)
+    head = _items(db_session, ds_id, "test", limit=4)
+    assert [i.id for i in head] == [i.id for i in by_path[:4]]
+
+
 def test_cord_groups_may_be_lists_of_dicts() -> None:
     """CORD v2 annotates `sub_total` and `total` as a dict on most receipts and as a list of
     dicts on some (receipt ~692 in the train split); the overnight build died there after
