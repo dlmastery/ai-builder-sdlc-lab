@@ -6,11 +6,11 @@ import type { DocumentDetailOut } from "@/lib/types";
 
 export default async function DocumentPage(props: PageProps<"/documents/[id]">) {
   const { id } = await props.params;
-  // gate 5, second half (chapter 16): ?view=a|b|c selects a review-screen direction; the default
-  // is the one the AI Builder picks
+  // gate 5, second half (chapter 16): the AI Builder picked B, the calm document; A and C stay
+  // reachable as the archived losers
   const sp = await props.searchParams;
-  const v = typeof sp?.view === "string" ? sp.view : "a";
-  const variant: ReviewVariant = v === "b" || v === "c" ? v : "a";
+  const v = typeof sp?.view === "string" ? sp.view : "b";
+  const variant: ReviewVariant = v === "a" || v === "c" ? v : "b";
   let doc: DocumentDetailOut;
   try {
     doc = await api<DocumentDetailOut>(`/documents/${id}`);

@@ -116,7 +116,7 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
                 <strong className="font-medium text-ink">What it is, in plain words.</strong>{" "}
                 <span className="font-mono text-ink">{next.original_filename}</span> from{" "}
                 {next.vendor_name ?? "a vendor not yet known"}
-                {next.difficulty != null ? `, expected to be ${next.difficulty >= 0.5 ? "hard" : "easy"} to read (${Math.round(next.difficulty * 100)} % chance of needing a person)` : ""}
+                {next.difficulty != null ? `, ${next.difficulty >= 0.5 ? "expected to need a person" : "expected to be easy"} (${Math.round(next.difficulty * 100)} % of pages like this one did)` : ""}
                 . Green marks sit at the bar, amber below it, red where a person is needed.
               </p>
               <p>

@@ -31,7 +31,11 @@ test("correct a field, approve, and see the correction persist", async ({ page }
   await page.getByTestId("document-row").first().click();
   await expect(page.getByTestId("verdict")).toContainText(/needs review/i);
 
-  await page.getByTestId("correct-total").click();
+  // gate 5 (chapter 16): the default review screen is the calm document, and what needs a
+  // person sits in a strip under the verdict with its edit right there — the correction is
+  // made from the strip, above the page, never from the reference list below it
+  await expect(page.getByTestId("needs-you")).toContainText(/total/i);
+  await page.getByTestId("strip-correct-total").click();
   const input = page.getByLabel("Correct total");
   await input.fill("1,171.20");
   await input.press("Enter");

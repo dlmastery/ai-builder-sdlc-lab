@@ -119,6 +119,9 @@ export function TransparencyView({ doc, variant = "a" }: { doc: DocumentDetailOu
   const lineEditing = editingField && editingField.line_index !== null ? editingField : undefined;
   const verdict = ex.verdict;
   const threshold = verdict?.threshold ?? 0.9;
+  // the header fields that block approval on their own: required and below the bar, or not
+  // confirmed on the page — the needs-you strip in the calm document (chapter 16)
+  const needsYou = header.filter((f) => toneFor(f, threshold) === "fault");
   const words = page.ocr_words ?? [];
   const hardWords = words.filter((w) => w.score < HARD_SPOT_SCORE);
   const corrected = ex.fields.filter((f) => f.corrections.length > 0).length;
@@ -194,9 +197,10 @@ export function TransparencyView({ doc, variant = "a" }: { doc: DocumentDetailOu
       {variant === "b" ? (
         // the calm document: the verdict as one status line above the page, never a panel
         <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-rule pb-3">
-          <p className="text-step-0 text-ink">
+          <p data-testid="verdict" className="text-step-0 text-ink">
             <span aria-hidden className="mr-2">{doc.approved || verdict?.decision === "auto_approved" ? "✓" : "◐"}</span>
             {doc.approved ? "approved by a person" : (verdict?.decision ?? doc.status).replaceAll("_", " ")}
+            {doc.approved && corrected > 0 ? <span className="text-ink-2"> · {corrected} corrected</span> : null}
             {!doc.approved && verdict?.reasons?.length ? (
               <span className="text-ink-2"> · {verdict.reasons.map((r) => reasonText(String(r.field ?? ""), String(r.why ?? ""))).join(" · ")}</span>
             ) : null}
@@ -206,7 +210,58 @@ export function TransparencyView({ doc, variant = "a" }: { doc: DocumentDetailOu
               {busy ? "…" : corrected > 0 ? `Approve with ${corrected} correction${corrected === 1 ? "" : "s"}` : "Approve as read"}
             </button>
           ) : null}
+          {error ? <p role="alert" className="w-full text-step--1 text-fault">{error}</p> : null}
         </div>
+      ) : null}
+      {variant === "b" && !doc.approved && (missingRequired.length > 0 || needsYou.length > 0) ? (
+        // the debate's one change (chapter 16): what needs a person, under the verdict, above the
+        // page, with its add or edit right there — nothing else in the strip
+        <ul data-testid="needs-you" className="rule-y border-y border-rule">
+          {missingRequired.map((n) => (
+            <li key={`strip-${n}`} className="grid grid-cols-[1fr_auto] items-baseline gap-3 py-3">
+              {editing === `strip-add:${n}` ? (
+                <form className="flex flex-col gap-1" onSubmit={(e) => { e.preventDefault(); void addField(n, draft); }}>
+                  <span className="micro">{fieldLabel(n)}</span>
+                  <div className="flex items-center gap-2">
+                    <input autoFocus aria-label={`Add ${fieldLabel(n)}`} value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => e.key === "Escape" && setEditing(null)} placeholder="type what the page says" className="readout w-full rounded-[var(--radius)] border border-ink-2 bg-ground px-2 py-1 text-step-0 text-ink" />
+                    <button type="submit" disabled={busy || !draft.trim()} className="text-step--1 text-ink">save</button>
+                    <button type="button" onClick={() => setEditing(null)} className="text-step--1 text-ink-3">esc</button>
+                  </div>
+                </form>
+              ) : (
+                <span>
+                  <span className="micro">{fieldLabel(n)}</span>
+                  <span className="readout block text-step-0 text-ink-3">—</span>
+                </span>
+              )}
+              <span className="flex items-baseline gap-3">
+                <span className="readout text-step--1 text-fault">the model did not read one</span>
+                {editing !== `strip-add:${n}` ? (
+                  <button type="button" data-testid={`strip-add-${n}`} onClick={() => { setEditing(`strip-add:${n}`); setDraft(""); }} className="text-step--1 text-ink hover:text-ink-2" aria-label={`Add ${fieldLabel(n)}`}>
+                    add
+                  </button>
+                ) : null}
+              </span>
+            </li>
+          ))}
+          {needsYou.map((f) => (
+            <Readout
+              key={`strip-${f.id}`}
+              field={f}
+              threshold={threshold}
+              testIdPrefix="strip-"
+              selected={f.id === selected}
+              editing={editing === `strip:${f.id}`}
+              draft={draft}
+              busy={busy}
+              onSelect={() => setSelected(f.id)}
+              onEdit={() => { setEditing(`strip:${f.id}`); setDraft(f.value ?? ""); setSelected(f.id); }}
+              onDraft={setDraft}
+              onCancel={() => setEditing(null)}
+              onSave={() => void correct(f, draft)}
+            />
+          ))}
+        </ul>
       ) : null}
       {/* --- the page --- */}
       <section className="flex flex-col gap-4">
@@ -217,14 +272,14 @@ export function TransparencyView({ doc, variant = "a" }: { doc: DocumentDetailOu
             <p className="micro">
               Document{doc.vendor_name ? ` · ${doc.vendor_name}` : ""}
               {doc.difficulty != null
-                ? ` · expected to be ${doc.difficulty >= 0.5 ? "hard" : "easy"} to read (${pct(doc.difficulty)} chance of needing a person)`
+                ? ` · ${doc.difficulty >= 0.5 ? "expected to need a person" : "expected to be easy"} (${pct(doc.difficulty)} of pages like this one did)`
                 : ""}
             </p>
             <p className="mt-1 truncate font-mono text-step--1 text-ink-3">{doc.original_filename}</p>
           </div>
           <div className="micro flex items-center gap-4" role="group" aria-label="Evidence layers">
             <LayerToggle id="hard" on={layers.has("hard")} onClick={() => toggle("hard")} label={`words it struggled with · ${hardWords.length}`} disabled={words.length === 0} />
-            <LayerToggle id="words" on={layers.has("words")} onClick={() => toggle("words")} label={`every word it read · ${words.length}`} disabled={words.length === 0} />
+            <LayerToggle id="words" on={layers.has("words")} onClick={() => toggle("words")} label={`words on the page · ${words.length}`} disabled={words.length === 0} />
             <LayerToggle id="fields" on={layers.has("fields")} onClick={() => toggle("fields")} label="where each value was found" />
           </div>
         </div>
@@ -349,12 +404,11 @@ export function TransparencyView({ doc, variant = "a" }: { doc: DocumentDetailOu
           </p>
         </div>
         <p className="text-step--1 text-ink-3">
-          Boxes show where each value was found on the page, with its confidence beside it.
-          Green: at or above the {pct(threshold, 2)} bar. Amber: below the bar on a field that cannot
-          block approval on its own — the two decimals show why. Red: below the bar on a required
-          field. A value the model read but the page could not confirm (a stamp over it, for
-          instance) has no box — it is listed in red in the fields panel. A dotted grey underline
-          is a hard spot: a word the reader struggled with (score under {pct(HARD_SPOT_SCORE)}).
+          Boxes show where each value was found on the page, with how sure the model was beside it.
+          Green: sure enough to approve on its own. Amber: worth a glance, but it cannot hold up the
+          invoice by itself. Red: a person decides. A value the page could not confirm (a stamp over
+          it, for instance) has no box and is listed in red. A dotted grey underline is a word the
+          reader struggled with.
         </p>
       </section>
 
@@ -743,9 +797,13 @@ function Readout({
   onDraft,
   onCancel,
   onSave,
+  testIdPrefix = "",
 }: {
   field: FieldOut;
   threshold: number;
+  // the same row can appear twice on the calm document — in the needs-you strip and in the
+  // reference list — so the strip's copy carries its own test ids
+  testIdPrefix?: string;
   selected: boolean;
   editing: boolean;
   draft: string;
@@ -764,7 +822,7 @@ function Readout({
       <div className="grid grid-cols-[1fr_auto] items-baseline gap-3 py-4">
         {editing ? (
           <form
-            data-testid={`readout-${field.name}`}
+            data-testid={`${testIdPrefix}readout-${field.name}`}
             className="flex flex-col gap-1"
             onSubmit={(e) => {
               e.preventDefault();
@@ -786,7 +844,7 @@ function Readout({
             </div>
           </form>
         ) : (
-          <button type="button" onClick={onSelect} data-testid={`readout-${field.name}`} aria-pressed={selected} className="text-left">
+          <button type="button" onClick={onSelect} data-testid={`${testIdPrefix}readout-${field.name}`} aria-pressed={selected} className="text-left">
             <span className="micro">{fieldLabel(field.name)}</span>
             <span className="readout block text-step-0 text-ink">
               {field.value ?? "—"}
@@ -798,8 +856,15 @@ function Readout({
         )}
         <span className="flex items-baseline gap-3">
           <span className={`readout text-step--1 ${wasCorrected ? "text-ink-3" : TONE_TEXT[tone]}`}>
-            {wasCorrected ? "corrected" : tone === "signal" ? pct(conf) : pct(conf, 2)}
-            {!field.grounded && !wasCorrected ? " · not confirmed on the page" : ""}
+            {/* "sure, but the page did not confirm it" as one sentence, never "100 % · not
+                confirmed" on one line (chapter 16 slop check) */}
+            {wasCorrected
+              ? "corrected"
+              : !field.grounded
+                ? `the model was ${pct(conf)} sure, but the page did not confirm it`
+                : tone === "signal"
+                  ? pct(conf)
+                  : pct(conf, 2)}
           </span>
           {field.stability != null ? <StabilityRing value={field.stability} /> : null}
           {!editing ? (
@@ -808,11 +873,13 @@ function Readout({
             <button
               type="button"
               onClick={onEdit}
-              data-testid={`correct-${field.name}`}
+              data-testid={`${testIdPrefix}correct-${field.name}`}
               // always visible on a value below the bar (there is something to act on); on the
               // hovered, focused or selected row otherwise (brief critic r16 vs craft critic r8)
               className={`text-step--1 text-ink-3 transition-opacity hover:text-ink group-hover:opacity-100 group-focus-within:opacity-100 ${selected || tone !== "signal" ? "opacity-100" : "opacity-0"}`}
-              aria-label={`Correct ${fieldLabel(field.name)}`}
+              // the accessible name starts with the visible text (label in name); "Correct …" is
+              // the input's name, and a button and an input must not share one
+              aria-label={`Edit ${fieldLabel(field.name)}`}
             >
               edit
             </button>
