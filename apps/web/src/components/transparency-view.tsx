@@ -238,7 +238,9 @@ export function TransparencyView({ doc, variant = "a" }: { doc: DocumentDetailOu
           {/* the title lettered inside the plate (bar.md M1, round 11): what the page is — its
               vendor and invoice number as read — at the display step; the filename, the
               identifier, sits above the frame in monospace (DESIGN.md) */}
-          <h1 className="truncate px-2 pb-3 pt-1 text-step-3 font-medium leading-none tracking-tight" title={documentTitle}>
+          {/* one step down on a phone: at the display step "Invoice INV-2026-00417" truncated to
+              "Invoic…" on 390 px (gate 5 renders) */}
+          <h1 className="truncate px-2 pb-3 pt-1 text-step-2 font-medium leading-none tracking-tight md:text-step-3" title={documentTitle}>
             {documentTitle}
           </h1>
         <div className={variant === "c" ? "grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-[minmax(0,1fr)_220px]" : ""}>
@@ -566,7 +568,7 @@ function Pins({
   onSelect: (id: string) => void;
   onAdd: (name: string) => void;
 }) {
-  const MIN_GAP = 4.2; // percent of the page height ≈ 36 px on a 880 px render
+  const MIN_GAP = 6.4; // percent of the page height ≈ 56 px on a 880 px render — a pin is ~48 px tall
   const placed = fields
     .filter((f) => f.boxes.length > 0)
     .map((f) => ({ f, y: (Math.min(...f.boxes.map((b) => b[2])) / pageHeight) * 100 }))
