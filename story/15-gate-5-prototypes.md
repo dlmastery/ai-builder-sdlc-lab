@@ -16,14 +16,28 @@ Built by Fable in one pass from shared sections (`apps/web/src/components/site/`
 
 ## The second model's debate
 
-*(spawned with fresh context: the six fold renders, the three full pages, `bar.md`, the Series-C checklist; asked which wins for Priya, which should be killed, and what every one is missing)*
+*(an Opus instance with fresh context: the six fold renders, the three full pages, `bar.md`, the Series-C checklist; asked which wins for Priya, which should be killed, and what every one is missing)*
 
-*(pending)*
+**Winner for Priya: A** — "the only fold where her exact sentence and the real invoice, highlighted and scored per field, are both on screen inside five seconds, and the only one whose phone fold reaches the specimen at all." **Kill: C** — "its fold is addressed to the controller, not to her, and it argues before it shows."
+
+- **A** — for: the headline is Priya's sentence verbatim, both clauses above the fold; the specimen beneath is real, with a "missing" chip that proves the refusal claim. Against: 11,899 px is a march; two tour plates (calibration, coverage) read as engineer material; the three text columns are "one icon away from the card grid she closes tabs on". Missing: the "no customers yet" line is set too small to see.
+- **B** — for: the best writing ("Never a guess in your ledger") and the morning timeline, "the one section where she recognises her own day". Against: the hero specimen is reduced to a third — "precisely her close-the-tab item". Missing: any product on the phone fold.
+- **C** — for: "95/100 with its denominator, and 0/100 and 0/60 stated in red at the top, is the most honest fold anyone will publish this year." Against: the headline names the controller; "on your own machine" arrives four lines into body copy; two red zeros as a first impression read as a failing report card. Missing: the product at the fold.
+- **Fold test:** A — her sentence, near word for word. B — "the promise lands, the proof does not." C — "is this for me or for my boss?"
+- **Phone test:** A works, barely (a ten-line headline; the specimen's top strip). B fails: zero product on the fold. C fails worse.
+- **Slop check:** B's hero is a dashboard shrunk to a third; C says "error budget" and opens with "Invoice automation", which fits any product.
+- **One change:** A's phone headline one step smaller, so the first green mark and the red "missing" chip clear 844 px.
 
 ## AI Builder
 
-*(pending — after the debate)*
+*"A. Not because the debate said so — because it is the only one where I read my own sentence and then saw the thing, and that was the whole test. But I am not taking A as it stands. Take B's line — 'Never a guess in your ledger' — into A's standfirst, and B's morning as section 01, before the tour: I want Priya's day on the page before the machinery. Take C's four-number band with its denominators, red zero included, and put it under the proof — after she has seen the product, not before; the honesty is the second thing she sees, never the first. Cut plate 04 to one sentence; the calibration chart is for the data lead's page, not mine. The three columns never get icons — write that down. Make the 'no customers yet' line readable; hiding it in small type is the opposite of honest. Phone: the headline one step down, as the debate says, and I want to see the specimen's first green mark on a 390 screen without scrolling. And you owe me the second half of this gate: three directions for the review screen, same rule — rendered, debated, mine to pick."*
+
+*Director's overrides: none at the time of writing; the Director may still override in one line.*
+
+## Fable
+
+The pick applied: `/` becomes direction A with the AI Builder's merges — B's line and morning, C's band under the proof, plate 04 to a sentence, the honest line at body size, the phone headline one step down — and the marketing layout takes the company navigation and footer so the pricing page inherits them. The three prototypes stay at `/prototypes/a`, `/b`, `/c` as the archived losers with the reasons above. Then the review-screen directions (chapter 16).
 
 ## Gate
 
-`WAITING ON YOU (judgement only)` — the Director may override the character's pick.
+Picked by the character; the Director may override. `gate-5-prototypes` tagged on the home page's rebuild.

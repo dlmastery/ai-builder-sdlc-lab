@@ -13,7 +13,7 @@ export const NAV = [
   ["Docs", "#faq"],
 ] as const;
 
-export function SiteNav({ cta = "Start free", tone = "dark" }: { cta?: string; tone?: "dark" | "paper" }) {
+export function SiteNav({ cta = "Start free", tone = "dark", signedIn = false }: { cta?: string; tone?: "dark" | "paper"; signedIn?: boolean }) {
   // one row at desktop (the references' nav is 14–15 px); on a phone the links fold into a menu
   // control and only the wordmark, sign in and the action remain
   return (
@@ -30,15 +30,23 @@ export function SiteNav({ cta = "Start free", tone = "dark" }: { cta?: string; t
           </nav>
         </div>
         <div className="flex shrink-0 items-center gap-4 text-[15px]">
-          <Link href="/sign-in" className="whitespace-nowrap text-ink-2 hover:text-ink">
-            Sign in
-          </Link>
-          <Link
-            href="/sign-up"
-            className="whitespace-nowrap rounded-[var(--radius)] bg-ink px-4 py-2 font-medium text-ground hover:bg-ink-2"
-          >
-            {cta}
-          </Link>
+          {signedIn ? (
+            <Link href="/inbox" className="whitespace-nowrap rounded-[var(--radius)] bg-ink px-4 py-2 font-medium text-ground hover:bg-ink-2">
+              Open workspace →
+            </Link>
+          ) : (
+            <>
+              <Link href="/sign-in" className="whitespace-nowrap text-ink-2 hover:text-ink">
+                Sign in
+              </Link>
+              <Link
+                href="/sign-up"
+                className="whitespace-nowrap rounded-[var(--radius)] bg-ink px-4 py-2 font-medium text-ground hover:bg-ink-2"
+              >
+                {cta}
+              </Link>
+            </>
+          )}
           <button type="button" aria-label="Menu" className="text-ink-2 md:hidden">
             ☰
           </button>

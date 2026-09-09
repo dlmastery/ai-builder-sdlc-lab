@@ -44,8 +44,10 @@ export function Proof({ compact = false }: { compact?: boolean }) {
   return (
     <section id="proof" aria-label="Proof" className="border-t border-rule">
       <div className={`mx-auto w-full max-w-[1200px] px-6 ${compact ? "py-10" : "py-14"}`}>
-        <p className="micro">
-          No customers yet · here is what we can show, measured on real invoices, never typed · the whole build is public
+        {/* at body size, not micro: "hiding it in small type is the opposite of honest" (chapter 15) */}
+        <p className="max-w-[70ch] text-step-0 text-ink">
+          <strong className="font-medium">No customers yet.</strong>{" "}
+          <span className="text-ink-2">Here is what we can show instead — measured on real invoices, never typed, with the whole build public.</span>
         </p>
         <div className="mt-6 grid gap-8 md:grid-cols-4">
           {items.map(([value, label, sub]) => (
@@ -61,7 +63,8 @@ export function Proof({ compact = false }: { compact?: boolean }) {
   );
 }
 
-/** What you get — three outcomes a customer would say back. */
+/** What you get — three outcomes a customer would say back. Text only: these columns never get
+ *  icons (the AI Builder, chapter 15 — "one icon away from the card grid she closes tabs on"). */
 export function WhatYouGet() {
   const items: Array<[string, string]> = [
     ["Every field, filled in", "Vendor, invoice number, issue and due dates, currency, subtotal, tax, total, payment terms, and every line item — into your books, not retyped."],

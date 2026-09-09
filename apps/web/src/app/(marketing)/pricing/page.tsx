@@ -20,7 +20,7 @@ export default async function PricingPage() {
   return (
     <div className="mx-auto w-full max-w-[1200px] px-6 py-16">
       <section className="max-w-[44ch]">
-        <p className="micro">Pricing · in this preview no card is ever charged</p>
+        <p className="micro">Pricing · plans start free · in this preview no card is ever charged</p>
         <h1 className="mt-4 max-w-[26ch] text-step-3 font-medium leading-[1.02] tracking-tight">
           Pay for automation you can defend.
         </h1>
