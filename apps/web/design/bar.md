@@ -1,34 +1,36 @@
-# The bar — mechanisms torn down from the AI Builder's sample
+# The bar — mechanisms torn down from the references the AI Builder named
 
-Design Loop phase 3 (D-041). Reference: the AI Builder's sample `Downloads/gpt6astra.pdf` (an editorial page: "GPT-6 Astra Is Here: 5 Things You NEED to Do With It", 20 pages), read in full; plus the design-workflow video the AI Builder pointed at (D-019 notes in `story/sources.md`). Mechanisms, not adjectives — each line is something a critic can check by looking.
+Design Loop phase 3, loop 2 (chapter 13–14; D-041, D-049, D-050). References, fetched and rendered on 2026-09-08 (screenshots local in `story/assets/references/`, untracked; links are the record): **linear.app** (the fold), **stripe.com** (the whole page), **mercury.com** (the copy), **ramp.com** (a finance product that shows the product), the AI Builder's sample (`Downloads/gpt6astra.pdf`, the plates), plus gallery candidates (attio.com, resend.com, vercel.com; godly.website and land-book.com as indexes). Mechanisms, not adjectives — each line is something a critic can check by looking.
 
-## Interview (answered from the AI Builder's steers, not re-asked)
+## Interview (chapter 13, rounds 3–4)
 
-1. **Building:** the marketing home page, the inbox, and the transparency view — three pieces, the app's other screens follow the same tokens afterwards.
-2. **Bar:** the sample PDF above. Specific pages: page 1 (hero), page 4 ("Point it at the problem" plate), page 8 ("Test it like a customer" plate), page 12 ("UI Systems" plate).
-3. **Files:** `apps/web/DESIGN.md` (Instrument register, φ scale, colour semantics), `apps/web/src/app/globals.css` (tokens).
+Who lands: Priya, accounts-payable lead, forty invoices a day, a no-documents-leave-the-building policy. The sentence after five seconds: *"It reads our invoices here, on our own machine, and shows me where each number came from."* The slop list: a hero illustration of nothing; "AI-powered"; three feature cards with icons; a dashboard shrunk to 40 %; a percentage without a denominator; black-and-white "dark mode"; any word needing an engineer; "book a demo" before the product; a page that fits any product. Completeness: a Series-C company's. Phone first.
 
 ## Preflight
 
-- Bar fetched: yes — read as images (pages 1–16). Render: yes — Playwright in `apps/web`, screenshots to `story/assets/design/`. Generation tools: **no image generator is connected** (ComfyUI MCP failed to connect); illustrated plates are authored as SVG line-art in the Instrument register. Voice/video: not needed. Input files: present.
-- Critic that goes blind: none — but the craft critic compares SVG plates against painted illustrations and must judge *mechanism* (a plate exists, title lettered inside, dimension lines, one accent) not *medium*.
+Bar fetched: yes (all four pages, desktop and phone, full-page for the four named; Linear needs a 9 s wait for its hero to paint). Render: yes. Generators: **no image or video generator is connected** (the ComfyUI server fails to connect) — the Director is told here, per D-049, and asked whether to connect one; until then hero imagery is the real specimen and authored SVG, which two of the three directions are built to need nothing else for. Input files present.
 
 ## Mechanisms (the checklist critics use)
 
-1. **Every numbered section opens with a full-width illustrated plate** — a framed drawing, ~4:3, with the section's title lettered *inside* the plate in display capitals, one accent colour on the key object, dimension lines and callouts drawn in the same ink as the illustration. The plate is the hero of the section; the text sits below it.
-2. **Three type sizes on a page, and the display size is ≥ 4× body.** Section numbers as `01 ·` prefixes on the title line. Body copy in one column at ≤ 66 characters.
-3. **One accent colour, used at most twice per screen** (the sample: a burnt orange on the key object and one link). Everything else is ink on ground.
-4. **Plain-words scaffold under every plate**, in this order and labelled: *What it does, in plain words.* / *You need:* / a boxed prompt or artefact / *How you know it worked:* in a tinted callout with a check mark. Every claim on the page has a "how you know" line.
-5. **Callout boxes carry state by tint, never by icon alone**: tinted panel + one glyph + bold lead-in ("Honest limit.", "How you know it worked:"); text stays ink.
-6. **Whitespace above the fold ≥ 40 % of the frame**; sections separated by a hairline rule and ≥ 68 px; nothing decorative between sections.
-7. **Motion resolves in one direction and under 400 ms**; one entrance per section as it scrolls into view (the plate first, then the scaffold); nothing loops.
+1. **One sentence, then the product.** Linear's fold is a two-line headline, one line of standfirst, and the real product large beneath it — nothing else. Stripe's is a headline that says what and for whom in one breath. Ours: the fold carries Priya's sentence and the real review screen; the promise's second clause ("on our own machine") is in the headline or the eyebrow, never below the fold.
+2. **A company's navigation, with destinations.** Every reference: five to seven top-level items (product, solutions/how it works, customers, pricing, resources/docs, company) plus sign in and one primary action. A nav of two links is a demo's.
+3. **Proof immediately under the fold.** Stripe: a logo band. Ramp: "join 70,000 companies" with logos and a number. Mercury: "loved by 300K+" with logos, then a customer's face and quote. Ours has no customers yet, so the proof band is the honest substitute stated as such: the measured numbers with denominators, the open build, and the line "no customers yet — here is what we can show".
+4. **Sections alternate a plain claim and the product doing it.** Linear: "Intake and integrations" / "Planning and monitoring" / "AI and automations" / "Build, review, ship" — each a short claim, a paragraph, and a real screenshot. Ramp: "One platform for all of finance", then product cards. The sample: a plate, then *what it does · you need · how you know*. Ours: every section is a claim in the customer's words, a plate or the product, and a measured "how you know it worked".
+5. **The numbers band.** Stripe: "135+ currencies · $1.9T · 99.999 % · 200M+". Mercury: "300K+ · 1 in 3 · $20B+ · 4.9". Big numerals, small labels, four of them. Ours: four measured numbers with their denominators, including the zero.
+6. **Security, integrations and comparison are their own sections**, not footnotes. Stripe: "reliable, extensible infrastructure" with a security block; Ramp: "systems that never spoke" (integrations). Ours: *where the numbers go* (the books), *where the documents live* (security as facts), *versus what you do today* (a table).
+7. **A footer you could run a business from.** Every reference: four to six columns — product, solutions, resources, company, legal — plus status, contact, and the legal fine print. Ours: the same, with the open build as one column.
+8. **Three type sizes, the display ≥ 4× body; one accent, twice per screen at most.** Linear and Resend: white headline, grey standfirst, one bright button. The sample: `01 ·` numbering. Ours keeps the φ scale and the plates' one-accent rule; colour on evidence is data and exempt.
+9. **Whitespace above the fold ≥ 40 %**, sections separated by ≥ 68 px and a hairline; nothing decorative between sections. Motion: one entrance per section, under 400 ms, one direction.
+10. **Phone first.** Mercury's fold at 390 px is the same sentence, the same action, the product still visible. Ours: the fold at 390 px carries the sentence, one action and the specimen; nothing scrolls sideways; every control reachable.
 
-## What ours has to do that the sample does not
+## What ours has to do that the references do not
 
-The sample is prose; ours has evidence. Every plate on the Ledgerlens pages is *of the pipeline* — the OCR reading a page, the grounding box on a value, the ledger — and where the sample shows a boxed prompt, ours shows the real specimen from the pinned model with real rows. Mechanism 4's "how you know it worked" becomes the measured number under each section (field-F1, latency, auto-approve rate), never typed.
+The references sell with imagery and scale. Ours sells with evidence: the hero is a real invoice read by the real model, the numbers are from rows, and the honest zero is on the page. Where a reference shows a customer's face, ours shows the one line the model could not confirm and says why. Where a reference says "AI", ours says what happened.
 
-## Pieces for the loop
+## Directions for gate 5 (three bets, chapter 15)
 
-- **P1 — Home hero + story sections** (plates for 01–05, real specimen replacing the stub schematic, measured numbers strip).
-- **P2 — Inbox** (page thumbnails, verdict chips with reason counts, hard-spot indicator, a summary header; the empty space becomes the queue's health).
-- **P3 — Transparency view** (already evidence-first; mechanisms 2, 3, 6 and a plate-style header for the document).
+- **A — The product is the proof.** The fold is the real review screen, large; the page is a tour of it. Instrument register (dark). Bet: a buyer who sees the evidence trusts it.
+- **B — Priya's day.** The fold is the promise and the person: a warm paper register, the invoice as an object, the product appearing when the story needs it. Bet: a buyer who recognises herself keeps reading.
+- **C — The number.** The fold is the guarantee and the honest zero, then a comparison table; the page is an argument to a controller. Bet: a buyer who is deciding wants the argument, not the tour.
+
+Each complete to the Series-C checklist (`positioning-the-product` §2b); each rendered at 1440 × 900 and 390 × 844; each debated by a second frontier model before the AI Builder sees them.

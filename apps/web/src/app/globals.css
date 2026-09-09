@@ -35,6 +35,21 @@
   --font-mono: var(--font-jetbrains), ui-monospace, "SF Mono", Menlo, monospace; /* not var(--font-mono): that was a cycle */
 }
 
+/* Direction B (gate 5, chapter 15): a paper register — the same tokens, re-valued. Every
+   component reads var(--ground) etc., so the whole page re-skins under one attribute. */
+[data-theme="paper"] {
+  --ground: #f4f1ea;
+  --surface: #fbfaf7;
+  --rule: #e1dcd1;
+  --ink: #1b1a17;
+  --ink-2: #4a4741;
+  --ink-3: #7a766d;
+  --signal: #1f7a5a;
+  --fault: #b3362f;
+  --caution: #9a6b12;
+  color-scheme: light;
+}
+
 @theme inline {
   --color-ground: var(--ground);
   --color-surface: var(--surface);

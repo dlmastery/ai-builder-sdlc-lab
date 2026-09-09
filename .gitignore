@@ -23,3 +23,7 @@ artifacts/
 Thumbs.db
 .idea/
 .vscode/
+
+# third-party reference screenshots for the design loop stay local (copyright); the chapter links to the live pages
+story/assets/references/
+
