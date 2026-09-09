@@ -21,8 +21,9 @@ export const NUMBERS = {
 
 export function Section({ id, n, title, children, className = "" }: { id?: string; n?: string; title: string; children: React.ReactNode; className?: string }) {
   return (
-    <section id={id} className={`border-t border-rule py-16 md:py-24 ${className}`}>
-      <div className="mx-auto grid w-full max-w-[1200px] gap-8 px-6 md:grid-cols-[280px_1fr]">
+    // scroll-mt: an anchor lands below the sticky header, not under it (customer test 2, confusing 11)
+    <section id={id} className={`scroll-mt-16 border-t border-rule py-16 md:py-24 ${className}`}>
+      <div className="mx-auto grid w-full max-w-[1200px] grid-cols-[minmax(0,1fr)] gap-8 px-6 md:grid-cols-[280px_1fr]">
         <h2 className="text-step-2 font-medium leading-tight tracking-tight text-ink">
           {n ? <span className="text-ink-3">{n} · </span> : null}
           {title}
@@ -34,7 +35,9 @@ export function Section({ id, n, title, children, className = "" }: { id?: strin
 }
 
 /** Proof band: the honest substitute for a logo wall, stated as such (bar.md M3). */
-export function Proof({ compact = false }: { compact?: boolean }) {
+// numbers=false where a measured band follows (the home page): the same four figures twice, once
+// as "95 of 100" and once as "95/100", read as two different claims (customer test 2, confusing 10)
+export function Proof({ compact = false, numbers = true }: { compact?: boolean; numbers?: boolean }) {
   const items: Array<[string, string, string]> = [
     [`${NUMBERS.fields ?? "—"} of 100`, "fields read correctly", `on ${NUMBERS.docs ?? "—"} invoices it had never seen`],
     [`${NUMBERS.invoiceNumbers ?? "—"} of 100`, "invoice numbers right", "same invoices"],
@@ -49,6 +52,7 @@ export function Proof({ compact = false }: { compact?: boolean }) {
           <strong className="font-medium">No customers yet.</strong>{" "}
           <span className="text-ink-2">Here is what we can show instead — measured on real invoices, never typed, with the whole build public.</span>
         </p>
+        {numbers ? (
         <div className="mt-6 grid gap-8 md:grid-cols-4">
           {items.map(([value, label, sub]) => (
             <div key={label} className="flex flex-col gap-1">
@@ -58,6 +62,7 @@ export function Proof({ compact = false }: { compact?: boolean }) {
             </div>
           ))}
         </div>
+        ) : null}
       </div>
     </section>
   );

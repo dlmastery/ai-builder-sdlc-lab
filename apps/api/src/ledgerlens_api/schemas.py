@@ -176,6 +176,9 @@ class DocumentDetailOut(DocumentOut):
 class UploadAccepted(BaseModel):
     document: DocumentOut
     job: JobOut
+    # True when these exact bytes were already in the tenant: the same document and job are
+    # returned, and the client must say so rather than refresh in silence (customer test 2)
+    existing: bool = False
 
 
 class Paginated[T](BaseModel):

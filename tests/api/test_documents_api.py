@@ -141,10 +141,16 @@ def test_unfiltered_list_puts_actionable_documents_first(client: TestClient) -> 
 
 
 def test_same_file_uploaded_twice_is_one_job(client: TestClient) -> None:
+    """Identical bytes make one document — and the second upload says so, because a customer
+    who re-uploads a file and sees nothing new assumes the product is broken (customer test 2,
+    broken 1)."""
     headers = register_and_login(client, "clerk@acme.io", "Acme")
     first = _upload(client, headers)
     second = _upload(client, headers)
     assert first["job"]["id"] == second["job"]["id"]
+    assert first["existing"] is False
+    assert second["existing"] is True
+    assert second["document"]["id"] == first["document"]["id"]
 
 
 def test_tenant_cannot_read_another_tenants_document(client: TestClient) -> None:

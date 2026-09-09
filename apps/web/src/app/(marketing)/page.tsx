@@ -60,12 +60,14 @@ export default async function HomePage() {
         </p>
       </section>
 
-      <Proof />
+      <Proof numbers={false} />
 
-      {/* C's band, under the proof: the honesty is the second thing she sees, never the first */}
+      {/* C's band, under the proof: the honesty is the second thing she sees, never the first —
+          one band, with denominators; the proof line above carries no numbers of its own */}
       <section aria-label="Measured" className="border-t border-rule">
-        <div className="mx-auto grid w-full max-w-[1200px] gap-8 px-6 py-12 md:grid-cols-4">
+        <div className="mx-auto grid w-full max-w-[1200px] gap-8 px-6 py-12 md:grid-cols-5">
           {[
+            [`${NUMBERS.fields ?? "—"}/100`, `fields read right, on ${NUMBERS.docs ?? "—"} invoices it had never seen`, false],
             [`${NUMBERS.invoiceNumbers ?? "—"}/100`, "invoice numbers read right", false],
             [`${NUMBERS.totals ?? "—"}/100`, "totals read right", false],
             [`${NUMBERS.vendorNames ?? "—"}/100`, "vendor names on vendors it had never seen — it refused to guess", true],

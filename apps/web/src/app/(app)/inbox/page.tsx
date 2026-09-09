@@ -70,7 +70,9 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
           </h1>
           {next ? (
             <p className="callout mt-4 text-step-0">
-              <strong className="font-medium"><span aria-hidden className="mr-2">◐</span>Needs you:</strong> {total} document{total === 1 ? "" : "s"} in the queue
+              {/* the same count as the heading — "4 need you" beside "8 documents in the queue" read
+                  as two answers to one question (customer test 2, confusing 7) */}
+              <strong className="font-medium"><span aria-hidden className="mr-2">◐</span>Needs you:</strong> {needsReview} of {total} document{total === 1 ? "" : "s"} in the queue
               {inFlight > 0 ? `, ${inFlight} being read` : ""} ·{" "}
               <Link href={`/documents/${next.id}`} data-testid="review-next" className="font-medium text-ink underline decoration-ink-2 underline-offset-4 hover:decoration-ink">
                 review next →
@@ -116,7 +118,7 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
                 <strong className="font-medium text-ink">What it is, in plain words.</strong>{" "}
                 <span className="font-mono text-ink">{next.original_filename}</span> from{" "}
                 {next.vendor_name ?? "a vendor not yet known"}
-                {next.difficulty != null ? `, ${next.difficulty >= 0.5 ? "expected to need a person" : "expected to be easy"} (${Math.round(next.difficulty * 100)} % of pages like this one did)` : ""}
+                {next.difficulty != null ? `, expected to ${next.difficulty >= 0.5 ? "need a person" : "be easy"} — ${Math.round(next.difficulty * 100)} in 100 pages like it needed one` : ""}
                 . Green marks sit at the bar, amber below it, red where a person is needed.
               </p>
               <p>
@@ -212,7 +214,7 @@ export default async function InboxPage(props: PageProps<"/inbox">) {
                     </span>
                   ) : null}
                   {d.status === "approved" ? (
-                    <span className="micro normal-case tracking-normal">approved by a person{d.reasons.length ? ` · ${d.reasons.length} review reason${d.reasons.length === 1 ? "" : "s"} overridden` : ""}</span>
+                    <span className="micro normal-case tracking-normal">approved by a person{d.reasons.length ? " · after review" : ""}</span>
                   ) : d.reasons.length > 0 ? (
                     <span className="flex flex-wrap gap-2">
                       {oneReasonPerField(d.reasons).slice(0, 3).map((r, i) => (

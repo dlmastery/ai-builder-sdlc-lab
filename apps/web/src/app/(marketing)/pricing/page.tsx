@@ -37,7 +37,9 @@ export default async function PricingPage() {
         <div className="mx-auto w-full max-w-[880px]">
           <PlateGuarantee />
         </div>
-        <div className="grid gap-8 md:grid-cols-[260px_1fr]">
+        {/* an explicit minmax(0,1fr) column on a phone: the implicit auto column sized itself to the
+            heading's one-line width and the page scrolled sideways (customer test 2, broken 6) */}
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-8 md:grid-cols-[260px_1fr]">
           <h2 className="text-step-2 font-medium leading-tight tracking-tight text-ink">
             <span className="text-ink-3">01 · </span>What you are buying
           </h2>
@@ -57,16 +59,18 @@ export default async function PricingPage() {
             </p>
             {/* the boxed artefact of the scaffold (bar.md M4): where the sample shows a prompt, ours
                 shows what every document comes with — the specimen's own ledger, from rows */}
-            <div className="border border-rule p-4 font-mono text-step--1 leading-relaxed text-ink-2">
-              <p className="micro mb-2">What every invoice comes with · the checks on the real invoice from the home page</p>
+            <div className="min-w-0 overflow-hidden border border-rule p-4 font-mono text-step--1 leading-relaxed text-ink-2">
+              <p className="micro mb-2 whitespace-normal">What every invoice comes with · the checks on the real invoice from the home page</p>
               {ledgerLines().map(([text, passed]) => (
                 <p key={text} className="flex justify-between gap-4">
-                  <span className="truncate">{text}</span>
+                  {/* min-w-0: without it the box's min-content pushed a phone to 485 px wide
+                      (customer test 2, broken 6) */}
+                  <span className="min-w-0 truncate">{text}</span>
                   <span className={passed ? "text-ink-2" : "text-fault"}>{passed ? "✓" : "✗"}</span>
                 </p>
               ))}
               <p className="flex justify-between gap-4">
-                <span className="truncate">decision · {specimen.verdict.decision === "needs_review" ? "a person decides" : String(specimen.verdict.decision).replaceAll("_", " ")}</span>
+                <span className="min-w-0 truncate">decision · {specimen.verdict.decision === "needs_review" ? "a person decides" : String(specimen.verdict.decision).replaceAll("_", " ")}</span>
                 <span className="text-fault">review</span>
               </p>
             </div>
@@ -94,7 +98,7 @@ export default async function PricingPage() {
             }))}
           />
         </div>
-        <div className="grid gap-8 md:grid-cols-[260px_1fr]">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-8 md:grid-cols-[260px_1fr]">
           <h2 className="text-step-2 font-medium leading-tight tracking-tight text-ink">
             <span className="text-ink-3">02 · </span>Three plans
           </h2>

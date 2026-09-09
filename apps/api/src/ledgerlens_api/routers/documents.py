@@ -119,7 +119,7 @@ def upload(
             select(Job).where(Job.idempotency_key == f"process:{principal.tenant_id}:{digest}")
         )
         assert job is not None
-        return UploadAccepted(document=_document_out(existing), job=_job_out(job))
+        return UploadAccepted(document=_document_out(existing), job=_job_out(job), existing=True)
 
     try:
         image = Image.open(io.BytesIO(data))

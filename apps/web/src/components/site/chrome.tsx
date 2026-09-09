@@ -36,7 +36,7 @@ export function SiteNav({ cta = "Start free", tone = "dark", signedIn = false }:
             </Link>
           ) : (
             <>
-              <Link href="/sign-in" className="whitespace-nowrap text-ink-2 hover:text-ink">
+              <Link href="/sign-in" className="hidden whitespace-nowrap text-ink-2 hover:text-ink sm:inline">
                 Sign in
               </Link>
               <Link
@@ -47,9 +47,25 @@ export function SiteNav({ cta = "Start free", tone = "dark", signedIn = false }:
               </Link>
             </>
           )}
-          <button type="button" aria-label="Menu" className="text-ink-2 md:hidden">
-            ☰
-          </button>
+          {/* the phone menu is a <details>: it opens without any script — the button it replaced
+              did nothing (customer test 2, broken 2) */}
+          <details className="relative md:hidden">
+            <summary aria-label="Menu" className="cursor-pointer list-none text-ink-2 [&::-webkit-details-marker]:hidden">
+              ☰
+            </summary>
+            <nav aria-label="Site" className="absolute right-0 top-8 z-30 flex min-w-[200px] flex-col gap-3 rounded-[var(--radius)] border border-rule bg-ground p-4 text-step-0">
+              {NAV.map(([label, href]) => (
+                <a key={label} href={href} className="text-ink-2 hover:text-ink">
+                  {label}
+                </a>
+              ))}
+              {!signedIn ? (
+                <Link href="/sign-in" className="text-ink-2 hover:text-ink">
+                  Sign in
+                </Link>
+              ) : null}
+            </nav>
+          </details>
         </div>
       </div>
     </header>
@@ -58,10 +74,12 @@ export function SiteNav({ cta = "Start free", tone = "dark", signedIn = false }:
 
 const FOOTER: Array<[string, Array<[string, string]>]> = [
   ["Product", [["How it works", "#how"], ["The review screen", "#product"], ["Pricing", "/pricing"], ["Changelog", "https://github.com/dlmastery/ai-builder-sdlc-lab/commits/main"]]],
-  ["Trust", [["Security & data", "#security"], ["What it will not do", "#honest"], ["Status", "#status"], ["Audit trail", "#security"]]],
+  // every link lands somewhere real: no Status page, no Careers, no Press until they exist
+  // (customer test 2, broken 3)
+  ["Trust", [["Security & data", "#security"], ["What it will not do", "#honest"], ["Audit trail", "#security"]]],
   ["Resources", [["Docs", "#faq"], ["FAQ", "#faq"], ["The open build", "https://github.com/dlmastery/ai-builder-sdlc-lab"], ["Decisions log", "https://github.com/dlmastery/ai-builder-sdlc-lab/blob/main/lab/decisions.md"]]],
-  ["Company", [["About", "#company"], ["Contact", "mailto:hello@ledgerlens.example"], ["Careers", "#company"], ["Press", "#company"]]],
-  ["Legal", [["Privacy", "#legal"], ["Terms", "#legal"], ["Data processing", "#legal"], ["Sub-processors: none", "#security"]]],
+  ["Company", [["About", "https://github.com/dlmastery/ai-builder-sdlc-lab#readme"], ["Contact", "mailto:hello@ledgerlens.example"]]],
+  ["Legal", [["Privacy", "/legal#privacy"], ["Terms", "/legal#terms"], ["Data processing", "/legal#data-processing"]]],
 ];
 
 export function SiteFooter() {

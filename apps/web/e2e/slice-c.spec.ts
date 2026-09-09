@@ -55,6 +55,11 @@ test("correct a field, approve, and see the correction persist", async ({ page }
 test("the evidence layers can be toggled and the pricing checkout completes in fake mode", async ({ page }) => {
   await signUp(page, `l${Date.now().toString(36)}`);
   await upload(page, "northwind-00417.png");
+  // the same bytes again: one document, and the page says so instead of refreshing in silence
+  // (customer test 2, broken 1)
+  await upload(page, "northwind-00417-again.png");
+  await expect(page.getByTestId("upload-notice")).toContainText(/already in your queue/i);
+  await expect(page.getByTestId("document-row")).toHaveCount(1);
   await page.getByTestId("document-row").first().click();
   await expect(page.getByTestId("field-box").first()).toBeVisible();
   // the toggle by its id, not its label — the label is copy the design loop rewrites

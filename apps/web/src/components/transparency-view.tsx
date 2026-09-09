@@ -122,6 +122,23 @@ export function TransparencyView({ doc, variant = "a" }: { doc: DocumentDetailOu
   // the header fields that block approval on their own: required and below the bar, or not
   // confirmed on the page — the needs-you strip in the calm document (chapter 16)
   const needsYou = header.filter((f) => toneFor(f, threshold) === "fault");
+  // the status line: one reason per field, the most basic first (missing < unconfirmed < unsure),
+  // and none for a field a person has already corrected — the customer read "Total: not sure
+  // enough · Total: read, but the page could not confirm it", and a stale reason after saving
+  // (customer test 2, confusing 12)
+  const REASON_RANK: Record<string, number> = { missing: 0, ungrounded: 1, below_threshold: 2 };
+  const statusReasons = (() => {
+    const seen = new Map<string, { field: string; why: string }>();
+    for (const r of verdict?.reasons ?? []) {
+      const field = String(r.field ?? "");
+      const why = String(r.why ?? "");
+      const f = header.find((h) => h.name === field);
+      if (f && f.corrections.length > 0) continue;
+      const prev = seen.get(field);
+      if (!prev || (REASON_RANK[why] ?? 9) < (REASON_RANK[prev.why] ?? 9)) seen.set(field, { field, why });
+    }
+    return [...seen.values()];
+  })();
   const words = page.ocr_words ?? [];
   const hardWords = words.filter((w) => w.score < HARD_SPOT_SCORE);
   const corrected = ex.fields.filter((f) => f.corrections.length > 0).length;
@@ -201,8 +218,8 @@ export function TransparencyView({ doc, variant = "a" }: { doc: DocumentDetailOu
             <span aria-hidden className="mr-2">{doc.approved || verdict?.decision === "auto_approved" ? "✓" : "◐"}</span>
             {doc.approved ? "approved by a person" : (verdict?.decision ?? doc.status).replaceAll("_", " ")}
             {doc.approved && corrected > 0 ? <span className="text-ink-2"> · {corrected} corrected</span> : null}
-            {!doc.approved && verdict?.reasons?.length ? (
-              <span className="text-ink-2"> · {verdict.reasons.map((r) => reasonText(String(r.field ?? ""), String(r.why ?? ""))).join(" · ")}</span>
+            {!doc.approved && statusReasons.length ? (
+              <span className="text-ink-2"> · {statusReasons.map((r) => reasonText(r.field, r.why)).join(" · ")}</span>
             ) : null}
           </p>
           {!doc.approved ? (
@@ -272,7 +289,7 @@ export function TransparencyView({ doc, variant = "a" }: { doc: DocumentDetailOu
             <p className="micro">
               Document{doc.vendor_name ? ` · ${doc.vendor_name}` : ""}
               {doc.difficulty != null
-                ? ` · ${doc.difficulty >= 0.5 ? "expected to need a person" : "expected to be easy"} (${pct(doc.difficulty)} of pages like this one did)`
+                ? ` · expected to ${doc.difficulty >= 0.5 ? "need a person" : "be easy"} — ${Math.round(doc.difficulty * 100)} in 100 pages like it needed one`
                 : ""}
             </p>
             <p className="mt-1 truncate font-mono text-step--1 text-ink-3">{doc.original_filename}</p>
@@ -581,7 +598,7 @@ export function TransparencyView({ doc, variant = "a" }: { doc: DocumentDetailOu
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
                     onKeyDown={(e) => e.key === "Escape" && setEditing(null)}
-                    className="readout w-full rounded-[var(--radius)] border border-signal bg-ground px-2 py-1 text-step-0 text-ink"
+                    className="readout w-full min-w-0 rounded-[var(--radius)] border border-signal bg-ground px-2 py-1 text-step-0 text-ink"
                   />
                   <button type="submit" disabled={busy} className="text-step--1 text-signal">save</button>
                   <button type="button" onClick={() => setEditing(null)} className="text-step--1 text-ink-3">esc</button>
@@ -601,7 +618,10 @@ export function TransparencyView({ doc, variant = "a" }: { doc: DocumentDetailOu
             clerk may need to quote it), but as a plain sentence in the footer, not a header
             (brief critic, rounds 9–10) */}
         <p className="text-step--1 text-ink-3">
-          Read in {ex.latency_ms != null ? `${Math.round(ex.latency_ms / 1000)} s` : "—"} by extractor version{" "}
+          {/* the date, so "stub" on an old page and the model serving now (Production) are not read as
+              a contradiction (customer test 2, confusing 9) */}
+          Read on {new Date(doc.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })} in{" "}
+          {ex.latency_ms != null ? `${Math.round(ex.latency_ms / 1000)} s` : "—"} by extractor version{" "}
           <span className="font-mono">{ex.model_version.name}</span> with page reader{" "}
           <span className="font-mono">{ex.ocr_version?.name ?? "—"}</span>. Everything on this screen is
           what those two produced — nothing is added by the view.
@@ -828,7 +848,9 @@ function Readout({
   const wasCorrected = field.corrections.length > 0;
   return (
     <li className={`group ${selected ? "bg-surface" : ""}`}>
-      <div className="grid grid-cols-[1fr_auto] items-baseline gap-3 py-4">
+      {/* while editing, the form takes the whole row — beside the reason it shrank to a sliver on
+          a phone (customer test 2, broken 4) */}
+      <div className={editing ? "py-4" : "grid grid-cols-[1fr_auto] items-baseline gap-3 py-4"}>
         {editing ? (
           <form
             data-testid={`${testIdPrefix}readout-${field.name}`}
@@ -846,7 +868,7 @@ function Readout({
                 value={draft}
                 onChange={(e) => onDraft(e.target.value)}
                 onKeyDown={(e) => e.key === "Escape" && onCancel()}
-                className="readout w-full rounded-[var(--radius)] border border-signal bg-ground px-2 py-1 text-step-0 text-ink"
+                className="readout w-full min-w-0 rounded-[var(--radius)] border border-signal bg-ground px-2 py-1 text-step-0 text-ink"
               />
               <button type="submit" disabled={busy} className="text-step--1 text-signal">save</button>
               <button type="button" onClick={onCancel} className="text-step--1 text-ink-3">esc</button>
@@ -863,6 +885,7 @@ function Readout({
             </span>
           </button>
         )}
+        {!editing ? (
         <span className="flex items-baseline gap-3">
           <span className={`readout text-step--1 ${wasCorrected ? "text-ink-3" : TONE_TEXT[tone]}`}>
             {/* "sure, but the page did not confirm it" as one sentence, never "100 % · not
@@ -894,6 +917,7 @@ function Readout({
             </button>
           ) : null}
         </span>
+        ) : null}
       </div>
     </li>
   );
@@ -922,7 +946,7 @@ function StabilityRing({ value }: { value: number }) {
 function Alternatives({ field }: { field: FieldOut }) {
   return (
     <section className="flex flex-col gap-2">
-      <p className="micro">Runner-up values for {fieldLabel(field.name)} · how likely each was</p>
+      <p className="micro">Other readings it weighed for {fieldLabel(field.name)} · how likely each was</p>
       <ul className="rule-y border-t border-rule text-step--1">
         {field.alternatives.map((a) => (
           <li key={a.rank} className="grid grid-cols-[1fr_auto] py-2">
@@ -954,7 +978,7 @@ function Ledger({
   const formatOk = results.filter((r) => r.rule.startsWith("format.") && r.passed).length;
   return (
     <section className="flex flex-col gap-2">
-      <p className="micro">Ledger · what was checked</p>
+      <p className="micro">The sums, checked · what passed and what did not</p>
       <ul className="rule-y border-t border-rule text-step--1">
         {arithmetic.map((r, i) => (
           <Row key={`a${i}`} text={describe(r, byId)} passed={r.passed} overridden={approved && !r.passed} />

@@ -100,9 +100,14 @@ export function Specimen() {
             return (
               <li key={f.name} className={on ? "arrive" : "opacity-0"} data-layer={on ? "5" : undefined} style={{ animationDelay: on ? `${720 + i * 50}ms` : undefined }}>
                 <div className="micro">{f.name.replaceAll("_", " ")}</div>
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="readout truncate text-step-0 text-ink">{f.value}</span>
-                  <span className={`readout text-step--1 ${TEXT[t]}`}>{Math.round((f.calibrated_confidence ?? 0) * 100)}%</span>
+                {/* wraps rather than truncates: the invoice number was "INV-2026-004…" at 1440 px;
+                    an unconfirmed value says so beside its percentage — red at 100 % read as a
+                    contradiction (customer test 2, ugly 20 and confusing 13) */}
+                <div className="flex flex-wrap items-baseline justify-between gap-x-2">
+                  <span className="readout min-w-0 break-all text-step-0 text-ink">{f.value}</span>
+                  <span className={`readout text-step--1 ${TEXT[t]}`}>
+                    {Math.round((f.calibrated_confidence ?? 0) * 100)}%{f.grounded === false ? " · not confirmed" : ""}
+                  </span>
                 </div>
               </li>
             );
