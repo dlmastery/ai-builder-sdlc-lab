@@ -68,7 +68,15 @@ export function lineSpans(boxes: number[][]): Array<[number, number, number, num
 
 type Layer = "fields" | "words" | "hard";
 
-export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
+/** Gate 5, second half (chapter 16): three directions for the review screen, one component.
+ *  "a" — the evidence sidebar (loop 1's view: page left, readouts right);
+ *  "b" — the calm document (Linear's issue view: one column, a status line, the page, then the
+ *        fields as a properties list);
+ *  "c" — the inspect canvas (Figma's inspect panel: every value pinned beside its box on the
+ *        page, a thin rail for the verdict, the selected field and the ledger). */
+export type ReviewVariant = "a" | "b" | "c";
+
+export function TransparencyView({ doc, variant = "a" }: { doc: DocumentDetailOut; variant?: ReviewVariant }) {
   const ex = doc.extraction!;
   const page = doc.pages[0];
   const router = useRouter();
@@ -173,7 +181,33 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
     // minmax(0, …) on the single phone column too: a 1240 px page image gave the column a
     // 1240 px minimum and pushed the readouts — and the Approve button — off a 390 px screen
     // (customer test, broken 2)
-    <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,2.3fr)_minmax(300px,1fr)]">
+    <div
+      data-variant={variant}
+      className={
+        variant === "b"
+          ? "mx-auto grid w-full max-w-[920px] grid-cols-[minmax(0,1fr)] gap-10"
+          : variant === "c"
+            ? "grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_300px]"
+            : "grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,2.3fr)_minmax(300px,1fr)]"
+      }
+    >
+      {variant === "b" ? (
+        // the calm document: the verdict as one status line above the page, never a panel
+        <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-rule pb-3">
+          <p className="text-step-0 text-ink">
+            <span aria-hidden className="mr-2">{doc.approved || verdict?.decision === "auto_approved" ? "✓" : "◐"}</span>
+            {doc.approved ? "approved by a person" : (verdict?.decision ?? doc.status).replaceAll("_", " ")}
+            {!doc.approved && verdict?.reasons?.length ? (
+              <span className="text-ink-2"> · {verdict.reasons.map((r) => reasonText(String(r.field ?? ""), String(r.why ?? ""))).join(" · ")}</span>
+            ) : null}
+          </p>
+          {!doc.approved ? (
+            <button type="button" data-testid="approve" disabled={busy} onClick={approve} className="rounded-[var(--radius)] bg-ink px-3 py-1.5 text-step--1 font-medium text-ground hover:bg-ink-2 disabled:opacity-60">
+              {busy ? "…" : corrected > 0 ? `Approve with ${corrected} correction${corrected === 1 ? "" : "s"}` : "Approve as read"}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
       {/* --- the page --- */}
       <section className="flex flex-col gap-4">
         <div className="flex flex-col gap-3">
@@ -207,6 +241,7 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
           <h1 className="truncate px-2 pb-3 pt-1 text-step-3 font-medium leading-none tracking-tight" title={documentTitle}>
             {documentTitle}
           </h1>
+        <div className={variant === "c" ? "grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-[minmax(0,1fr)_220px]" : ""}>
         <div className="relative overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -291,6 +326,21 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
                 })}
           </svg>
         </div>
+        {variant === "c" ? (
+          <Pins
+            fields={header}
+            missing={missingRequired}
+            pageHeight={page.height}
+            threshold={threshold}
+            selected={selected}
+            onSelect={(id) => setSelected(id)}
+            onAdd={(n) => {
+              setEditing(`add:${n}`);
+              setDraft("");
+            }}
+          />
+        ) : null}
+        </div>
           <p className="mt-2 flex justify-between font-mono text-[10px] uppercase tracking-[0.12em] text-ink-3">
             <span>Ledgerlens · page 1 of {doc.page_count}</span>
             <span>{page.width} × {page.height}</span>
@@ -307,7 +357,8 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
       </section>
 
       {/* --- the readouts --- */}
-      <aside className="flex flex-col gap-[68px]">
+      <aside className={variant === "b" ? "flex flex-col gap-[68px]" : variant === "c" ? "flex flex-col gap-10" : "flex flex-col gap-[68px]"}>
+        {variant !== "b" ? (
         <Verdict
           decision={doc.approved ? "approved" : (verdict?.decision ?? doc.status)}
           reasons={doc.approved ? [] : (verdict?.reasons ?? [])}
@@ -318,10 +369,14 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
           onApprove={approve}
           error={error}
         />
+        ) : null}
 
         <section className="flex flex-col gap-2">
-          <p className="micro">Fields · as read</p>
-          {HEADER_GROUPS.map((g) => (
+          <p className="micro">{variant === "c" ? "Selected field · and what still needs a person" : "Fields · as read"}</p>
+          {HEADER_GROUPS.filter((g) =>
+            variant !== "c" ||
+            g.names.some((n) => missingRequired.includes(n) || header.some((f) => f.name === n && f.id === selected)),
+          ).map((g) => (
           <div key={g.label} className="mt-7 flex flex-col gap-1 border-t border-rule pt-3 first:mt-0">
           <p className="micro text-ink-3/80">{g.label}</p>
           <ul className="rule-y">
@@ -375,7 +430,7 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
                 </span>
               </li>
             ))}
-            {header.filter((f) => g.names.includes(f.name)).map((f) => (
+            {header.filter((f) => g.names.includes(f.name) && (variant !== "c" || f.id === selected)).map((f) => (
               <Readout
                 key={f.id}
                 field={f}
@@ -487,6 +542,75 @@ export function TransparencyView({ doc }: { doc: DocumentDetailOut }) {
           what those two produced — nothing is added by the view.
         </p>
       </aside>
+    </div>
+  );
+}
+
+/** Direction "c": every header value pinned beside its box, in the margin, with a leader to the
+ *  row it was read on — evidence sits next to the thing it is evidence of. Missing required
+ *  fields pin at the top with their "add". Labels are pushed apart so none overlap. */
+function Pins({
+  fields,
+  missing,
+  pageHeight,
+  threshold,
+  selected,
+  onSelect,
+  onAdd,
+}: {
+  fields: FieldOut[];
+  missing: string[];
+  pageHeight: number;
+  threshold: number;
+  selected: string | null;
+  onSelect: (id: string) => void;
+  onAdd: (name: string) => void;
+}) {
+  const MIN_GAP = 4.2; // percent of the page height ≈ 36 px on a 880 px render
+  const placed = fields
+    .filter((f) => f.boxes.length > 0)
+    .map((f) => ({ f, y: (Math.min(...f.boxes.map((b) => b[2])) / pageHeight) * 100 }))
+    .sort((a, b) => a.y - b.y)
+    .reduce<Array<{ f: FieldOut; y: number; top: number }>>((acc, cur) => {
+      const prev = acc[acc.length - 1];
+      const top = prev ? Math.max(cur.y, prev.top + MIN_GAP) : cur.y;
+      acc.push({ ...cur, top });
+      return acc;
+    }, []);
+  return (
+    <div className="relative hidden md:block" aria-label="Values pinned beside where they were read">
+      {missing.map((n, i) => (
+        <div key={n} className="absolute left-0 right-0" style={{ top: `${i * MIN_GAP}%` }}>
+          <div className="flex items-baseline gap-2 border-t border-fault pt-1">
+            <span className="micro truncate">{fieldLabel(n)}</span>
+            <span className="readout text-step--1 text-fault">missing</span>
+            <button type="button" data-testid={`add-${n}`} onClick={() => onAdd(n)} className="text-step--1 text-ink-3 hover:text-ink">add</button>
+          </div>
+        </div>
+      ))}
+      {placed.map(({ f, top }) => {
+        const tone = toneFor(f, threshold);
+        const conf = f.calibrated_confidence ?? 0;
+        return (
+          <button
+            key={f.id}
+            type="button"
+            data-testid={`pin-${f.name}`}
+            onClick={() => onSelect(f.id)}
+            aria-pressed={f.id === selected}
+            className={`absolute left-0 right-0 text-left ${f.id === selected ? "bg-surface" : ""}`}
+            style={{ top: `${top + missing.length * MIN_GAP}%` }}
+          >
+            <div className="flex items-baseline justify-between gap-2 pt-1" style={{ borderTop: `1px solid ${TONE_VAR[tone]}` }}>
+              <span className="min-w-0 truncate">
+                <span className="micro">{fieldLabel(f.name)}</span>
+                <span className="readout block truncate text-step-0 text-ink">{f.value ?? "—"}</span>
+              </span>
+              <span className={`readout shrink-0 text-step--1 ${TONE_TEXT[tone]}`}>{tone === "signal" ? pct(conf) : pct(conf, 2)}</span>
+            </div>
+          </button>
+        );
+      })}
     </div>
   );
 }
