@@ -100,3 +100,18 @@ So the profile is relaunched unchanged: `train --profile overnight --baseline` �
   | OCR + rules baseline (sampled 40) | — | 0.560 | — |
 
   The whole gap is where the delivered model abstained: vendor names, and twelve vendor addresses. Everything else is a tie or a point or two. The night model was trained on five thousand pages with the unknown-field mask, the delivered one on 466 with the same mask; the honest zero on the home page was a small model refusing to guess names it had rarely been shown, not a rule. What the night model's 77 of 77 does *not* prove: that it reads real vendors' names — the 77 are unseen vendors of the *renderer*, and the 23 receipts carry no vendor label to check against. The specimen, a real invoice with a real stamp, is the next test and the app is the place it is taken. Calibration and difficulty for the delivered model on the same hundred are running; then the judgement.
+- **15:25** — the delivered model's calibration on the same hundred: ECE 0.028 → **0.013**, bar **0.941**, coverage **96.8 %** of the fields it emitted. Beside the night model's 0.036, 0.826, 94.25 %. The delivered model is the better-calibrated of the two — sharper, and honest about it — and it is calibrated on a set of fields that never includes a vendor name, because it never writes one. Both re-measurements exited cleanly.
+
+## The judgement — pin or keep
+
+*Fable, to the AI Builder: "Same hundred documents, same scoring. The night model reads every field the delivered one reads, as well or better, and reads the vendor names the delivered one refused — 77 of 77, on the renderer's unseen vendors. It is worse calibrated: three and a half points of expected error against one and a third, and its bar sits lower with fewer fields clearing it. Under the delivered model the product's number stays zero forever, because a required field it never writes sends every invoice to a person. Under the night model the number can move. The one thing this table cannot tell you is whether it reads a real vendor's name off a real page. Pin, keep, or wait?"*
+
+**AI Builder:** *"Pin it — on one condition, and the condition is the specimen. The number I buy is documents approved without a person at one wrong field in a hundred, and a model that will never write a vendor name cannot sell me that number; it can only sell me a zero with a good excuse. The night model reads the fields I care about at least as well, and where it is worse — the calibration — it is worse by two points of a metric that is still under four; the bar it sets is the bar, and 94 % of fields clearing it is a product, 97 % clearing it with the vendor line blank is a form I still have to fill in. But 77 of 77 on invented vendors is not evidence about Northwind Traders. So: pin it through the audited action, as the data lead, with my name on the row; re-read the specimen under it; if it reads 'Northwind Traders' where the old one wrote nothing and does not invent a total under the stamp, the pin stands and the home page's numbers become this table's. If it invents anything on that page, unpin the same afternoon and write down why. And the home page says 'vendors it had never seen' with the honest footnote: rendered vendors, until real ones are measured."*
+
+*Director's overrides: none at the time of writing.*
+
+*Fable:* recorded as D-056; the pin, the specimen re-read and the numbers follow below.
+
+## After the judgement
+
+- **15:31** — pinned: `POST /models/dc95336b…/pin` as `data@ledgerlens.demo` (role data lead), through the API with a CSRF token — the audited action, with the person on the row (rule 11). The demo API and the web server are back up.

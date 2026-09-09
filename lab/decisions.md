@@ -415,6 +415,14 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Why:** rule 18 — measure before fixing — applies to the metric as much as to the model; rule 7 — unannotated is unknown — must hold in the evaluator or the loss mask (D-030) is undone at the scoreboard.
 - **Date:** 2026-09-09
 
+## D-056 · Pin the night model, on the specimen's say-so
+
+- **Context:** two models measured on the same sampled hundred of the overnight test split under the corrected evaluator (D-055): the delivered `2beb2897` (466 training pages) reads field F1 0.926, ECE 0.013, conformal bar 0.941, 96.8 % of emitted fields clearing it — and never writes a vendor name (0 of 77); the night's `dc95336b` (5,000 pages, 450 steps) reads 0.974, ECE 0.036, bar 0.826, 94.25 % clearing it, vendor names 77 of 77 on the renderer's unseen vendors. The baseline reads 0.56. The product's number — documents approved without a person at one wrong field in a hundred — is structurally zero under a model that never writes a required field.
+- **Alternatives:** keep the delivered model (better calibrated, honest zero forever); pin the night model unconditionally (77 of 77 on rendered vendors is not evidence about a real one); wait for a real-vendor evaluation set (does not exist yet; the specimen is the one real page with a known answer).
+- **Decided (the AI Builder, chapter 18):** pin `dc95336b` through the audited API action as the data lead; re-read the specimen under it; the pin stands if it reads the vendor name the old model left blank and invents nothing under the stamp — otherwise unpin the same afternoon and record why. The home page's numbers become the re-measured table's, with "vendors it had never seen" footnoted as rendered vendors until real ones are measured. The calibration gap (0.036 vs 0.013) is recorded as the next loop's first ML item.
+- **Why:** rule 19 — report the product's number, including when it is zero — cuts both ways: a zero that cannot move is not a guarantee, it is an abstention; rule 11 — the pin is audited and reversible, so the specimen can be the arbiter.
+- **Date:** 2026-09-09
+
 ## D-006 · Policy file capped at 20 lines — and it is now at the cap
 
 - **Decided:** `CLAUDE.md` holds exactly 20 lines. Any new rule must replace or merge with an existing one.
