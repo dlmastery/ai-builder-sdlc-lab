@@ -142,7 +142,9 @@ This is everything the AI Builder typed across the lab, unedited (typos kept: th
 | 49 | `what is the status - are you playing simuilation` | Fable had asked question 1 and was waiting for the human to answer. |
 | 50 | `why watiing on me - i told you to simulate an expert with great taste and asnwer` | D-051: the human directs; Fable plays the elite AI Builder and answers, visibly; the human overrides any line. Rounds 3 and 4 performed in chapter 13; references fetched and shown (chapter 14); three complete directions rendered and debated by a second model (chapter 15). |
 
-Fifty messages; four of them are the word "accept", and the longest ones are taste, standards, and the verdict on the run — never how. That ratio is the lab.
+| 51 | `yes` | The night run's relaunch after its first launch crashed at model load (chapter 18, D-054): the AI Builder was offered "free memory, or lower the floor"; by launch time the headroom measured 12.5 GB, so the run went with the default floor. |
+
+Fifty-one messages; four of them are the word "accept" and one is the word "yes", and the longest ones are taste, standards, and the verdict on the run — never how. That ratio is the lab.
 
 ## 8. When the loop is closed
 
