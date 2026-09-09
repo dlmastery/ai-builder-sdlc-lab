@@ -139,8 +139,10 @@ This is everything the AI Builder typed across the lab, unedited (typos kept: th
 | 47 | `update the whole md files and ai native sdlc files with these feedback of fixing the flow` · `you are not even close to the things experienced and told in https://www.youtube.com/watch?v=swcKLJWnhNw&t=16s` · `the home page should be complete of a stage C startup - not some meagre bullshit where i cannot figure out what it is - take this feedback as well` · `remember you are writing a meta script for the actual script` | This playbook rewritten as the meta-script with the ▶ corrected turns; the video re-read from its transcript and D-019's rejections reversed (D-049); the Series-C home-page checklist (D-050); `SCRIPT.md` Beat 17; chapter 12; the agent's memory of the persona corrected. |
 
 | 48 | `1` | Rewind at the plan gate, live. Loop 2 opens at `story/13-loop-2-the-grilling.md` with the grilling, one question at a time. |
+| 49 | `what is the status - are you playing simuilation` | Fable had asked question 1 and was waiting for the human to answer. |
+| 50 | `why watiing on me - i told you to simulate an expert with great taste and asnwer` | D-051: the human directs; Fable plays the elite AI Builder and answers, visibly; the human overrides any line. Rounds 3 and 4 performed in chapter 13; references fetched and shown (chapter 14); three complete directions rendered and debated by a second model (chapter 15). |
 
-Forty-eight messages; four of them are the word "accept", and the longest ones are taste, standards, and the verdict on the run — never how. That ratio is the lab.
+Fifty messages; four of them are the word "accept", and the longest ones are taste, standards, and the verdict on the run — never how. That ratio is the lab.
 
 ## 8. When the loop is closed
 
