@@ -43,3 +43,4 @@ So the profile is relaunched unchanged: `train --profile overnight --baseline` �
 - **07:15:15** — **checkpoint 250.** 9,318 s. Ten stored. Step 450 expected about 09:20 UTC.
 - **07:30:45** — **checkpoint 275.** 10,262 s, loss 0.0001.
 - **07:46:14** — **checkpoint 300.** 11,193 s. Two thirds; 150 steps left.
+- **08:01:43** — **checkpoint 325.** 12,086 s, loss 0.0001.
