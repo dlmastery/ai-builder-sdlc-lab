@@ -35,3 +35,4 @@ So the profile is relaunched unchanged: `train --profile overnight --baseline` �
 - **05:11:19** — **checkpoint 50.** 1,895 s (38 s a step, steady), loss 0.009 — down from 0.037 at step 25. On pace for step 450 at about 09:15 UTC.
 - **05:25:46** — **checkpoint 75.** 2,731 s (36 s a step), loss 0.0059. The loss curve so far: 0.037 → 0.009 → 0.006 at 25-step marks — the unknown-field mask (D-030) keeps it from the near-zero of the smoke runs, which is the point.
 - **05:41:15** — **checkpoint 100.** 3,685 s (37 s a step), loss 0.0013. Past the step where attempt five was lost to the power cut (109, D-039) in nine minutes' time — with four checkpoints behind it this time.
+- **05:56:44** — **checkpoint 125.** 4,583 s (37 s a step), loss 0.0005. Past step 109 — the furthest any overnight-profile run has got on this machine. Loss at 25-step marks so far: 0.037, 0.009, 0.006, 0.0013, 0.0005.
