@@ -7,7 +7,9 @@ description: Runs the judgement interview that turns a project hand-over into an
 
 The grilling is the tutorial's central scene, not a formality before the work. The first run of this lab asked six questions on day one and then ran alone for a day; the AI Builder's verdict was *"you totally spoiled the experience — I hoped you would play the script where the user is getting grilled on requirements and tastes and judgement and verifiers"* (D-048). This skill exists so that never happens again.
 
-Judgement questions only. Never ask about columns, libraries, hyperparameters or pixels (rule 1). Three per round; as many rounds as it takes for the AI Builder to say "enough" — that word is the exit, not a question count. Never answer a question for them by quoting an old steer unless the steer answers *that* question; if in doubt, ask and wait.
+Judgement questions only. Never ask about columns, libraries, hyperparameters or pixels (rule 1). Three per round; as many rounds as it takes for the AI Builder to say "enough" — that word is the exit, not a question count. Never answer a question for them by quoting an old steer unless the steer answers *that* question.
+
+**Who answers (D-051).** If the human is answering, ask one question, wait, ask the next. If the human has said "play both roles" or "simulate", Fable plays an **elite AI Builder with great taste** and answers each question in that voice, in the chapter, right after asking it — concrete, opinionated, with a named bar and a named slop list, never "it depends" — and the human directs from outside: any line they write overrides the character's. The grilling is the scene the tutorial exists for; it is performed either way. The first run's failure was skipping the scene, not skipping the wait.
 
 ## Round 1 — product
 

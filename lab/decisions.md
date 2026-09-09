@@ -363,6 +363,13 @@ One entry per non-obvious decision. Format: what was decided, alternatives consi
 - **Salvage chosen (2026-09-08):** the AI Builder answered *"1"* — rewind at the plan gate, live. Loop 2 begins at chapter 13 with the grilling, one question at a time.
 - **Date:** 2026-09-07
 
+## D-051 · Who answers the grilling: the human directs, Fable plays the elite AI Builder
+
+- **Context:** chapter 13 opened with Fable asking the first taste question and waiting. The human: *"why waiting on me — I told you to simulate an expert with great taste and answer."* D-022 (play both roles) and D-048 (the grilling and the choosing must happen) had been read as contradicting each other; they do not. The scene must happen; the human decides who speaks the AI Builder's lines.
+- **Decided:** when the human says "play both roles" or "simulate", Fable asks each question and answers it in the voice of an elite AI Builder with great taste — concrete, opinionated, a named bar, a named slop list — visibly in the chapter, and moves to the next. The human directs from outside: any line they write overrides the character's answer, and they may take the chair at any question. The prototypes are still rendered and still chosen — by the character, unless the human chooses. Rule 1 and `grilling-the-builder` say so.
+- **Why:** the lab is a showcase of the AI Builder experience; the audience needs to see the grilling and the choosing performed well, and the human's judgement is spent on directing, not on typing answers the character can give.
+- **Date:** 2026-09-08
+
 ## D-049 · The design video, re-read from its transcript — D-019's rejections reversed
 
 - **Context:** the AI Builder pointed at the same video three times (messages 20, 38, 47: *"you are not even close to the things experienced and told in [the video]"*). D-019 had adopted five techniques from it and rejected two on the agent's own judgement: generated hero imagery and component galleries. The transcript, read in full this time, says: the model **interviews you one question at a time** until it has the context, proposes a plan, then **a second frontier model debates the plan** before execution; *"you won't get brilliant results unless you have a great reference"* — references come from **galleries** (Refero, 21st.dev, Mobbin-style) and *"get inspiration from multiple different sites"*; hero images and video come from a **connected generator**; components are **pulled from a gallery and re-themed**, then turned into tokens and a system; a **design-loop skill with critics** iterates. The agent had kept the parts it could do alone and dropped the parts that needed the AI Builder's eyes or an external tool.
