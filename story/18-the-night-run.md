@@ -46,3 +46,4 @@ So the profile is relaunched unchanged: `train --profile overnight --baseline` �
 - **08:01:43** — **checkpoint 325.** 12,086 s, loss 0.0001.
 - **08:17:14** — **checkpoint 350.** 13,040 s. A hundred steps left, about an hour.
 - **08:21** — the harness's low-memory watchdog killed the demo API, the web server and the jobs-table watcher (all harness-owned). The run, launched detached, was untouched: alive at step 356, 8.1 GB on the GPU, 5 GB RAM free. This is D-025 working as written — the thing that must survive is the thing the harness does not own. The app stays down until evaluation ends; the checkpoint monitor still reports.
+- **08:33:45** — **checkpoint 375.** 14,038 s. Three to go.
